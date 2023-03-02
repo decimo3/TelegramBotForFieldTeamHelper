@@ -11,7 +11,8 @@ using Telegram.Bot.Types.ReplyMarkups;
 DotEnv.Load();
 
 var bot = new TelegramBotClient(System.Environment.GetEnvironmentVariable("TOKEN"));
-
+var UsersFile = System.IO.File.Open("Users.json", FileMode.Open);
+var users = System.Text.Json.JsonSerializer.Deserialize<List<telbot.Users>>(UsersFile);
 using var cts = new CancellationTokenSource();
 
 // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool, so we use cancellation token
@@ -42,12 +43,11 @@ async Task HandleError(ITelegramBotClient _, Exception exception, CancellationTo
 async Task HandleMessage(Message msg)
 {
   var user = msg.From;
-  Console.WriteLine(user.Username);
   var text = msg.Text ?? string.Empty;
-  string[] users = {"decimo3"};
   if (user is null)
     return;
-  if (!(Array.IndexOf(users, user.Username) >= 0))
+  var xpto = from id in users where id.Id == user.Id select id;
+  if (xpto.Count() == 0)
   {
     await bot.SendTextMessageAsync(user.Id, "Eu não estou autorizado a te passar informações!");
     return;
@@ -62,6 +62,12 @@ async Task HandleMessage(Message msg)
   else if (text.Length > 0)
   {
     string[] args = text.Split(" ");
+    if(args.Count() != 2)
+    {
+      await bot.SendTextMessageAsync(user.Id, "Verifique o formato da informação!");
+      await bot.SendTextMessageAsync(user.Id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+      return;
+    }
     string? resposta = telbot.Temporary.executar(args[0], args[1]);
     // To preserve the markdown, we attach entities (bold, italic..)
     await bot.SendTextMessageAsync(user.Id, resposta);
@@ -77,8 +83,17 @@ async Task HandleCommand(long userId, string command)
   switch (command)
   {
     case "/start":
+      await bot.SendTextMessageAsync(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
+      await bot.SendTextMessageAsync(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
+      await bot.SendTextMessageAsync(userId, "leiturista 1012456598");
+      await bot.SendTextMessageAsync(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO");
+      await bot.SendTextMessageAsync(userId, "Estou trabalhando para trazer mais funções em breve");
       break;
     case "/ajuda":
+      await bot.SendTextMessageAsync(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
+      await bot.SendTextMessageAsync(userId, "leiturista 1012456598");
+      await bot.SendTextMessageAsync(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO");
+      await bot.SendTextMessageAsync(userId, "Estou trabalhando para trazer mais funções em breve");
       break;
   }
   await Task.CompletedTask;

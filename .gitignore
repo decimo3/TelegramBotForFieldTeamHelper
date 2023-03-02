@@ -478,3 +478,4 @@ $RECYCLE.BIN/
 
 # Informação sensível
 .env
+Users.json
