@@ -1,7 +1,9 @@
 namespace telbot;
 public class Users
 {
-  public string nome {get; set;}
+  public string name {get; set;}
   public long Id {get; set;}
-  public DateTime Date {get; set;}
+  public DateTime exp {get; set;}
+  public Role role { get; set;}
+  public enum Role {Administrador, Supervisor, Eletricista}
 }
