@@ -3,27 +3,25 @@ using System.Linq;
 using Microsoft.VisualBasic;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
-// using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-
+// loads the environment variables configured in the .env file
 DotEnv.Load();
-
-var bot = new TelegramBotClient(System.Environment.GetEnvironmentVariable("TOKEN"));
+// instantiates a new telegram bot api client with the specified token
+var bot = new TelegramBotClient(System.Environment.GetEnvironmentVariable("TOKEN")!);
+// opens and loads the list of users allowed to use the bot from a json file
 var UsersFile = System.IO.File.Open("Users.json", FileMode.Open);
 var users = System.Text.Json.JsonSerializer.Deserialize<List<telbot.Users>>(UsersFile);
+// 
 using var cts = new CancellationTokenSource();
-
 // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool, so we use cancellation token
 bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
-
 // Tell the user the bot is online
 Console.WriteLine("Start listening for updates. Press enter to stop");
 Console.ReadLine();
 // Send cancellation request to stop the bot
 cts.Cancel();
-
 // Each time a user interacts with the bot, this method is called
 async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
 {
@@ -32,14 +30,16 @@ async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken c
     // A message was received
     await HandleMessage(update.Message!);
   }
+    else
+    {
+        // 
+        await bot.SendTextMessageAsync(update.Message.From.Id, "Não estou programado para responder outras solicitações que não sejam mensagens");
+    }
 }
-
 async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
 {
   await Console.Error.WriteLineAsync(exception.Message);
 }
-
-
 async Task HandleMessage(Message msg)
 {
   var user = msg.From;
