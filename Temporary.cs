@@ -25,4 +25,20 @@ public static class Temporary
         return linha;
       }
   }
+  public static void executar(List<string> listaValoresSeparadosPorTabulacao)
+  {
+    string valoresSeparadosPorTabulacao = string.Join("\n", listaValoresSeparadosPorTabulacao.ToArray());
+    using(var proc = new System.Diagnostics.Process{
+      StartInfo = new System.Diagnostics.ProcessStartInfo
+        {
+          FileName = PYTHON_PATH,
+          Arguments = $"{EXCEL_FILE} {valoresSeparadosPorTabulacao}",
+          UseShellExecute = false,
+          RedirectStandardOutput = true,
+          CreateNoWindow = true
+        }})
+      {
+        proc.Start();
+      }
+  }
 }
