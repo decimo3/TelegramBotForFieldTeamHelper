@@ -65,6 +65,7 @@ async Task HandleMessage(Message msg)
         await bot.CopyMessageAsync(user.Id, user.Id, msg.MessageId);
         return;
     }
+    text = text.ToLower();
     string[] args = text.Split(" ");
     if(args.Count() != 2)
     {
@@ -79,19 +80,32 @@ async Task HandleMessage(Message msg)
         await bot.SendTextMessageAsync(user.Id, "Solicite a informação para o monitor(a)");
         return;
     }
-    if (resposta.Count == 2)
+    if(args[0] == "fatura" || args[0] == "debito")
     {
-        Console.WriteLine($"> {resposta[0].ToString()} enviado para: {user.FirstName}");
+        foreach (string fatura in resposta)
+        {
+            if(fatura == "None")
+            {
+                return;
+            }
+            await using Stream stream = System.IO.File.OpenRead(@$"C:\Users\ruan.camello\Documents\Temporario\{fatura}");
+            await bot.SendDocumentAsync(user.Id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
+        }
+        return;
+    }
+    if(args[0] == "leiturista" || args[0] == "roteiro")
+    {
+        telbot.Temporary.executar(resposta);
+        await using Stream stream = System.IO.File.OpenRead(@$"C:\Users\ruan.camello\Documents\Temporario\temporario.png");
+        await bot.SendPhotoAsync(user.Id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+        return;
+    }
+    if (args[0] == "telefone" || args[0] == "coordenada")
+    {
         await bot.SendTextMessageAsync(user.Id, resposta[0].ToString()!);
         return;
     }
-    if (resposta.Count > 2)
-    {
-        Console.WriteLine("> Enviado arquivo");
-        // await bot.SendPhotoAsync(user.Id, "");
-        return;
-    }
-    await bot.SendTextMessageAsync(user.Id, "O que você está fazendo aqui?");
+    await bot.SendTextMessageAsync(user.Id, "Não entendi o comando, verifique se está correto!");
     return;
 }
 
