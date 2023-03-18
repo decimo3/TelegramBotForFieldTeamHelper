@@ -100,7 +100,7 @@ async Task HandleMessage(Message msg)
         await bot.SendPhotoAsync(user.Id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
         return;
     }
-    if (args[0] == "telefone" || args[0] == "coordenada")
+    if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato")
     {
         await bot.SendTextMessageAsync(user.Id, resposta[0].ToString()!);
         return;
