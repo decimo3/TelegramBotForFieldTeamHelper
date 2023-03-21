@@ -8,6 +8,8 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 // loads the environment variables configured in the .env file
 DotEnv.Load();
+// Identificador do administrador do BOT
+long ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
 // instantiates a new telegram bot api client with the specified token
 var bot = new TelegramBotClient(System.Environment.GetEnvironmentVariable("TOKEN")!);
 // opens and loads the list of users allowed to use the bot from a json file
@@ -76,8 +78,7 @@ async Task HandleMessage(Message msg)
     var resposta = telbot.Temporary.executar(args[0], args[1]);
     if ((resposta.Count == 0) || (resposta is null))
     {
-        await bot.SendTextMessageAsync(user.Id, "Não foi possível processar a sua solicitação!");
-        await bot.SendTextMessageAsync(user.Id, "Solicite a informação para o monitor(a)");
+        await ErrorReport(user.Id, new Exception("Erro no script do SAP"));
         return;
     }
     if(args[0] == "fatura" || args[0] == "debito")
@@ -97,19 +98,25 @@ async Task HandleMessage(Message msg)
         }
         catch (System.Exception error)
         {
-            await bot.SendTextMessageAsync(1469480868, $"Aplicação: {args[0]}\nInformação: {args[1]}\n\n{error.Message}");
-            await bot.SendTextMessageAsync(user.Id, error.Message);
+            await ErrorReport(user.Id, error);
         }
         return;
     }
     if(args[0] == "leiturista" || args[0] == "roteiro")
     {
-        telbot.Temporary.executar(resposta);
-        await using Stream stream = System.IO.File.OpenRead(@$"C:\Users\ruan.camello\Documents\Temporario\temporario.png");
-        await bot.SendPhotoAsync(user.Id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
-        stream.Dispose();
-        System.IO.File.Delete(@"C:\Users\ruan.camello\Documents\Temporario\temporario.png");
-        return;
+        try
+        {
+            telbot.Temporary.executar(resposta);
+            await using Stream stream = System.IO.File.OpenRead(@$"C:\Users\ruan.camello\Documents\Temporario\temporario.png");
+            await bot.SendPhotoAsync(user.Id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+            stream.Dispose();
+            System.IO.File.Delete(@"C:\Users\ruan.camello\Documents\Temporario\temporario.png");
+        }
+        catch (System.Exception error)
+        {
+            await ErrorReport(user.Id, error);
+        }
+            return;
     }
     if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato")
     {
@@ -139,4 +146,12 @@ async Task HandleCommand(long userId, string command)
             break;
     }
     await Task.CompletedTask;
+}
+
+async Task ErrorReport(long userId, Exception error)
+{
+    await bot.SendTextMessageAsync(ID_ADM_BOT, $"Aplicação: {args[0]}\nInformação: {args[1]}\n\n{error.Message}");
+    await bot.SendTextMessageAsync(userId, "Não foi possível processar a sua solicitação!");
+    await bot.SendTextMessageAsync(userId, "Solicite a informação para o monitor(a)");
+    return;
 }
