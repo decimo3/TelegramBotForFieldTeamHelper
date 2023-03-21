@@ -40,7 +40,9 @@ async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken c
 }
 async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
 {
+    await ErrorReport(ID_ADM_BOT, "", "", exception);
     await Console.Error.WriteLineAsync(exception.Message);
+    await Console.Error.WriteLineAsync(exception.StackTrace);
 }
 async Task HandleMessage(Message msg)
 {
@@ -48,14 +50,17 @@ async Task HandleMessage(Message msg)
     var text = msg.Text ?? string.Empty;
     if (user is null)
         return;
-    var xpto = (from id in users where id.Id == user.Id select id);
-    if (xpto.Count() == 0)
+    Console.WriteLine($"> {user.FirstName} escreveu: {text}");
+    try
+    {
+        var xpto = (from id in users where id.Id == user.Id select id).Single();
+    }
+    catch
     {
         await bot.SendTextMessageAsync(user.Id, "Eu não estou autorizado a te passar informações!");
         return;
     }
     // Print to console
-    Console.WriteLine($"> {user.FirstName} escreveu: {text}");
     // When we get a command, we react accordingly
     if (text.StartsWith("/"))
     {
@@ -78,7 +83,7 @@ async Task HandleMessage(Message msg)
     var resposta = telbot.Temporary.executar(args[0], args[1]);
     if ((resposta.Count == 0) || (resposta is null))
     {
-        await ErrorReport(user.Id, new Exception("Erro no script do SAP"));
+        await ErrorReport(user.Id, args[0], args[1], new Exception("Erro no script do SAP"));
         return;
     }
     if(args[0] == "fatura" || args[0] == "debito")
@@ -87,7 +92,7 @@ async Task HandleMessage(Message msg)
         {
             foreach (string fatura in resposta)
             {
-                if(fatura == "None")
+                if(fatura == "None" || fatura == null || fatura == "")
                 {
                     return;
                 }
@@ -98,7 +103,7 @@ async Task HandleMessage(Message msg)
         }
         catch (System.Exception error)
         {
-            await ErrorReport(user.Id, error);
+            await ErrorReport(user.Id, args[0], args[1], error);
         }
         return;
     }
@@ -114,7 +119,7 @@ async Task HandleMessage(Message msg)
         }
         catch (System.Exception error)
         {
-            await ErrorReport(user.Id, error);
+            await ErrorReport(user.Id, args[0], args[1], error);
         }
             return;
     }
@@ -148,9 +153,9 @@ async Task HandleCommand(long userId, string command)
     await Task.CompletedTask;
 }
 
-async Task ErrorReport(long userId, Exception error)
+async Task ErrorReport(long userId, string aplicacao, string informacao, Exception error)
 {
-    await bot.SendTextMessageAsync(ID_ADM_BOT, $"Aplicação: {args[0]}\nInformação: {args[1]}\n\n{error.Message}");
+    await bot.SendTextMessageAsync(ID_ADM_BOT, $"Aplicação: {aplicacao}\nInformação: {informacao}\n\n{error.Message}");
     await bot.SendTextMessageAsync(userId, "Não foi possível processar a sua solicitação!");
     await bot.SendTextMessageAsync(userId, "Solicite a informação para o monitor(a)");
     return;
