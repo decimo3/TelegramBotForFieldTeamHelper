@@ -82,14 +82,23 @@ async Task HandleMessage(Message msg)
     }
     if(args[0] == "fatura" || args[0] == "debito")
     {
-        foreach (string fatura in resposta)
+        try
         {
-            if(fatura == "None")
+            foreach (string fatura in resposta)
             {
-                return;
+                if(fatura == "None")
+                {
+                    return;
+                }
+                await using Stream stream = System.IO.File.OpenRead(@$"C:\Users\ruan.camello\Documents\Temporario\{fatura}");
+                await bot.SendDocumentAsync(user.Id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
+                stream.Dispose();
             }
-            await using Stream stream = System.IO.File.OpenRead(@$"C:\Users\ruan.camello\Documents\Temporario\{fatura}");
-            await bot.SendDocumentAsync(user.Id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
+        }
+        catch (System.Exception error)
+        {
+            await bot.SendTextMessageAsync(1469480868, $"Aplicação: {args[0]}\nInformação: {args[1]}\n\n{error.Message}");
+            await bot.SendTextMessageAsync(user.Id, error.Message);
         }
         return;
     }
@@ -98,6 +107,8 @@ async Task HandleMessage(Message msg)
         telbot.Temporary.executar(resposta);
         await using Stream stream = System.IO.File.OpenRead(@$"C:\Users\ruan.camello\Documents\Temporario\temporario.png");
         await bot.SendPhotoAsync(user.Id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+        stream.Dispose();
+        System.IO.File.Delete(@"C:\Users\ruan.camello\Documents\Temporario\temporario.png");
         return;
     }
     if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato")
@@ -123,7 +134,7 @@ async Task HandleCommand(long userId, string command)
         case "/ajuda":
             await bot.SendTextMessageAsync(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
             await bot.SendTextMessageAsync(userId, "leiturista 1012456598");
-            await bot.SendTextMessageAsync(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO");
+            await bot.SendTextMessageAsync(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA e FATURAS");
             await bot.SendTextMessageAsync(userId, "Estou trabalhando para trazer mais funções em breve");
             break;
     }
