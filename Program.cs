@@ -140,7 +140,7 @@ async Task HandleCommand(long userId, string command)
             await bot.SendTextMessageAsync(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
             await bot.SendTextMessageAsync(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
             await bot.SendTextMessageAsync(userId, "leiturista 1012456598");
-            await bot.SendTextMessageAsync(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO");
+            await bot.SendTextMessageAsync(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA e FATURA");
             await bot.SendTextMessageAsync(userId, "Estou trabalhando para trazer mais funções em breve");
             break;
         case "/ajuda":
