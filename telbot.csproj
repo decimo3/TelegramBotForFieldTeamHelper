@@ -9,9 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="dotenv.net" Version="3.1.2" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0" />
-	<None Include=".env" CopyToOutputDirectory="PreserveNewest" />
-	<None Include="Users.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include=".env" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

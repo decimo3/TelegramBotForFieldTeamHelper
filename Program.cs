@@ -12,14 +12,10 @@ public class Program
   private long ID_ADM_BOT;
   // instantiates a new telegram bot api client with the specified token
   private TelegramBotClient bot;
-  private List<telbot.Users> users;
   public Program()
   {
     // Identificador do administrador do BOT
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
-    // opens and loads the list of users allowed to use the bot from a json file
-    var UsersFile = System.IO.File.Open("Users.json", FileMode.Open);
-    users = System.Text.Json.JsonSerializer.Deserialize<List<telbot.Users>>(UsersFile)!;
     // instantiates a new telegram bot api client with the specified token
     bot = new TelegramBotClient(System.Environment.GetEnvironmentVariable("TOKEN")!);
     // 
