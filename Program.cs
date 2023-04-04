@@ -238,7 +238,7 @@ public class Program
         await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.USER_PATH}\Documents\Temporario\temporario.png");
         await bot.SendPhotoAsync(user.id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
         stream.Dispose();
-        System.IO.File.Delete(@"{Temporary.USER_PATH}\Documents\Temporario\temporario.png");
+        System.IO.File.Delete(@$"{Temporary.USER_PATH}\Documents\Temporario\temporario.png");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
       }
       catch (System.Exception error)
