@@ -4,12 +4,12 @@ public static class Validador
 {
   public static bool isValidAplicacao (string aplicacao)
   {
-    var regex = new Regex("^[a-z]{1,16}$");
+    var regex = new Regex("^[a-z]{6,16}$");
     return regex.IsMatch(aplicacao);
   }
   public static bool isValidInformacao (string informacao)
   {
-    var regex = new Regex("^[0-9]{1,10}$");
+    var regex = new Regex("^[0-9]{9,12}$");
     return regex.IsMatch(informacao);
   }
   public static bool isAplicacaoOption (string aplicacao)
