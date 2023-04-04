@@ -272,7 +272,7 @@ public class Program
         await bot.SendTextMessageAsync(userId, "Estou trabalhando para trazer mais funções em breve");
         break;
       case "/ping":
-        await bot.SendTextMessageAsync(ID_ADM_BOT, "Estou de prontidão aguardando as solicitações! (^.^)");
+        await bot.SendTextMessageAsync(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
         break;
       default:
         await bot.SendTextMessageAsync(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
