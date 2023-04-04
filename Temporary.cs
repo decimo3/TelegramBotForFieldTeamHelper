@@ -1,16 +1,32 @@
 namespace telbot;
 public static class Temporary
 {
-  private static string PYTHON_PATH = @"C:\Users\ruan.camello\scoop\apps\python\current\python.exe";
-  private static string SAP_SCRIPT = @"C:\Users\ruan.camello\Documents\Development\Automacao\src\sap.py";
-  private static string IMG_SCRIPT = @"C:\Users\ruan.camello\Documents\Development\Automacao\src\img.py";
+  public static string USER_PATH = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+  private static string PYTHON_PATH()
+  {
+    if(System.OperatingSystem.IsWindows()) return (USER_PATH + @"\scoop\apps\python\current\python.exe");
+    if(System.OperatingSystem.IsLinux()) return (USER_PATH + @"/.asdf/shims/python");
+    throw new System.Exception("Sistema operacional não configurado!");
+  }
+  private static string SAP_SCRIPT()
+  {
+    if(System.OperatingSystem.IsWindows()) return (USER_PATH + @"\Documents\Development\Automacao\src\sap.py");
+    if(System.OperatingSystem.IsLinux()) return (USER_PATH + @"/Documents/Development/Automacao/src/sap.py");
+    throw new System.Exception("Sistema operacional não configurado!");
+  }
+  private static string IMG_SCRIPT()
+  {
+    if(System.OperatingSystem.IsWindows()) return (USER_PATH + @"\Documents\Development\Automacao\src\img.py");
+    if(System.OperatingSystem.IsLinux()) return (USER_PATH + @"/Documents/Development/Automacao/src/img.py");
+    throw new System.Exception("Sistema operacional não configurado!");
+  }
   public static List<string> executar(string aplicacao, string informacao)
   {
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
-          FileName = PYTHON_PATH,
-          Arguments = $"{SAP_SCRIPT} {aplicacao} {informacao}",
+          FileName = PYTHON_PATH(),
+          Arguments = $"{SAP_SCRIPT()} {aplicacao} {informacao}",
           UseShellExecute = false,
           RedirectStandardOutput = true,
           CreateNoWindow = true
@@ -31,8 +47,8 @@ public static class Temporary
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
-          FileName = PYTHON_PATH,
-          Arguments = $"{IMG_SCRIPT} \"{textoValoresSeparadosPorTabulacao}\"",
+          FileName = PYTHON_PATH(),
+          Arguments = $"{IMG_SCRIPT()} \"{textoValoresSeparadosPorTabulacao}\"",
           UseShellExecute = false,
           RedirectStandardOutput = true,
           CreateNoWindow = true
