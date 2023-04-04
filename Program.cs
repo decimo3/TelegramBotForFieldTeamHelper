@@ -1,5 +1,4 @@
-﻿using dotenv.net;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.VisualBasic;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -16,8 +15,6 @@ public class Program
   private List<telbot.Users> users;
   public Program()
   {
-    // loads the environment variables configured in the .env file
-    DotEnv.Load();
     // Identificador do administrador do BOT
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
     // opens and loads the list of users allowed to use the bot from a json file
