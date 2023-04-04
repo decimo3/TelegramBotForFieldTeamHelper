@@ -43,7 +43,6 @@ public class Program
       Console.WriteLine(update.ToString());
       await ErrorReport(ID_ADM_BOT, string.Empty, string.Empty, new InvalidOperationException(update.ToString()));
       return;
-      await bot.SendTextMessageAsync(update.Message.From.Id, "Não estou programado para responder outras solicitações que não sejam mensagens");
     }
   }
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
