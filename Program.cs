@@ -69,7 +69,7 @@ public class Program
       return;
     }
     // verifica se o cadastro tem mais de 60 dias desde a atualização
-    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(60)) > 0)
+    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(30)) > 0)
     {
       await bot.SendTextMessageAsync(message.From.Id, "Sua autorização expirou e não posso mais te passar informações");
       await bot.SendTextMessageAsync(message.From.Id, "Solicite a autorização novamente para o seu supervisor!");
@@ -77,7 +77,7 @@ public class Program
       return;
     }
     // Verifica se o cadastro está perto de expirar (7 dias antes) e avisa
-    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(53)) > 0)
+    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(23)) > 0)
     {
       await bot.SendTextMessageAsync(message.From.Id, "Sua autorização está quase expirando!");
       await bot.SendTextMessageAsync(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
@@ -175,7 +175,7 @@ public class Program
     }
     if (args[0] == "promover")
     {
-      if(user.id == ID_ADM_BOT)
+      if(user.id != ID_ADM_BOT)
       {
         await bot.SendTextMessageAsync(user.id, "Você não tem permissão para promover usuários!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
