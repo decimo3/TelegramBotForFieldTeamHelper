@@ -175,7 +175,7 @@ public class Program
     }
     if (args[0] == "promover")
     {
-      if(!user.has_privilege)
+      if(user.id == ID_ADM_BOT)
       {
         await bot.SendTextMessageAsync(user.id, "Você não tem permissão para promover usuários!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
