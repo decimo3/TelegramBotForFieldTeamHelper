@@ -230,7 +230,7 @@ public class Program
       }
       return;
     }
-    if (args[0] == "leiturista" || args[0] == "roteiro" || args[0] == "historico")
+    if ((args[0] == "leiturista") || (args[0] == "roteiro") || (args[0] == "historico") || (args[0] == "pendente"))
     {
       try
       {
