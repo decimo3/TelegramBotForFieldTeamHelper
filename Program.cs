@@ -233,7 +233,7 @@ public class Program
         stream.Dispose();
         System.IO.File.Delete(@$"{Temporary.USER_PATH}\Documents\Temporario\temporario.png");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
-        await sendTextMesssageWraper(user.id, "Enviado relatorio de leitura!", false);
+        await sendTextMesssageWraper(user.id, $"Enviado relatorio de {args[0]}!", false);
       }
       catch (System.Exception error)
       {
@@ -284,7 +284,7 @@ public class Program
   }
   async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
   {
-    await bot.SendTextMessageAsync(userId, message);
+    if(enviar) await bot.SendTextMessageAsync(userId, message);
     Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
   }
 }
