@@ -123,7 +123,7 @@ public class Program
       await bot.SendTextMessageAsync(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
-    if (args[0] == "autorizar")
+    if ((args[0] == "autorizar") || (args[0] == "atualizar"))
     {
       if(!user.has_privilege)
       {
@@ -133,37 +133,27 @@ public class Program
       }
       if(Int64.TryParse(args[1], out long id))
       {
-        Database.inserirUsuario(new UsersModel(id, user.id));
-        await bot.SendTextMessageAsync(user.id, "Usuário autorizado com sucesso!");
-        Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
-      }
-      else
-      {
-        await bot.SendTextMessageAsync(user.id, "O identificador do usuário não é válido!");
-        Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
-      }
-      return;
-    }
-    if (args[0] == "atualizar")
-    {
-      if(!user.has_privilege)
-      {
-        await bot.SendTextMessageAsync(user.id, "Você não tem permissão para atualizar usuários!");
-        Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
-        return;
-      }
-      if(Int64.TryParse(args[1], out long id))
-      {
-        if(Database.atualizarUsuario(id, user.id))
+        try
         {
-          await bot.SendTextMessageAsync(user.id, "Usuário atualizado com sucesso!");
-          Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+          Database.recuperarUsuario(id);
+          if(Database.atualizarUsuario(id, user.id))
+          {
+            await bot.SendTextMessageAsync(user.id, "Usuário atualizado com sucesso!");
+            Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+          }
+          else
+          {
+            await bot.SendTextMessageAsync(user.id, "Houve um problema em promover o usuário");
+            await bot.SendTextMessageAsync(user.id, "Verifique as informações e tente novamente");
+            Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
+          }
         }
-        else
+        catch
         {
-          await bot.SendTextMessageAsync(user.id, "Houve um problema em promover o usuário");
-          await bot.SendTextMessageAsync(user.id, "Verifique as informações e tente novamente");
-          Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
+          Database.inserirUsuario(new UsersModel(id, user.id));
+          await bot.SendTextMessageAsync(user.id, "Usuário autorizado com sucesso!");
+          Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+          return;
         }
       }
       else
