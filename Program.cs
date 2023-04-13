@@ -55,6 +55,8 @@ public class Program
   {
     if (message.From is null) return;
     if (message.Text is null) return;
+    // Print message update to console
+    Console.WriteLine($"> {message.Date} usuario: {message.From.Id} escreveu: {message.Text}");
     UsersModel user;
     string text = message.Text;
     try
@@ -63,33 +65,31 @@ public class Program
     }
     catch
     {
-      await bot.SendTextMessageAsync(message.From.Id, "Eu não estou autorizado a te passar informações!");
-      await bot.SendTextMessageAsync(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
-      await bot.SendTextMessageAsync(message.From.Id, "Informe ao seu supervisor esse id para ter acesso ao BOT");
+      await sendTextMesssageWraper(message.From.Id, "Eu não estou autorizado a te passar informações!");
+      await sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
+      await sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso ao BOT");
       return;
     }
     // verifica se o cadastro tem mais de 60 dias desde a atualização
     if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(30)) > 0)
     {
-      await bot.SendTextMessageAsync(message.From.Id, "Sua autorização expirou e não posso mais te passar informações");
-      await bot.SendTextMessageAsync(message.From.Id, "Solicite a autorização novamente para o seu supervisor!");
-      await bot.SendTextMessageAsync(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
+      await sendTextMesssageWraper(message.From.Id, "Sua autorização expirou e não posso mais te passar informações");
+      await sendTextMesssageWraper(message.From.Id, "Solicite a autorização novamente para o seu supervisor!");
+      await sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
       return;
     }
     // Verifica se o cadastro está perto de expirar (7 dias antes) e avisa
     if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(23)) > 0)
     {
-      await bot.SendTextMessageAsync(message.From.Id, "Sua autorização está quase expirando!");
-      await bot.SendTextMessageAsync(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
-      await bot.SendTextMessageAsync(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
+      await sendTextMesssageWraper(message.From.Id, "Sua autorização está quase expirando!");
+      await sendTextMesssageWraper(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
+      await sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
     }
-    // Print to console
-    Console.WriteLine($"> {user.id} escreveu: {text}");
     if (!(text.Length > 0))
     {
-      await bot.SendTextMessageAsync(user.id, "Não estou programado para responder a solicitações que não sejam mensagens de texto!");
-      await bot.SendTextMessageAsync(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
-      await bot.SendTextMessageAsync(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+      await sendTextMesssageWraper(user.id, "Não estou programado para responder a solicitações que não sejam mensagens de texto!");
+      await sendTextMesssageWraper(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
+      await sendTextMesssageWraper(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
     // When we get a command, we react accordingly
@@ -102,8 +102,8 @@ public class Program
     string[] args = text.Split(" ");
     if (args.Count() != 2)
     {
-      await bot.SendTextMessageAsync(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
-      await bot.SendTextMessageAsync(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+      await sendTextMesssageWraper(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
+      await sendTextMesssageWraper(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
     try
@@ -119,15 +119,15 @@ public class Program
     }
     catch
     {
-      await bot.SendTextMessageAsync(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
-      await bot.SendTextMessageAsync(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+      await sendTextMesssageWraper(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
+      await sendTextMesssageWraper(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
     if ((args[0] == "autorizar") || (args[0] == "atualizar"))
     {
       if(!user.has_privilege)
       {
-        await bot.SendTextMessageAsync(user.id, "Você não tem permissão para autorizar usuários!");
+        await sendTextMesssageWraper(user.id, "Você não tem permissão para autorizar usuários!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
         return;
       }
@@ -138,27 +138,29 @@ public class Program
           Database.recuperarUsuario(id);
           if(Database.atualizarUsuario(id, user.id))
           {
-            await bot.SendTextMessageAsync(user.id, "Usuário atualizado com sucesso!");
+            await sendTextMesssageWraper(id, "Usuário atualizado com sucesso!");
+            await sendTextMesssageWraper(user.id, "Usuário atualizado com sucesso!");
             Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
           }
           else
           {
-            await bot.SendTextMessageAsync(user.id, "Houve um problema em promover o usuário");
-            await bot.SendTextMessageAsync(user.id, "Verifique as informações e tente novamente");
+            await sendTextMesssageWraper(user.id, "Houve um problema em promover o usuário");
+            await sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
             Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
           }
         }
         catch
         {
           Database.inserirUsuario(new UsersModel(id, user.id));
-          await bot.SendTextMessageAsync(user.id, "Usuário autorizado com sucesso!");
+          await sendTextMesssageWraper(id, "Usuário autorizado com sucesso!");
+          await sendTextMesssageWraper(user.id, "Usuário autorizado com sucesso!");
           Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
           return;
         }
       }
       else
       {
-        await bot.SendTextMessageAsync(user.id, "O identificador do usuário não é válido!");
+        await sendTextMesssageWraper(user.id, "O identificador do usuário não é válido!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
       }
       return;
@@ -167,7 +169,7 @@ public class Program
     {
       if(user.id != ID_ADM_BOT)
       {
-        await bot.SendTextMessageAsync(user.id, "Você não tem permissão para promover usuários!");
+        await sendTextMesssageWraper(user.id, "Você não tem permissão para promover usuários!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
         return;
       }
@@ -175,19 +177,19 @@ public class Program
       {
         if(Database.promoverUsuario(id, user.id))
         {
-          await bot.SendTextMessageAsync(user.id, "Usuário promovido com sucesso!");
+          await sendTextMesssageWraper(user.id, "Usuário promovido com sucesso!");
           Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
         }
         else
         {
-          await bot.SendTextMessageAsync(user.id, "Houve um problema em promover o usuário");
-          await bot.SendTextMessageAsync(user.id, "Verifique as informações e tente novamente");
+          await sendTextMesssageWraper(user.id, "Houve um problema em promover o usuário");
+          await sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
           Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
         }
       }
       else
       {
-        await bot.SendTextMessageAsync(user.id, "O identificador do usuário não é válido!");
+        await sendTextMesssageWraper(user.id, "O identificador do usuário não é válido!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
       }
       return;
@@ -212,6 +214,7 @@ public class Program
           await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.USER_PATH}\Documents\Temporario\{fatura}");
           await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
           stream.Dispose();
+          await sendTextMesssageWraper(user.id, fatura, false);
         }
       }
       catch (System.Exception error)
@@ -230,6 +233,7 @@ public class Program
         stream.Dispose();
         System.IO.File.Delete(@$"{Temporary.USER_PATH}\Documents\Temporario\temporario.png");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+        await sendTextMesssageWraper(user.id, "Enviado relatorio de leitura!", false);
       }
       catch (System.Exception error)
       {
@@ -239,11 +243,11 @@ public class Program
     }
     if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato")
     {
-      await bot.SendTextMessageAsync(user.id, resposta[0].ToString()!);
+      await sendTextMesssageWraper(user.id, resposta[0].ToString()!);
       Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
       return;
     }
-    await bot.SendTextMessageAsync(user.id, "Não entendi o comando, verifique se está correto!");
+    await sendTextMesssageWraper(user.id, "Não entendi o comando, verifique se está correto!");
     Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
     return;
   }
@@ -252,30 +256,35 @@ public class Program
     switch (command)
     {
       case "/start":
-        await bot.SendTextMessageAsync(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
-        await bot.SendTextMessageAsync(userId, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+        await sendTextMesssageWraper(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
+        await sendTextMesssageWraper(userId, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
         break;
       case "/ajuda":
-        await bot.SendTextMessageAsync(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
-        await bot.SendTextMessageAsync(userId, "leiturista 1012456598");
-        await bot.SendTextMessageAsync(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA e FATURAS");
-        await bot.SendTextMessageAsync(userId, "Estou trabalhando para trazer mais funções em breve");
+        await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
+        await sendTextMesssageWraper(userId, "leiturista 1012456598");
+        await sendTextMesssageWraper(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA e FATURAS");
+        await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
         break;
       case "/ping":
-        await bot.SendTextMessageAsync(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
+        await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
         break;
       default:
-        await bot.SendTextMessageAsync(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
+        await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
         break;
     }
     await Task.CompletedTask;
   }
   async Task ErrorReport(long userId, string aplicacao, string informacao, Exception error)
   {
-    await bot.SendTextMessageAsync(ID_ADM_BOT, $"Aplicação: {aplicacao}\nInformação: {informacao}\n\n{error.Message}");
-    await bot.SendTextMessageAsync(userId, "Não foi possível processar a sua solicitação!");
-    await bot.SendTextMessageAsync(userId, "Solicite a informação para o monitor(a)");
+    await sendTextMesssageWraper(ID_ADM_BOT, $"Aplicação: {aplicacao}\nInformação: {informacao}\n\n{error.Message}");
+    await sendTextMesssageWraper(userId, "Não foi possível processar a sua solicitação!");
+    await sendTextMesssageWraper(userId, "Solicite a informação para o monitor(a)");
     Database.inserirRelatorio(new logsModel(userId, aplicacao, informacao, false));
     return;
+  }
+  async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
+  {
+    await bot.SendTextMessageAsync(userId, message);
+    Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
   }
 }
