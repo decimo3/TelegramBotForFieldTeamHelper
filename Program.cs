@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -253,30 +254,54 @@ public class Program
   }
   async Task HandleCommand(long userId, string command)
   {
-    switch (command)
+    if(command.StartsWith("/enviar"))
     {
-      case "/start":
-        await sendTextMesssageWraper(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
-        await sendTextMesssageWraper(userId, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
-        break;
-      case "/ajuda":
-        await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
-        await sendTextMesssageWraper(userId, "leiturista 1012456598");
-        await sendTextMesssageWraper(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA e FATURAS");
-        await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
-        break;
-      case "/ping":
-        await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
-        break;
-      default:
-        await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
-        break;
+      var re = new Regex("[0-9]{6,12}");
+      var destinatario = re.Match(command);
+      if(!Int64.TryParse(destinatario.ToString(), out long id))
+      {
+        await sendTextMesssageWraper(userId, "O identificador do usuário não é válido!");
+        return;
+      }
+      re = new Regex("\".*\"");
+      var text = re.Match(command);
+      if(text is null)
+      {
+        await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
+      }
+      else
+      {
+        await sendTextMesssageWraper(id, $"Mensagem do administrador:\n{text.ToString()}");
+        await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
+      }
+    }
+    else
+    {
+      switch (command)
+      {
+        case "/start":
+          await sendTextMesssageWraper(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
+          await sendTextMesssageWraper(userId, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+          break;
+        case "/ajuda":
+          await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
+          await sendTextMesssageWraper(userId, "leiturista 1012456598");
+          await sendTextMesssageWraper(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA e FATURAS");
+          await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
+          break;
+        case "/ping":
+          await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
+          break;
+        default:
+          await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
+          break;
+      }
     }
     await Task.CompletedTask;
   }
   async Task ErrorReport(long userId, string aplicacao, string informacao, Exception error)
   {
-    await sendTextMesssageWraper(ID_ADM_BOT, $"Aplicação: {aplicacao}\nInformação: {informacao}\n\n{error.Message}");
+    await sendTextMesssageWraper(ID_ADM_BOT, $"Aplicação: {aplicacao} Informação: {informacao} {error.Message}", false);
     await sendTextMesssageWraper(userId, "Não foi possível processar a sua solicitação!");
     await sendTextMesssageWraper(userId, "Solicite a informação para o monitor(a)");
     Database.inserirRelatorio(new logsModel(userId, aplicacao, informacao, false));
