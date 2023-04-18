@@ -271,7 +271,7 @@ public class Program
       }
       else
       {
-        await sendTextMesssageWraper(id, $"Mensagem do administrador:\n{text.ToString()}");
+        await sendTextMesssageWraper(id, $"Mensagem do administrador: {text.ToString()}\n\nNão responder essa mensagem para o BOT!");
         await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
       }
     }
@@ -284,9 +284,9 @@ public class Program
           await sendTextMesssageWraper(userId, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
           break;
         case "/ajuda":
-          await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação. Por exemplo:");
-          await sendTextMesssageWraper(userId, "leiturista 1012456598");
-          await sendTextMesssageWraper(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA e FATURAS");
+          await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação.");
+          await sendTextMesssageWraper(userId, "Por exemplo: ```leiturista 1012456598```");
+          await sendTextMesssageWraper(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA, FATURAS, PENDENTE e HISTORICO");
           await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
           break;
         case "/ping":
