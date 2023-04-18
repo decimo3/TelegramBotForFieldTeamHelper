@@ -196,6 +196,11 @@ public class Program
       return;
     }
     var resposta = telbot.Temporary.executar(args[0], args[1]);
+    if(resposta[0].StartsWith("ERRO"))
+    {
+      await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"), resposta[0]);
+      return;
+    }
     if ((resposta.Count == 0) || (resposta is null))
     {
       await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"));
@@ -271,7 +276,8 @@ public class Program
       }
       else
       {
-        await sendTextMesssageWraper(id, $"Mensagem do administrador: {text.ToString()}\n\nNão responder essa mensagem para o BOT!");
+        await sendTextMesssageWraper(id, $"Mensagem do administrador: {text.ToString()}");
+        await sendTextMesssageWraper(id, "Não responder essa mensagem para o BOT!");
         await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
       }
     }
@@ -286,7 +292,7 @@ public class Program
         case "/ajuda":
           await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação.");
           await sendTextMesssageWraper(userId, "Por exemplo: ```leiturista 1012456598```");
-          await sendTextMesssageWraper(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA, FATURAS, PENDENTE e HISTORICO");
+          await sendTextMesssageWraper(userId, "No momento temos as informações: TELEFONE, LOCALIZAÇÃO, LEITURISTA, FATURA, PENDENTE e HISTORICO");
           await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
           break;
         case "/ping":
@@ -299,10 +305,12 @@ public class Program
     }
     await Task.CompletedTask;
   }
-  async Task ErrorReport(long userId, string aplicacao, string informacao, Exception error)
+  async Task ErrorReport(long userId, string aplicacao, string informacao, Exception error, string? SAPerrorMessage=null)
   {
-    await sendTextMesssageWraper(ID_ADM_BOT, $"Aplicação: {aplicacao} Informação: {informacao} {error.Message}", false);
+
+    await sendTextMesssageWraper(ID_ADM_BOT, $"Aplicação: {aplicacao} Informação: {informacao}", false);
     await sendTextMesssageWraper(userId, "Não foi possível processar a sua solicitação!");
+    if(SAPerrorMessage is not null) await sendTextMesssageWraper(userId, SAPerrorMessage);
     await sendTextMesssageWraper(userId, "Solicite a informação para o monitor(a)");
     Database.inserirRelatorio(new logsModel(userId, aplicacao, informacao, false));
     return;
