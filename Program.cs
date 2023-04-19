@@ -206,7 +206,7 @@ public class Program
       await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"));
       return;
     }
-    if (args[0] == "fatura" || args[0] == "debito")
+    if (args[0] == "fatura" || args[0] == "debito" || args[0] == "débito")
     {
       try
       {
@@ -229,7 +229,7 @@ public class Program
       }
       return;
     }
-    if ((args[0] == "leiturista") || (args[0] == "roteiro") || (args[0] == "historico") || (args[0] == "pendente"))
+    if ((args[0] == "leiturista") || (args[0] == "roteiro") || (args[0] == "historico") || (args[0] == "pendente") || (args[0] == "histórico"))
     {
       try
       {
