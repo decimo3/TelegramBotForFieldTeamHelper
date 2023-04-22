@@ -26,7 +26,7 @@ public static class Validador
     if(aplicacao == "autorizar") return true;
     if(aplicacao == "promover") return true;
     if(aplicacao == "atualizar") return true;
-    // if(aplicacao == "consulta") return true;
+    if(aplicacao == "agrupamento") return true;
     if(aplicacao == "pendente") return true;
     return false;
   }

@@ -238,7 +238,7 @@ public class Program
       }
       return;
     }
-    if ((args[0] == "leiturista") || (args[0] == "roteiro") || (args[0] == "historico") || (args[0] == "pendente") || (args[0] == "histórico"))
+    if ((args[0] == "leiturista") || (args[0] == "roteiro") || (args[0] == "historico") || (args[0] == "pendente") || (args[0] == "histórico") || (args[0] == "agrupamento"))
     {
       try
       {
