@@ -135,4 +135,73 @@ public static class Database
       return false;
     }
   }
+  public static string statusTelbot()
+  {
+    int total, roteiro, telefone, fatura, outros, falhas;
+    try
+    {
+      using (var connection = new SQLiteConnection(connectionString))
+      {
+        connection.Open();
+        using(var command = connection.CreateCommand())
+        {
+          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}'";
+          using(var dataReader = command.ExecuteReader())
+          {
+            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+            dataReader.Read();
+            total = dataReader.GetInt16(0);
+          }
+        }
+        using(var command = connection.CreateCommand())
+        {
+          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND aplicacao = 'leiturista' OR aplicacao = 'roteiro'";
+          using(var dataReader = command.ExecuteReader())
+          {
+            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+            dataReader.Read();
+            roteiro = dataReader.GetInt16(0);
+          }
+        }
+        using(var command = connection.CreateCommand())
+        {
+          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND aplicacao = 'telefone' OR aplicacao = 'contato'";
+          using(var dataReader = command.ExecuteReader())
+          {
+            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+            dataReader.Read();
+            telefone = dataReader.GetInt16(0);
+          }
+        }
+        using(var command = connection.CreateCommand())
+        {
+          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND aplicacao = 'fatura' OR aplicacao = 'debito'";
+          using(var dataReader = command.ExecuteReader())
+          {
+            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+            dataReader.Read();
+            fatura = dataReader.GetInt16(0);
+          }
+        }
+        using(var command = connection.CreateCommand())
+        {
+          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND is_sucess = 0";
+          using(var dataReader = command.ExecuteReader())
+          {
+            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+            dataReader.Read();
+            falhas = dataReader.GetInt16(0);
+          }
+        }
+      }
+      outros = (total - (roteiro + telefone + fatura));
+      float porcentagem = total/falhas;
+      porcentagem *= 100;
+      return $"Contato: {telefone}\nRoteiro: {roteiro}\nFaturas: {fatura}\nOutros: {outros}\nTotal:{total} solicitações\n{((int)porcentagem)}% atendidas com sucesso!";
+    }
+    catch
+    {
+      return "Aconteceu algum erro no banco!";
+    }
+  }
 }
