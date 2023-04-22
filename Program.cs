@@ -256,7 +256,7 @@ public class Program
       }
       return;
     }
-    if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato")
+    if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato" || (args[0] == "relatorio") || (args[0] == "manobra") || (args[0] == "medidor"))
     {
       await sendTextMesssageWraper(user.id, resposta[0].ToString()!);
       Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
