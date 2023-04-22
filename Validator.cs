@@ -9,8 +9,7 @@ public static class Validador
   }
   public static bool isValidInformacao (string informacao)
   {
-    var regex = new Regex("^[0-9]{9,12}$");
-    return regex.IsMatch(informacao);
+    return Int64.TryParse(informacao, out long a);
   }
   public static bool isAplicacaoOption (string aplicacao)
   {
@@ -28,6 +27,9 @@ public static class Validador
     if(aplicacao == "atualizar") return true;
     if(aplicacao == "agrupamento") return true;
     if(aplicacao == "pendente") return true;
+    if(aplicacao == "relatorio") return true;
+    if(aplicacao == "manobra") return true;
+    if(aplicacao == "medidor") return true;
     return false;
   }
   public static bool orderOperandos (string info1, string info2)
