@@ -137,67 +137,35 @@ public static class Database
   }
   public static string statusTelbot()
   {
-    int total, roteiro, telefone, fatura, outros, falhas;
+    var dia = new DateTime(year: 2023, month: 4, day: 22).ToString("yyyy-MM-dd");
+    Console.WriteLine(dia);
+    int[] valores = {};
+    var comandos = new List<string>();
+    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}')");
+    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND aplicacao = 'telefone' OR aplicacao = 'contato'");
+    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND aplicacao = 'leiturista' OR aplicacao = 'roteiro'");
+    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND aplicacao = 'fatura' OR aplicacao = 'debito'");
+    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND is_sucess = 0");
     try
     {
       using (var connection = new SQLiteConnection(connectionString))
       {
         connection.Open();
-        using(var command = connection.CreateCommand())
+        for (int i = 0; i < comandos.Count(); i++)
         {
-          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}'";
-          using(var dataReader = command.ExecuteReader())
+          using(var command = connection.CreateCommand())
           {
-            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
-            dataReader.Read();
-            total = dataReader.GetInt16(0);
-          }
-        }
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND aplicacao = 'leiturista' OR aplicacao = 'roteiro'";
-          using(var dataReader = command.ExecuteReader())
-          {
-            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
-            dataReader.Read();
-            roteiro = dataReader.GetInt16(0);
-          }
-        }
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND aplicacao = 'telefone' OR aplicacao = 'contato'";
-          using(var dataReader = command.ExecuteReader())
-          {
-            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
-            dataReader.Read();
-            telefone = dataReader.GetInt16(0);
-          }
-        }
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND aplicacao = 'fatura' OR aplicacao = 'debito'";
-          using(var dataReader = command.ExecuteReader())
-          {
-            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
-            dataReader.Read();
-            fatura = dataReader.GetInt16(0);
-          }
-        }
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = @$"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = '{DateTime.Now.Date.ToString("yyyy-MM-dd")}' AND is_sucess = 0";
-          using(var dataReader = command.ExecuteReader())
-          {
-            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
-            dataReader.Read();
-            falhas = dataReader.GetInt16(0);
+            command.CommandText = comandos[i];
+            using(var dataReader = command.ExecuteReader())
+            {
+              if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+              dataReader.Read();
+              valores.Append(dataReader.GetInt16(0));
+            }
           }
         }
       }
-      outros = (total - (roteiro + telefone + fatura));
-      float porcentagem = total/falhas;
-      porcentagem *= 100;
-      return $"Contato: {telefone}\nRoteiro: {roteiro}\nFaturas: {fatura}\nOutros: {outros}\nTotal:{total} solicitações\n{((int)porcentagem)}% atendidas com sucesso!";
+      return $"Telefone: {valores[1]}\nLeiturista: {valores[2]}\nFaturas: {valores[3]}\nOutros: {valores[0] - valores.Sum()}\nTotal: {valores[0]}\nSucessos:{valores[4]/valores[0]}";
     }
     catch
     {
