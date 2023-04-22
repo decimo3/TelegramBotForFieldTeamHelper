@@ -309,8 +309,12 @@ public class Program
           break;
         case "/status":
           var statusSap = Temporary.executar("conecao", "0");
+          if(statusSap.Count == 0 || statusSap is null)
+          {
+            statusSap.Add("offline");
+          }
           var qntString = Database.statusTelbot();
-          await sendTextMesssageWraper(userId, $"Sistema {statusSap[0]}\n\nEstatísticas:\n{qntString}");
+          await sendTextMesssageWraper(userId, $"Sistema SAP: {statusSap[0]}\n\nEstatísticas:\n{qntString}");
           break;
         default:
           await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
