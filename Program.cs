@@ -145,17 +145,26 @@ public class Program
           }
           else
           {
-            await sendTextMesssageWraper(user.id, "Houve um problema em promover o usuário");
+            await sendTextMesssageWraper(user.id, "Houve um problema em atualizar o usuário");
             await sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
             Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
           }
         }
         catch
         {
-          Database.inserirUsuario(new UsersModel(id, user.id));
-          await sendTextMesssageWraper(id, "Usuário autorizado com sucesso!");
-          await sendTextMesssageWraper(user.id, "Usuário autorizado com sucesso!");
-          Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+          try
+          {
+            Database.inserirUsuario(new UsersModel(id, user.id));
+            await sendTextMesssageWraper(id, "Usuário autorizado com sucesso!");
+            await sendTextMesssageWraper(user.id, "Usuário autorizado com sucesso!");
+            Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+          }
+          catch
+          {
+            await sendTextMesssageWraper(user.id, "Houve um problema em autorizar o usuário");
+            await sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
+            Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
+          }
           return;
         }
       }
