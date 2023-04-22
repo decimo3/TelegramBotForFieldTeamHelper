@@ -309,7 +309,7 @@ public class Program
           break;
         case "/status":
           var statusSap = Temporary.executar("conecao", "0");
-          if(statusSap.Count == 0 || statusSap is null)
+          if(statusSap.Count == 0)
           {
             statusSap.Add("offline");
           }
