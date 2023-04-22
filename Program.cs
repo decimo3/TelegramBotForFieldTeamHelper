@@ -205,14 +205,14 @@ public class Program
       return;
     }
     var resposta = telbot.Temporary.executar(args[0], args[1]);
-    if(resposta[0].StartsWith("ERRO"))
-    {
-      await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"), resposta[0]);
-      return;
-    }
     if ((resposta.Count == 0) || (resposta is null))
     {
       await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"));
+      return;
+    }
+    if(resposta[0].StartsWith("ERRO"))
+    {
+      await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"), resposta[0]);
       return;
     }
     if (args[0] == "fatura" || args[0] == "debito" || args[0] == "débito")
