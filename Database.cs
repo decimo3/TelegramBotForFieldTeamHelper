@@ -167,7 +167,29 @@ public static class Database
     }
     catch
     {
-      return "Aconteceu algum erro no banco!";
+      return logs;
     }
   }
+  public static List<long> todosUsuarios()
+  {
+    var todes = new List<long>();
+    using (var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = $"SELECT id FROM usersModel";
+        using(var dataReader = command.ExecuteReader())
+        {
+          if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+          while(dataReader.Read())
+          {
+            todes.Append(dataReader.GetInt64(0));
+          }
+          return todes;
+        }
+      }
+    }
+  }
+  
 }
