@@ -282,13 +282,36 @@ public class Program
       if(text is null)
       {
         await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
+        return;
       }
       else
       {
         await sendTextMesssageWraper(id, $"Mensagem do administrador: {text.ToString()}");
         await sendTextMesssageWraper(id, "Não responder essa mensagem para o BOT!");
         await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
+        return;
       }
+    }
+    if(command.StartsWith("/todos"))
+    {
+      var re = new Regex("\".*\"");
+      var text = re.Match(command);
+      if(text is null)
+      {
+        await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
+        return;
+      }
+      else
+      {
+        var todes = Database.todosUsuarios();
+        foreach (var um in todes) 
+        {
+          await sendTextMesssageWraper(um, $"Mensagem do administrador: {text.ToString()}");
+          await sendTextMesssageWraper(um, "Não responder essa mensagem para o BOT!");
+          await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
+        }
+      }
+        return;
     }
     else
     {
