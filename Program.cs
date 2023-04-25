@@ -362,7 +362,7 @@ public class Program
   }
   async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
   {
-    if(enviar) await bot.SendTextMessageAsync(userId, message);
+    if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: ParseMode.MarkdownV2);
     Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
   }
 }
