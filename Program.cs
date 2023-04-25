@@ -336,8 +336,12 @@ public class Program
           {
             statusSap.Add("offline");
           }
-          var qntString = Database.statusTelbot();
-          await sendTextMesssageWraper(userId, $"Sistema SAP: {statusSap[0]}\n\nEstatísticas:\n{qntString}");
+          var logs = Database.statusTelbot();
+          var todos = logs.Count;
+          var leiturista = (from f in logs where (f.solicitacao == "leiturista" && f.solicitacao == "roteiro") select f).Count();
+          var faturas = (from e in logs where (e.solicitacao == "fatura" && e.solicitacao == "debito") select e).Count();
+          var telefone = (from c in logs where (c.solicitacao == "contato" && c.solicitacao == "telefone") select c).Count();
+          await sendTextMesssageWraper(userId, $"Sistema SAP: {statusSap[0]}\n\nEstatísticas:\n");
           break;
         default:
           await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
