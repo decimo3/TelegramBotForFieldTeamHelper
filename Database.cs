@@ -135,37 +135,35 @@ public static class Database
       return false;
     }
   }
-  public static string statusTelbot()
+  public static List<logsModel> statusTelbot()
   {
+    var logs = new List<logsModel>();
     var dia = new DateTime(year: 2023, month: 4, day: 22).ToString("yyyy-MM-dd");
-    Console.WriteLine(dia);
-    int[] valores = {};
-    var comandos = new List<string>();
-    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}')");
-    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND aplicacao = 'telefone' OR aplicacao = 'contato'");
-    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND aplicacao = 'leiturista' OR aplicacao = 'roteiro'");
-    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND aplicacao = 'fatura' OR aplicacao = 'debito'");
-    comandos.Add($"SELECT COUNT(*) FROM logsModel WHERE date(create_at) = date('{dia}') AND is_sucess = 0");
     try
     {
       using (var connection = new SQLiteConnection(connectionString))
       {
         connection.Open();
-        for (int i = 0; i < comandos.Count(); i++)
+        using(var command = connection.CreateCommand())
         {
-          using(var command = connection.CreateCommand())
+          command.CommandText = $"SELECT id, aplicacao, informacao, create_at, is_sucess FROM logsModel WHERE date(create_at) == date('{dia}')";
+          using(var dataReader = command.ExecuteReader())
           {
-            command.CommandText = comandos[i];
-            using(var dataReader = command.ExecuteReader())
+            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+            while(dataReader.Read())
             {
-              if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
-              dataReader.Read();
-              valores.Append(dataReader.GetInt16(0));
+              logs.Add(new logsModel() {
+                id = dataReader.GetInt64(0),
+                solicitacao = dataReader.GetString(1),
+                informacao = dataReader.GetString(2),
+                create_at = dataReader.GetDateTime(3),
+                is_sucess = dataReader.GetBoolean(4),
+              });
             }
+            return logs;
           }
         }
       }
-      return $"Telefone: {valores[1]}\nLeiturista: {valores[2]}\nFaturas: {valores[3]}\nOutros: {valores[0] - valores.Sum()}\nTotal: {valores[0]}\nSucessos:{valores[4]/valores[0]}";
     }
     catch
     {
