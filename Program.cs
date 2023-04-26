@@ -258,7 +258,13 @@ public class Program
     }
     if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato" || (args[0] == "relatorio") || (args[0] == "manobra") || (args[0] == "medidor"))
     {
-      await sendTextMesssageWraper(user.id, resposta[0].ToString()!);
+      string textoMensagem = String.Empty;
+      foreach (var res in resposta)
+      {
+        textoMensagem += res;
+        textoMensagem += "\n";
+      }
+      await sendTextMesssageWraper(user.id, textoMensagem);
       Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
       return;
     }
@@ -329,6 +335,7 @@ public class Program
           await sendTextMesssageWraper(userId, "*PENDENTE* para receber a lista de débitos para aquela instalação do cliente;");
           await sendTextMesssageWraper(userId, "*FATURA* ou *DEBITO* _(sem acentuação)_ para receber as faturas vencidas em PDF (limite de 5 faturas)");
           await sendTextMesssageWraper(userId, "*HISTORICO* _(sem acentuação)_ para receber a lista com os 5 últimos serviços para a instalação;");
+          await sendTextMesssageWraper(userId, "*MEDIDOR* para receber as informações referentes ao medidor;");
           await sendTextMesssageWraper(userId, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
           await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
           break;
