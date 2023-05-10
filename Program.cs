@@ -57,7 +57,7 @@ public class Program
     if (message.From is null) return;
     if (message.Text is null) return;
     // Print message update to console
-    Console.WriteLine($"> {message.Date} usuario: {message.From.Id} escreveu: {message.Text}");
+    Console.WriteLine($"> {message.Date.ToLocalTime()} usuario: {message.From.Id} escreveu: {message.Text}");
     UsersModel user;
     string text = message.Text;
     try
