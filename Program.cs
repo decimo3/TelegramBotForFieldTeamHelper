@@ -272,93 +272,85 @@ public class Program
     Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
     return;
   }
-  async Task HandleCommand(long userId, string command)
+  async Task HandleCommand(long userId, string message)
   {
-    if(command.StartsWith("/enviar"))
+    var command = message.Split(" ")[0];
+    var re = new Regex("\".*\"");
+    var arg = re.Match(command);
+    switch (command)
     {
-      var re = new Regex("[0-9]{6,12}");
-      var destinatario = re.Match(command);
-      if(!Int64.TryParse(destinatario.ToString(), out long id))
-      {
-        await sendTextMesssageWraper(userId, "O identificador do usuário não é válido!");
-        return;
-      }
-      re = new Regex("\".*\"");
-      var text = re.Match(command);
-      if(text is null)
-      {
-        await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
-        return;
-      }
-      else
-      {
-        await sendTextMesssageWraper(id, $"Mensagem do administrador: {text.ToString()}");
-        await sendTextMesssageWraper(id, "Não responder essa mensagem para o BOT!");
-        await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
-        return;
-      }
-    }
-    if(command.StartsWith("/todos"))
-    {
-      var re = new Regex("\".*\"");
-      var text = re.Match(command);
-      if(text is null)
-      {
-        await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
-        return;
-      }
-      else
-      {
-        var todes = Database.todosUsuarios();
-        foreach (var um in todes) 
+      case "/start":
+        await sendTextMesssageWraper(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
+        await sendTextMesssageWraper(userId, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+        break;
+      case "/ajuda":
+        await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação.");
+        await sendTextMesssageWraper(userId, "*TELEFONE* ou *CONTATO* para receber todos os telefones no cadastro do cliente;");
+        await sendTextMesssageWraper(userId, "*COORDENADA* para receber um link da localização no cadastro do cliente;");
+        await sendTextMesssageWraper(userId, "*LEITURISTA* ou *ROTEIRO* para receber a lista de instalações ordenada por horário;");
+        await sendTextMesssageWraper(userId, "*PENDENTE* para receber a lista de débitos para aquela instalação do cliente;");
+        await sendTextMesssageWraper(userId, "*FATURA* ou *DEBITO* _(sem acentuação)_ para receber as faturas vencidas em PDF (limite de 5 faturas)");
+        await sendTextMesssageWraper(userId, "*HISTORICO* _(sem acentuação)_ para receber a lista com os 5 últimos serviços para a instalação;");
+        await sendTextMesssageWraper(userId, "*MEDIDOR* para receber as informações referentes ao medidor;");
+        await sendTextMesssageWraper(userId, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
+        await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
+        break;
+      case "/ping":
+        await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
+        break;
+      case "/status":
+        var statusSap = Temporary.executar("conecao", "0");
+        if(statusSap.Count == 0)
         {
-          await sendTextMesssageWraper(um, $"Mensagem do administrador: {text.ToString()}");
-          await sendTextMesssageWraper(um, "Não responder essa mensagem para o BOT!");
+          statusSap.Add("offline");
+        }
+        var logs = Database.statusTelbot();
+        var todos = logs.Count;
+        var leiturista = (from f in logs where (f.solicitacao == "leiturista" && f.solicitacao == "roteiro") select f).Count();
+        var faturas = (from e in logs where (e.solicitacao == "fatura" && e.solicitacao == "debito") select e).Count();
+        var telefone = (from c in logs where (c.solicitacao == "contato" && c.solicitacao == "telefone") select c).Count();
+        await sendTextMesssageWraper(userId, $"Sistema SAP: {statusSap[0]}\n\nEstatísticas:\n");
+        break;
+      case "/enviar":
+        re = new Regex("[0-9]{6,12}");
+        var destinatario = re.Match(command);
+        if(!Int64.TryParse(destinatario.Value, out long id))
+        {
+          await sendTextMesssageWraper(userId, "O identificador do usuário não é válido!");
+          break;
+        }
+        re = new Regex("\".*\"");
+        var text = re.Match(command);
+        if(text is null)
+        {
+          await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
+        }
+        else
+        {
+          await sendTextMesssageWraper(id, $"Mensagem do administrador: {text.Value}");
+          await sendTextMesssageWraper(id, "Não responder essa mensagem para o BOT!");
           await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
         }
-      }
-        return;
-    }
-    else
-    {
-      switch (command)
-      {
-        case "/start":
-          await sendTextMesssageWraper(userId, "Seja bem vindo ao programa de automação de respostas do MestreRuan");
-          await sendTextMesssageWraper(userId, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
-          break;
-        case "/ajuda":
-          await sendTextMesssageWraper(userId, "Digite o tipo de informação que deseja e depois o número da nota ou instalação.");
-          await sendTextMesssageWraper(userId, "*TELEFONE* ou *CONTATO* para receber todos os telefones no cadastro do cliente;");
-          await sendTextMesssageWraper(userId, "*COORDENADA* para receber um link da localização no cadastro do cliente;");
-          await sendTextMesssageWraper(userId, "*LEITURISTA* ou *ROTEIRO* para receber a lista de instalações ordenada por horário;");
-          await sendTextMesssageWraper(userId, "*PENDENTE* para receber a lista de débitos para aquela instalação do cliente;");
-          await sendTextMesssageWraper(userId, "*FATURA* ou *DEBITO* _(sem acentuação)_ para receber as faturas vencidas em PDF (limite de 5 faturas)");
-          await sendTextMesssageWraper(userId, "*HISTORICO* _(sem acentuação)_ para receber a lista com os 5 últimos serviços para a instalação;");
-          await sendTextMesssageWraper(userId, "*MEDIDOR* para receber as informações referentes ao medidor;");
-          await sendTextMesssageWraper(userId, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
-          await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
-          break;
-        case "/ping":
-          await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
-          break;
-        case "/status":
-          var statusSap = Temporary.executar("conecao", "0");
-          if(statusSap.Count == 0)
+        break;
+      case "/todos":
+        if(arg.Value is null)
+        {
+          await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
+        }
+        else
+        {
+          var todes = Database.todosUsuarios();
+          for(int i = 0;i < todes.Count; i++)
           {
-            statusSap.Add("offline");
+            await sendTextMesssageWraper(todes[i], $"Mensagem do administrador: {arg.Value}");
+            await sendTextMesssageWraper(todes[i], "Não responder essa mensagem para o BOT!");
+            await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
           }
-          var logs = Database.statusTelbot();
-          var todos = logs.Count;
-          var leiturista = (from f in logs where (f.solicitacao == "leiturista" && f.solicitacao == "roteiro") select f).Count();
-          var faturas = (from e in logs where (e.solicitacao == "fatura" && e.solicitacao == "debito") select e).Count();
-          var telefone = (from c in logs where (c.solicitacao == "contato" && c.solicitacao == "telefone") select c).Count();
-          await sendTextMesssageWraper(userId, $"Sistema SAP: {statusSap[0]}\n\nEstatísticas:\n");
-          break;
-        default:
-          await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
-          break;
-      }
+        }
+        break;
+      default:
+        await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
+        break;
     }
     await Task.CompletedTask;
   }
