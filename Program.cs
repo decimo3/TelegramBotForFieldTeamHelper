@@ -22,6 +22,8 @@ public class Program
     SAP_OFFLINE = args.Contains("--sap-offline") ? false : true;
     // Identificador do administrador do BOT
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
+    // Define quantos dias a equipe terá acesso ao sistema sem renovar a autorização
+    DIAS_EXPIRACAO = 30;
     // instantiates a new telegram bot api client with the specified token
     bot = new TelegramBotClient(System.Environment.GetEnvironmentVariable("TOKEN")!);
     // 
@@ -83,8 +85,8 @@ public class Program
       await sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso ao BOT");
       return;
     }
-    // verifica se o cadastro tem mais de 60 dias desde a atualização
-    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(30)) > 0)
+    // verifica se o cadastro expirou
+    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(DIAS_EXPIRACAO)) > 0)
     {
       await sendTextMesssageWraper(message.From.Id, "Sua autorização expirou e não posso mais te passar informações");
       await sendTextMesssageWraper(message.From.Id, "Solicite a autorização novamente para o seu supervisor!");
@@ -92,7 +94,7 @@ public class Program
       return;
     }
     // Verifica se o cadastro está perto de expirar (7 dias antes) e avisa
-    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(23)) > 0)
+    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(DIAS_EXPIRACAO - 7)) > 0)
     {
       await sendTextMesssageWraper(message.From.Id, "Sua autorização está quase expirando!");
       await sendTextMesssageWraper(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
