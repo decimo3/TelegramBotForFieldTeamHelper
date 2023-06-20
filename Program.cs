@@ -11,19 +11,15 @@ public class Program
 {
   // Identificador do administrador do BOT
   private long ID_ADM_BOT;
+  private int DIAS_EXPIRACAO;
+  private bool GERAR_FATURAS;
+  private bool SAP_OFFLINE;
   // instantiates a new telegram bot api client with the specified token
   private TelegramBotClient bot;
   public Program(string[] args)
   {
-    if(args.Contains("--sem-faturas"))
-    {
-      Console.WriteLine("O programa irá ignorar os pedidos de faturas");
-      GERAR_FATURAS = false;
-    }
-    else
-    {
-      GERAR_FATURAS = true;
-    }
+    GERAR_FATURAS = args.Contains("--sem-faturas") ? false : true;
+    SAP_OFFLINE = args.Contains("--sap-offline") ? false : true;
     // Identificador do administrador do BOT
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
     // instantiates a new telegram bot api client with the specified token
@@ -45,15 +41,22 @@ public class Program
   {
     if (update.Type == UpdateType.Message)
     {
-      // A message was received
+      if(SAP_OFFLINE)
+      {
+        var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
+        Console.WriteLine($"> {update.Message.Date.ToLocalTime()} usuario: {update.Message.From.Id} escreveu: {update.Message.Text}");
+        await bot.SendTextMessageAsync(chatId: update.Message.From.Id, text: messagem, parseMode: ParseMode.Markdown);
+        Console.WriteLine($"< {DateTime.Now} chatbot: {messagem}");
+        return;
+      }
       await HandleMessage(update.Message!);
     }
     else
     {
       Console.WriteLine(update.ToString());
       await ErrorReport(ID_ADM_BOT, string.Empty, string.Empty, new InvalidOperationException(update.ToString()));
-      return;
     }
+    return;
   }
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
