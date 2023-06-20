@@ -478,7 +478,7 @@ $RECYCLE.BIN/
 
 # Informação sensível
 .env
-Users.json
 *.db
 *.exe
 tmp
+*.csv
