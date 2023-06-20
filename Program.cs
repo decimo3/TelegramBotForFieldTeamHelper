@@ -406,15 +406,24 @@ public class Program
   {
 
     await sendTextMesssageWraper(ID_ADM_BOT, $"Aplicação: {aplicacao} Informação: {informacao}", false);
-    await sendTextMesssageWraper(userId, "Não foi possível processar a sua solicitação!");
     if(SAPerrorMessage is not null) await sendTextMesssageWraper(userId, SAPerrorMessage);
+    await sendTextMesssageWraper(userId, "Não foi possível processar a sua solicitação!");
     await sendTextMesssageWraper(userId, "Solicite a informação para o monitor(a)");
     Database.inserirRelatorio(new logsModel(userId, aplicacao, informacao, false));
     return;
   }
   async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
   {
-    if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: ParseMode.Markdown);
-    Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
+    try
+    {
+      if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: ParseMode.Markdown);
+      Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
+    }
+    catch (ApiRequestException error)
+    {
+      Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
+      Console.WriteLine($"< {DateTime.Now} chatbot: Não foi possível enviar mensagem ao usuario");
+      Console.WriteLine($"< {DateTime.Now} chatbot: {error.Message}");
+    }
   }
 }
