@@ -246,7 +246,7 @@ public class Program
             Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
             return;
           }
-          await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.USER_PATH}\Documents\Temporario\{fatura}");
+          await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\{fatura}");
           await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
           stream.Dispose();
           await sendTextMesssageWraper(user.id, fatura, false);
@@ -263,11 +263,12 @@ public class Program
       try
       {
         telbot.Temporary.executar(resposta);
-        await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.USER_PATH}\Documents\Temporario\temporario.png");
+        await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\temporario.png");
         await bot.SendPhotoAsync(user.id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
         stream.Dispose();
-        System.IO.File.Delete(@$"{Temporary.USER_PATH}\Documents\Temporario\temporario.png");
+        System.IO.File.Delete(@$"{Temporary.CURRENT_PATH}\tmp\temporario.png");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+        if((args[0] == "agrupamento") && (DateTime.Today.DayOfWeek == DayOfWeek.Friday)) await sendTextMesssageWraper(user.id, "*ATENÇÃO:* Não pode cortar agrupamento por nota de recorte!");
         await sendTextMesssageWraper(user.id, $"Enviado relatorio de {args[0]}!", false);
       }
       catch (System.Exception error)
