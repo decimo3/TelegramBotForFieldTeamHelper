@@ -314,8 +314,10 @@ public class Program
   async Task HandleCommand(long userId, string message)
   {
     var command = message.Split(" ")[0];
-    var re = new Regex("\".*\"");
-    var arg = re.Match(command);
+    var re1 = new Regex("\".*\"");
+    var texto = re1.Match(message);
+    var re2 = new Regex("[0-9]{1,12}");
+    var destinatario = re2.Match(message);
     switch (command)
     {
       case "/start":
@@ -331,11 +333,20 @@ public class Program
         await sendTextMesssageWraper(userId, "*FATURA* ou *DEBITO* _(sem acentuação)_ para receber as faturas vencidas em PDF (limite de 5 faturas)");
         await sendTextMesssageWraper(userId, "*HISTORICO* _(sem acentuação)_ para receber a lista com os 5 últimos serviços para a instalação;");
         await sendTextMesssageWraper(userId, "*MEDIDOR* para receber as informações referentes ao medidor;");
+        await sendTextMesssageWraper(userId, "*AGRUPAMENTO* para receber as informações referentes ao PC;");
         await sendTextMesssageWraper(userId, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
         await sendTextMesssageWraper(userId, "Estou trabalhando para trazer mais funções em breve");
         break;
       case "/ping":
         await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
+        break;
+      case "/dados":
+        var agora = DateTime.Now;
+        Temporary.extratoDiario(agora);
+        Stream stream = System.IO.File.OpenRead("dados.csv");
+        await bot.SendDocumentAsync(userId, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{agora}.csv"));
+        System.IO.File.Delete($"{agora}.csv");
+        stream.Dispose();
         break;
       case "/status":
         var statusSap = Temporary.executar("conecao", "0");
@@ -351,41 +362,39 @@ public class Program
         await sendTextMesssageWraper(userId, $"Sistema SAP: {statusSap[0]}\n\nEstatísticas:\n");
         break;
       case "/enviar":
-        re = new Regex("[0-9]{6,12}");
-        var destinatario = re.Match(command);
         if(!Int64.TryParse(destinatario.Value, out long id))
         {
           await sendTextMesssageWraper(userId, "O identificador do usuário não é válido!");
           break;
         }
-        re = new Regex("\".*\"");
-        var text = re.Match(command);
-        if(text is null)
+        if(texto is null)
         {
           await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
         }
         else
         {
-          await sendTextMesssageWraper(id, $"Mensagem do administrador: {text.Value}");
-          await sendTextMesssageWraper(id, "Não responder essa mensagem para o BOT!");
+          await sendTextMesssageWraper(id, $"Mensagem do administrador: {texto.Value}");
           await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
         }
         break;
       case "/todos":
-        if(arg.Value is null)
+        if(texto.Value is null)
         {
           await sendTextMesssageWraper(userId, "O texto não foi encontrado na mensagem!");
         }
         else
         {
           var todes = Database.todosUsuarios();
-          for(int i = 0;i < todes.Count; i++)
+          var msg = $"Mensagem do administrador para todos: {texto.Value}";
+          foreach(var um in todes)
           {
-            await sendTextMesssageWraper(todes[i], $"Mensagem do administrador: {arg.Value}");
-            await sendTextMesssageWraper(todes[i], "Não responder essa mensagem para o BOT!");
-            await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
+            sendTextMesssageWraper(um, msg).Wait();
           }
+          await sendTextMesssageWraper(userId, "Mensagem enviada com sucesso!");
         }
+        break;
+      case "/teste":
+        await sendTextMesssageWraper(userId, "Teste realizado com sucesso");
         break;
       default:
         await sendTextMesssageWraper(userId, "Comando solicitado não foi programado! Verifique e tente um válido");
