@@ -13,8 +13,17 @@ public class Program
   private long ID_ADM_BOT;
   // instantiates a new telegram bot api client with the specified token
   private TelegramBotClient bot;
-  public Program()
+  public Program(string[] args)
   {
+    if(args.Contains("--sem-faturas"))
+    {
+      Console.WriteLine("O programa irá ignorar os pedidos de faturas");
+      GERAR_FATURAS = false;
+    }
+    else
+    {
+      GERAR_FATURAS = true;
+    }
     // Identificador do administrador do BOT
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
     // instantiates a new telegram bot api client with the specified token
@@ -202,6 +211,12 @@ public class Program
         await sendTextMesssageWraper(user.id, "O identificador do usuário não é válido!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
       }
+      return;
+    }
+    if ((args[0] == "fatura" || args[0] == "debito") && GERAR_FATURAS == false)
+    {
+      await sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
+      Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
       return;
     }
     var resposta = telbot.Temporary.executar(args[0], args[1]);
