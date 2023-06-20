@@ -6,6 +6,6 @@ class Startup
   {
     DotEnv.Load();
     Database.configurarBanco();
-    var program = new Program();
+    var program = new Program(args);
   }
 }
