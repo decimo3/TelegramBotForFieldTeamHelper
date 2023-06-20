@@ -235,7 +235,25 @@ public class Program
       await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"), resposta[0]);
       return;
     }
-    if (args[0] == "fatura" || args[0] == "debito" || args[0] == "débito")
+    if ((args[0] == "relatorio") || (args[0] == "manobra"))
+    {
+      try
+      {
+        await sendTextMesssageWraper(user.id, "A aplicação solicitada ainda não foi implementada!");
+        throw new NotImplementedException("A aplicação solicitada ainda não foi implementada!");
+        //Utilitarios.CreateCSV(resposta);
+        await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\relatorio.csv");
+        await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{message.Date.ToShortTimeString()}.csv"));
+        stream.Dispose();
+        Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
+      }
+      catch (System.Exception error)
+      {
+        await ErrorReport(user.id, args[0], args[1], error);
+      }
+      return;
+    }
+    if (args[0] == "fatura" || args[0] == "debito")
     {
       try
       {
@@ -277,7 +295,7 @@ public class Program
       }
       return;
     }
-    if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato" || (args[0] == "relatorio") || (args[0] == "manobra") || (args[0] == "medidor"))
+    if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato" || (args[0] == "medidor"))
     {
       string textoMensagem = String.Empty;
       foreach (var res in resposta)
