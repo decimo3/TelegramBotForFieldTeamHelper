@@ -480,3 +480,5 @@ $RECYCLE.BIN/
 .env
 Users.json
 *.db
+*.exe
+tmp
