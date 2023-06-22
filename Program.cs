@@ -84,7 +84,10 @@ public class Program
       return;
     }
     // verifica se o cadastro expirou
-    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(DIAS_EXPIRACAO)) > 0)
+    DateTime expiracao = user.update_at, aviso = user.update_at;
+    expiracao.AddDays(DIAS_EXPIRACAO);
+    aviso.AddDays(DIAS_EXPIRACAO - 7);
+    if(System.DateTime.Compare(DateTime.Today, expiracao) > 0)
     {
       await sendTextMesssageWraper(message.From.Id, "Sua autorização expirou e não posso mais te passar informações");
       await sendTextMesssageWraper(message.From.Id, "Solicite a autorização novamente para o seu supervisor!");
@@ -92,7 +95,7 @@ public class Program
       return;
     }
     // Verifica se o cadastro está perto de expirar (7 dias antes) e avisa
-    if(System.DateTime.Compare(user.update_at, user.update_at.AddDays(DIAS_EXPIRACAO - 7)) > 0)
+    if(System.DateTime.Compare(DateTime.Today, aviso) > 0)
     {
       await sendTextMesssageWraper(message.From.Id, "Sua autorização está quase expirando!");
       await sendTextMesssageWraper(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
