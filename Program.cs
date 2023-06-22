@@ -19,7 +19,7 @@ public class Program
   public Program(string[] args)
   {
     GERAR_FATURAS = args.Contains("--sem-faturas") ? false : true;
-    SAP_OFFLINE = args.Contains("--sap-offline") ? false : true;
+    SAP_OFFLINE = args.Contains("--sap-offline") ? true : false;
     // Identificador do administrador do BOT
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
     // Define quantos dias a equipe terá acesso ao sistema sem renovar a autorização
@@ -43,14 +43,6 @@ public class Program
   {
     if (update.Type == UpdateType.Message)
     {
-      if(SAP_OFFLINE)
-      {
-        var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
-        Console.WriteLine($"> {update.Message.Date.ToLocalTime()} usuario: {update.Message.From.Id} escreveu: {update.Message.Text}");
-        await bot.SendTextMessageAsync(chatId: update.Message.From.Id, text: messagem, parseMode: ParseMode.Markdown);
-        Console.WriteLine($"< {DateTime.Now} chatbot: {messagem}");
-        return;
-      }
       await HandleMessage(update.Message!);
     }
     else
@@ -83,6 +75,12 @@ public class Program
       await sendTextMesssageWraper(message.From.Id, "Eu não estou autorizado a te passar informações!");
       await sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
       await sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso ao BOT");
+      return;
+    }
+    if(SAP_OFFLINE)
+    {
+      var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
+      await sendTextMesssageWraper(message.From.Id, messagem);
       return;
     }
     // verifica se o cadastro expirou
