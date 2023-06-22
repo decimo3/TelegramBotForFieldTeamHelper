@@ -259,14 +259,13 @@ public class Program
         {
           if (fatura == "None" || fatura == null || fatura == "")
           {
-            Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
-            return;
+            continue;
           }
           await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\{fatura}");
           await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
           stream.Dispose();
-          await sendTextMesssageWraper(user.id, fatura, false);
         }
+        Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
       }
       catch (System.Exception error)
       {
