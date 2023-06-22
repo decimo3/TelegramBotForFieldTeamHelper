@@ -338,12 +338,11 @@ public class Program
         await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
         break;
       case "/dados":
-        var agora = DateTime.Now;
-        Temporary.extratoDiario(agora);
+        Temporary.extratoDiario();
         Stream stream = System.IO.File.OpenRead("dados.csv");
-        await bot.SendDocumentAsync(userId, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{agora}.csv"));
-        System.IO.File.Delete($"{agora}.csv");
+        await bot.SendDocumentAsync(userId, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{DateTime.Now.ToString("dd-MM-yyyy_HHmmss")}.csv"));
         stream.Dispose();
+        System.IO.File.Delete("dados.csv");
         break;
       case "/status":
         var statusSap = Temporary.executar("conecao", "0");
