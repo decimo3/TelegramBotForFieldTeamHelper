@@ -6,11 +6,13 @@ public static class Temporary
   private static string IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
   public static List<string> executar(string aplicacao, string informacao)
   {
+    string[] args = System.Environment.GetCommandLineArgs();
+    int instancia = args.Contains("--in-development") ? 1 : 0;
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
           FileName = SAP_SCRIPT,
-          Arguments = $"{aplicacao} {informacao}",
+          Arguments = $"{aplicacao} {informacao} {instancia}",
           UseShellExecute = false,
           RedirectStandardOutput = true,
           CreateNoWindow = true
