@@ -49,4 +49,26 @@ public static class Temporary
         return linha;
       }
   }
+  public static void extratoDiario()
+  {
+    Console.WriteLine($"-header -csv database.db {"\"SELECT * FROM logsModel;\""} > dados.csv");
+    using(var proc = new System.Diagnostics.Process{
+      StartInfo = new System.Diagnostics.ProcessStartInfo
+        {
+          FileName = "sqlite3",
+          Arguments = $"-header -csv database.db \"SELECT * FROM logsModel;\"", //WHERE DATE(create_at) == DATE('{DateTime.Now.ToString("dd-MM-yyyy")}')
+          UseShellExecute = false,
+          RedirectStandardOutput = true,
+          CreateNoWindow = true
+        }})
+      {
+        var linha = new List<string>();
+        proc.Start();
+        while (!proc.StandardOutput.EndOfStream)
+        {
+          linha.Add(proc.StandardOutput.ReadLine()!);
+        }
+        System.IO.File.WriteAllLines("dados.csv", linha);
+      }
+  }
 }
