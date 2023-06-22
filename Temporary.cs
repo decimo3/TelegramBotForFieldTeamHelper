@@ -7,7 +7,7 @@ public static class Temporary
   public static List<string> executar(string aplicacao, string informacao)
   {
     string[] args = System.Environment.GetCommandLineArgs();
-    int instancia = args.Contains("--in-development") ? 1 : 0;
+    int instancia = args.Contains("--em-desenvolvimento") ? 1 : 0;
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {

@@ -4,7 +4,7 @@ class Startup
 {
   public static void Main(string[] args)
   {
-    if(args.Contains("--in-development")) DotEnv.Load();
+    if(args.Contains("--em-desenvolvimento")) DotEnv.Load();
     Database.configurarBanco();
     var program = new Program(args);
   }
