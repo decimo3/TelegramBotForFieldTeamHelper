@@ -135,7 +135,7 @@ public class Program
     {
       if(!user.has_privilege)
       {
-        await sendTextMesssageWraper(user.id, "Você não tem permissão para autorizar usuários!");
+        await sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
         return;
       }
