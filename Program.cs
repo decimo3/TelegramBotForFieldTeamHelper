@@ -41,15 +41,8 @@ public class Program
   // Each time a user interacts with the bot, this method is called
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
-    if (update.Type == UpdateType.Message)
-    {
-      await HandleMessage(update.Message!);
-    }
-    else
-    {
-      Console.WriteLine(update.ToString());
-      await ErrorReport(ID_ADM_BOT, string.Empty, string.Empty, new InvalidOperationException(update.ToString()));
-    }
+    if (update.Type == UpdateType.Message) await HandleMessage(update.Message!);
+    else await ErrorReport(ID_ADM_BOT, string.Empty, string.Empty, new InvalidOperationException(update.ToString()));
     return;
   }
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
