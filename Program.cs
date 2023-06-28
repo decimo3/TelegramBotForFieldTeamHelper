@@ -211,9 +211,15 @@ public class Program
       }
       return;
     }
-    if ((args[0] == "fatura" || args[0] == "debito") && GERAR_FATURAS == false)
+    if ((args[0] == "fatura" || args[0] == "debito" || args[0] == "passivo") && GERAR_FATURAS == false)
     {
       await sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
+      Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
+      return;
+    }
+    if (args[0] == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
+    {
+      await sendTextMesssageWraper(user.id, "Essa aplicação não deve ser usada na sexta e no sábado!\n\nNotas de recorte devem ter todas as faturas cobradas!");
       Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
       return;
     }
@@ -250,7 +256,7 @@ public class Program
       }
       return;
     }
-    if (args[0] == "fatura" || args[0] == "debito")
+    if (args[0] == "fatura" || args[0] == "debito" || args[0] == "passivo")
     {
       try
       {
@@ -282,7 +288,8 @@ public class Program
         stream.Dispose();
         System.IO.File.Delete(@$"{Temporary.CURRENT_PATH}\tmp\temporario.png");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
-        if((args[0] == "agrupamento") && (DateTime.Today.DayOfWeek == DayOfWeek.Friday)) await sendTextMesssageWraper(user.id, "*ATENÇÃO:* Não pode cortar agrupamento por nota de recorte!");
+        if((args[0] == "agrupamento") && (DateTime.Today.DayOfWeek == DayOfWeek.Friday))
+        await sendTextMesssageWraper(user.id, "*ATENÇÃO:* Não pode cortar agrupamento por nota de recorte!");
         await sendTextMesssageWraper(user.id, $"Enviado relatorio de {args[0]}!", false);
       }
       catch (System.Exception error)
