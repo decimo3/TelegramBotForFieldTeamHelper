@@ -244,7 +244,6 @@ public class Program
     {
       try
       {
-        //Utilitarios.CreateCSV(resposta);
         await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\relatorio.csv");
         await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{message.Date.ToShortTimeString()}.csv"));
         stream.Dispose();
@@ -269,6 +268,7 @@ public class Program
           await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\{fatura}");
           await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
           stream.Dispose();
+          await sendTextMesssageWraper(user.id, fatura, false);
         }
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
       }
