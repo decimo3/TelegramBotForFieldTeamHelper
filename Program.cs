@@ -245,7 +245,7 @@ public class Program
       try
       {
         await using Stream stream = System.IO.File.OpenRead(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
-        await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{DateTime.Now.ToString("u")}.xlsx"));
+        await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.xlsx"));
         stream.Dispose();
         System.IO.File.Delete(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
