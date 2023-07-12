@@ -223,11 +223,11 @@ public class Program
       Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
       return;
     }
-    if ((args[0] == "relatorio") || (args[0] == "manobra"))
+    if (((args[0] == "relatorio") || (args[0] == "manobra")) && user.has_privilege == false)
     {
-      await sendTextMesssageWraper(user.id, "A informação solicitada não foi implementada ainda!");
-      Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
-      return;
+        await sendTextMesssageWraper(user.id, "Você não tem permissão para gerar relatórios!");
+        Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
+        return;
     }
     var resposta = telbot.Temporary.executar(args[0], args[1]);
     if ((resposta.Count == 0) || (resposta is null))
@@ -244,9 +244,10 @@ public class Program
     {
       try
       {
-        await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\relatorio.csv");
-        await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{message.Date.ToShortTimeString()}.csv"));
+        await using Stream stream = System.IO.File.OpenRead(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
+        await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{DateTime.Now.ToString("u")}.xlsx"));
         stream.Dispose();
+        System.IO.File.Delete(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
       }
       catch (System.Exception error)
