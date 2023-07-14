@@ -219,9 +219,9 @@ public class Program
     }
     if (args[0] == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
     {
-      await sendTextMesssageWraper(user.id, "Essa aplicação não deve ser usada na sexta e no sábado!\n\nNotas de recorte devem ter todas as faturas cobradas!");
-      Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
-      return;
+      await sendTextMesssageWraper(user.id, "Essa aplicação não deve ser usada na sexta e no sábado!");
+      await sendTextMesssageWraper(user.id, "Notas de recorte devem ter todas as faturas cobradas!");
+      args[0] = "fatura";
     }
     if (((args[0] == "relatorio") || (args[0] == "manobra")) && user.has_privilege == false)
     {
