@@ -53,6 +53,7 @@ public class Program
   }
   async Task HandleMessage(Message message)
   {
+    var agora = DateTime.Now;
     if (message.From is null) return;
     if (message.Text is null) return;
     // Print message update to console
@@ -245,9 +246,10 @@ public class Program
       try
       {
         await using Stream stream = System.IO.File.OpenRead(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
-        await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.xlsx"));
+        await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{agora.ToString("yyyyMMdd_HHmmss")}.XLSX"));
         stream.Dispose();
         System.IO.File.Delete(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
+        await sendTextMesssageWraper(user.id, $"Enviado arquivo de {args[0]}: {agora.ToString("yyyyMMdd_HHmmss")}.XLSX", false);
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
       }
       catch (System.Exception error)
