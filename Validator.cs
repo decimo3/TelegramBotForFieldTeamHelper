@@ -31,6 +31,7 @@ public static class Validador
     if(aplicacao == "manobra") return true;
     if(aplicacao == "medidor") return true;
     if(aplicacao == "passivo") return true;
+    if(aplicacao == "suspenso") return true;
     return false;
   }
   public static bool orderOperandos (string info1, string info2)

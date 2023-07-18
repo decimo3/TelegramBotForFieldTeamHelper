@@ -301,7 +301,7 @@ public class Program
       }
       return;
     }
-    if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato" || (args[0] == "medidor"))
+    if (args[0] == "telefone" || args[0] == "coordenada" || args[0] == "localização" || args[0] == "contato" || (args[0] == "medidor") || (args[0] == "suspenso"))
     {
       string textoMensagem = String.Empty;
       foreach (var res in resposta)
