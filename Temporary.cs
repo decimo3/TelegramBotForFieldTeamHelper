@@ -1,18 +1,14 @@
 namespace telbot;
 public static class Temporary
 {
-  public static string CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
-  private static string SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
-  private static string IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
-  public static List<string> executar(string aplicacao, string informacao)
+  public static List<string> executar(Configuration cfg, string aplicacao, string informacao)
   {
     string[] args = System.Environment.GetCommandLineArgs();
-    int instancia = args.Contains("--em-desenvolvimento") ? 1 : 0;
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
-          FileName = SAP_SCRIPT,
-          Arguments = $"{aplicacao} {informacao} {instancia}",
+          FileName = cfg.SAP_SCRIPT,
+          Arguments = $"{aplicacao} {informacao} {cfg.INSTANCIA}",
           UseShellExecute = false,
           RedirectStandardOutput = true,
           CreateNoWindow = true
@@ -27,13 +23,13 @@ public static class Temporary
         return linha;
       }
   }
-  public static List<string> executar(List<string> listaValoresSeparadosPorTabulacao)
+  public static List<string> executar(Configuration cfg, List<string> listaValoresSeparadosPorTabulacao)
   {
     string textoValoresSeparadosPorTabulacao = string.Join("\n", listaValoresSeparadosPorTabulacao);
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
-          FileName = IMG_SCRIPT,
+          FileName = cfg.IMG_SCRIPT,
           Arguments = $"\"{textoValoresSeparadosPorTabulacao}\"",
           UseShellExecute = false,
           RedirectStandardOutput = true,
@@ -49,14 +45,14 @@ public static class Temporary
         return linha;
       }
   }
-  public static void extratoDiario()
+  public static void extratoDiario(Configuration cfg)
   {
-    Console.WriteLine($"-header -csv database.db {"\"SELECT * FROM logsModel;\""} > dados.csv");
+    var argumentos = $"-header -csv database.db \"SELECT * FROM logsModel;\"";
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
           FileName = "sqlite3",
-          Arguments = $"-header -csv database.db \"SELECT * FROM logsModel;\"", //WHERE DATE(create_at) == DATE('{DateTime.Now.ToString("dd-MM-yyyy")}')
+          Arguments = argumentos, //WHERE DATE(create_at) == DATE('{DateTime.Now.ToString("dd-MM-yyyy")}')
           UseShellExecute = false,
           RedirectStandardOutput = true,
           CreateNoWindow = true
@@ -68,7 +64,7 @@ public static class Temporary
         {
           linha.Add(proc.StandardOutput.ReadLine()!);
         }
-        System.IO.File.WriteAllLines("dados.csv", linha);
+        System.IO.File.WriteAllLines($"{cfg.CURRENT_PATH}/dados.csv", linha);
       }
   }
 }

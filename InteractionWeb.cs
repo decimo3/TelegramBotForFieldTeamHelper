@@ -3,6 +3,11 @@ using OpenQA.Selenium.Chrome;
 namespace telbot;
 public class InteractionWeb
 {
+  private Configuration cfg;
+  public InteractionWeb(Configuration cfg)
+  {
+    this.cfg = cfg;
+  }
   private string usuario = "2258038@light.com.br";
   private string palavra = "Mestre$4'";
   public void Foto(string nota)
@@ -10,7 +15,7 @@ public class InteractionWeb
 
     var options = new ChromeOptions();
     options.BinaryLocation = @"C:\Users\ruan.camello\scoop\apps\googlechrome\current\chrome.exe";
-    options.AddArgument($@"--user-data-dir={Temporary.CURRENT_PATH}\ofs");
+    options.AddArgument($@"--user-data-dir={cfg.CURRENT_PATH}\ofs");
     options.AddArgument("--app=https://lightsa.etadirect.com/");
     using(var driver = new ChromeDriver(options: options))
     {

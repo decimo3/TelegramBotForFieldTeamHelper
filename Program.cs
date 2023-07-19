@@ -9,23 +9,14 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace telbot;
 public class Program
 {
-  // Identificador do administrador do BOT
-  private long ID_ADM_BOT;
-  private int DIAS_EXPIRACAO;
-  private bool GERAR_FATURAS;
-  private bool SAP_OFFLINE;
   // instantiates a new telegram bot api client with the specified token
   private TelegramBotClient bot;
-  public Program(string[] args)
+  private Configuration cfg;
+  public Program(Configuration cfg)
   {
-    GERAR_FATURAS = args.Contains("--sem-faturas") ? false : true;
-    SAP_OFFLINE = args.Contains("--sap-offline") ? true : false;
-    // Identificador do administrador do BOT
-    ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
-    // Define quantos dias a equipe terá acesso ao sistema sem renovar a autorização
-    DIAS_EXPIRACAO = 30;
+    this.cfg = cfg;
     // instantiates a new telegram bot api client with the specified token
-    bot = new TelegramBotClient(System.Environment.GetEnvironmentVariable("TOKEN")!);
+    bot = new TelegramBotClient(cfg.BOT_TOKEN);
     // 
     using (var cts = new CancellationTokenSource())
     {
@@ -42,12 +33,12 @@ public class Program
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
     if (update.Type == UpdateType.Message) await HandleMessage(update.Message!);
-    else await ErrorReport(ID_ADM_BOT, string.Empty, string.Empty, new InvalidOperationException(update.ToString()));
+    else await ErrorReport(cfg.ID_ADM_BOT, string.Empty, string.Empty, new InvalidOperationException(update.ToString()));
     return;
   }
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
-    await ErrorReport(ID_ADM_BOT, string.Empty, string.Empty, exception);
+    await ErrorReport(cfg.ID_ADM_BOT, string.Empty, string.Empty, exception);
     await Console.Error.WriteLineAsync(exception.Message);
     await Console.Error.WriteLineAsync(exception.StackTrace);
   }
@@ -71,15 +62,15 @@ public class Program
       await sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso ao BOT");
       return;
     }
-    if(SAP_OFFLINE)
+    if(cfg.SAP_OFFLINE)
     {
       var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
       await sendTextMesssageWraper(message.From.Id, messagem);
       return;
     }
     // verifica se o cadastro expirou
-    DateTime expiracao = user.update_at.AddDays(DIAS_EXPIRACAO);
-    DateTime sinalizar = user.update_at.AddDays(DIAS_EXPIRACAO - 7);
+    DateTime expiracao = user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+    DateTime sinalizar = user.update_at.AddDays(cfg.DIAS_EXPIRACAO - 7);
     if(System.DateTime.Compare(DateTime.Now, expiracao) > 0)
     {
       await sendTextMesssageWraper(message.From.Id, "Sua autorização expirou e não posso mais te passar informações");
@@ -185,7 +176,7 @@ public class Program
     }
     if (args[0] == "promover")
     {
-      if(user.id != ID_ADM_BOT)
+      if(user.id != cfg.ID_ADM_BOT)
       {
         await sendTextMesssageWraper(user.id, "Você não tem permissão para promover usuários!");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
@@ -212,7 +203,7 @@ public class Program
       }
       return;
     }
-    if ((args[0] == "fatura" || args[0] == "debito" || args[0] == "passivo") && GERAR_FATURAS == false)
+    if ((args[0] == "fatura" || args[0] == "debito" || args[0] == "passivo") && cfg.GERAR_FATURAS == false)
     {
       await sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
       Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
@@ -230,7 +221,7 @@ public class Program
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], false));
         return;
     }
-    var resposta = telbot.Temporary.executar(args[0], args[1]);
+    var resposta = telbot.Temporary.executar(cfg, args[0], args[1]);
     if ((resposta.Count == 0) || (resposta is null))
     {
       await ErrorReport(user.id, args[0], args[1], new Exception("Erro no script do SAP"));
@@ -268,7 +259,7 @@ public class Program
           {
             continue;
           }
-          await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\{fatura}");
+          await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\tmp\{fatura}");
           await bot.SendDocumentAsync(user.id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: fatura));
           stream.Dispose();
           await sendTextMesssageWraper(user.id, fatura, false);
@@ -285,11 +276,11 @@ public class Program
     {
       try
       {
-        telbot.Temporary.executar(resposta);
-        await using Stream stream = System.IO.File.OpenRead(@$"{Temporary.CURRENT_PATH}\tmp\temporario.png");
+        telbot.Temporary.executar(cfg, resposta);
+        await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\tmp\temporario.png");
         await bot.SendPhotoAsync(user.id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
         stream.Dispose();
-        System.IO.File.Delete(@$"{Temporary.CURRENT_PATH}\tmp\temporario.png");
+        System.IO.File.Delete(@$"{cfg.CURRENT_PATH}\tmp\temporario.png");
         Database.inserirRelatorio(new logsModel(user.id, args[0], args[1], true));
         if((args[0] == "agrupamento") && (DateTime.Today.DayOfWeek == DayOfWeek.Friday))
         await sendTextMesssageWraper(user.id, "*ATENÇÃO:* Não pode cortar agrupamento por nota de recorte!");
@@ -347,14 +338,14 @@ public class Program
         await sendTextMesssageWraper(userId, "Estou de prontidão aguardando as solicitações! (^.^)");
         break;
       case "/dados":
-        Temporary.extratoDiario();
+        Temporary.extratoDiario(cfg);
         Stream stream = System.IO.File.OpenRead("dados.csv");
         await bot.SendDocumentAsync(userId, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: $"{DateTime.Now.ToString("dd-MM-yyyy_HHmmss")}.csv"));
         stream.Dispose();
         System.IO.File.Delete("dados.csv");
         break;
       case "/status":
-        var statusSap = Temporary.executar("conecao", "0");
+        var statusSap = Temporary.executar(cfg, "conecao", "0");
         if(statusSap.Count == 0)
         {
           statusSap.Add("offline");
@@ -410,7 +401,7 @@ public class Program
   async Task ErrorReport(long userId, string aplicacao, string informacao, Exception error, string? SAPerrorMessage=null)
   {
 
-    await sendTextMesssageWraper(ID_ADM_BOT, $"Aplicação: {aplicacao} Informação: {informacao}", false);
+    await sendTextMesssageWraper(cfg.ID_ADM_BOT, $"Aplicação: {aplicacao} Informação: {informacao}", false);
     if(SAPerrorMessage is not null) await sendTextMesssageWraper(userId, SAPerrorMessage);
     await sendTextMesssageWraper(userId, "Não foi possível processar a sua solicitação!");
     await sendTextMesssageWraper(userId, "Solicite a informação para o monitor(a)");

@@ -3,8 +3,7 @@ namespace telbot;
 public static class Database
 {
   private static string connectionString = "Data Source=database.db";
-  private static long ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
-  public static void configurarBanco()
+  public static void configurarBanco(Configuration cfg)
   {
     if(!System.IO.File.Exists("database.db"))
     {
@@ -33,12 +32,12 @@ public static class Database
         command.ExecuteNonQuery();
         try
         {
-          recuperarUsuario(ID_ADM_BOT);
+          recuperarUsuario(cfg.ID_ADM_BOT);
         }
         catch
         {
           command.CommandText = @$"INSERT INTO usersModel(id, create_at, update_at, has_privilege, inserted_by)
-          VALUES ({ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', 1, {ID_ADM_BOT});";
+          VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', 1, {cfg.ID_ADM_BOT});";
           command.ExecuteNonQuery();
         }
       }

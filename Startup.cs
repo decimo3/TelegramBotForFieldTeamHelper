@@ -5,7 +5,9 @@ class Startup
   public static void Main(string[] args)
   {
     if(args.Contains("--em-desenvolvimento")) DotEnv.Load();
-    Database.configurarBanco();
-    var program = new Program(args);
+    if(System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development") DotEnv.Load();
+    var config = new Configuration(args);
+    Database.configurarBanco(config);
+    var program = new Program(config);
   }
 }
