@@ -16,10 +16,6 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0" />
     <None Include=".env" CopyToOutputDirectory="PreserveNewest" />
-    <!-- <None Include="database.db" CopyToOutputDirectory="PreserveNewest" /> -->
-    <None Include="sap.exe" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="img.exe" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="fileDialog.vbs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
