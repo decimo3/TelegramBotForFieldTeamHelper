@@ -8,15 +8,14 @@ public class InteractionWeb
   {
     this.cfg = cfg;
   }
-  private string usuario = "2258038@light.com.br";
-  private string palavra = "Mestre$4'";
+  private string usuario = "";
+  private string palavra = "";
   public void Foto(string nota)
   {
 
     var options = new ChromeOptions();
-    options.BinaryLocation = @"C:\Users\ruan.camello\scoop\apps\googlechrome\current\chrome.exe";
-    options.AddArgument($@"--user-data-dir={cfg.CURRENT_PATH}\ofs");
-    options.AddArgument("--app=https://lightsa.etadirect.com/");
+    options.AddArgument($@"--user-data-dir={cfg.CURRENT_PATH}\temp");
+    options.AddArgument("--app=https://example.com/");
     using(var driver = new ChromeDriver(options: options))
     {
       driver.Manage().Window.Maximize();
