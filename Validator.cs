@@ -40,4 +40,9 @@ public static class Validador
     if(isValidInformacao(info1) && isValidAplicacao(info2) && isAplicacaoOption(info2)) return false;
     throw new InvalidOperationException("Não foi estabelecida a ordem dos operandos ou não é uma aplicacao válida.");
   }
+  public static bool isValidToken(string token)
+  {
+    var regex = new Regex("^[0-9]{8,10}:[a-zA-Z0-9_-]{35}$");
+    return regex.IsMatch(token);
+  }
 }
