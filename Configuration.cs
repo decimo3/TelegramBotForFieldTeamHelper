@@ -18,6 +18,7 @@ public class Configuration
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
     BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN")!;
     if(BOT_TOKEN is null) throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
+    if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
     if(ID_ADM_BOT == 0) throw new InvalidOperationException("Environment variable ID_ADM_BOT is not set!");
     DIAS_EXPIRACAO = 30;
@@ -37,9 +38,20 @@ public class Configuration
       }
       if(arg.StartsWith("--sap-instancia"))
       {
-        var a = 0;
-        if(Int32.TryParse(arg.Split("=")[1], out a)) INSTANCIA = a;
+        if(Int32.TryParse(arg.Split("=")[1], out int instancia)) INSTANCIA = instancia;
         else throw new InvalidOperationException("Argumento 'instancia' não está no formato correto! Use the format: '--sap-instancia=<numInstancia>'");
+      }
+      if(arg.StartsWith("--bot-token"))
+      {
+        try
+        {
+          BOT_TOKEN = arg.Split("=")[1];
+          if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
+        }
+        catch
+        {
+          throw new InvalidOperationException("Argumento 'token' não está no formato correto! Use the format: '--bot-token=<tokenDoBot>'");
+        }
       }
     }
   }
