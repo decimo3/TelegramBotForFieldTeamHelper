@@ -23,7 +23,9 @@ public class Configuration
     DIAS_EXPIRACAO = 30;
     GERAR_FATURAS = true; // valor padrão caso não encontre o argumento no loop
     SAP_OFFLINE = false; // valor padrão caso não encontre o argumento no loop
-    IS_DEVELOPMENT = (System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") is null) ? true : false;
+    var env = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+    if(env is null) IS_DEVELOPMENT = false;
+    else IS_DEVELOPMENT = (env == "Development") ? true : false;
     foreach (var arg in args)
     {
       if(arg == "--sem-faturas") GERAR_FATURAS = false;
