@@ -68,8 +68,8 @@ public static class Validador
     {
       var estaNaNaOrdemCerta = Validador.orderOperandos(args[0], args[1]);
       if(estaNaNaOrdemCerta is null) return null;
-      request.aplicacao = ((bool)estaNaNaOrdemCerta) ? args[1] : args[0];
-      request.informacao = ((bool)estaNaNaOrdemCerta) ? args[0] : args[1];
+      request.aplicacao = ((bool)estaNaNaOrdemCerta) ? args[0] : args[1];
+      request.informacao = ((bool)estaNaNaOrdemCerta) ? args[1] : args[0];
       request.tipo = isAplicacaoOption(request.aplicacao);
       if(request.tipo is null) return null;
       return request;
