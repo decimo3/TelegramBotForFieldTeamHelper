@@ -22,6 +22,7 @@ public class Configuration
     ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
     if(ID_ADM_BOT == 0) throw new InvalidOperationException("Environment variable ID_ADM_BOT is not set!");
     DIAS_EXPIRACAO = 30;
+    INSTANCIA = 0; // valor padrão caso não encontre o argumento no loop
     GERAR_FATURAS = true; // valor padrão caso não encontre o argumento no loop
     SAP_OFFLINE = false; // valor padrão caso não encontre o argumento no loop
     var env = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
