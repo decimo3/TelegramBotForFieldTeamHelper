@@ -6,7 +6,6 @@ public static class Validador
   public static bool isValidArguments(string text)
   {
     if(!(text.Length > 0)) return false;
-    if (text.Split(" ").Count() != 2) return false;
     return true;
   }
   public static bool isValidAplicacao (string aplicacao)
