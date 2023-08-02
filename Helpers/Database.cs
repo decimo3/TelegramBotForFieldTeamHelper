@@ -30,11 +30,7 @@ public static class Database
             is_sucess BOOLEAN NOT NULL DEFAULT TRUE
             )";
         command.ExecuteNonQuery();
-        try
-        {
-          recuperarUsuario(cfg.ID_ADM_BOT);
-        }
-        catch
+        if(recuperarUsuario(cfg.ID_ADM_BOT) is null)
         {
           command.CommandText = @$"INSERT INTO usersModel(id, create_at, update_at, has_privilege, inserted_by)
           VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', 1, {cfg.ID_ADM_BOT});";
