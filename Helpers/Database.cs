@@ -44,7 +44,7 @@ public static class Database
       connection.Close();
     }
   }
-  public static UsersModel recuperarUsuario(long id)
+  public static UsersModel? recuperarUsuario(long id)
   {
     using(var connection = new SQLiteConnection(connectionString))
     {
@@ -54,7 +54,7 @@ public static class Database
         command.CommandText = @$"SELECT id, create_at, update_at, has_privilege, inserted_by FROM usersModel WHERE id = {id}";
         using(var dataReader = command.ExecuteReader())
         {
-          if(!dataReader.HasRows) throw new InvalidOperationException("O usuário não existe no banco de dados!");
+          if(!dataReader.HasRows) return null;
           dataReader.Read();
           return new UsersModel() {
             id = dataReader.GetInt64(0),
