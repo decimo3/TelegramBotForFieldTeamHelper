@@ -15,10 +15,34 @@ public class HandleInformation
     this.user = user;
     this.request = request;
     this.agora = DateTime.Now;
-    respostas = telbot.Temporary.executar(cfg, this.request.aplicacao!, this.request.informacao!);
+    this.respostas = new();
+  }
+  async private Task<bool> has_impediment()
+  {
+    if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == false))
+    {
+      await bot.sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      return true;
+    }
+    if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
+    {
+      await bot.sendTextMesssageWraper(user.id, "Essa aplicação não deve ser usada na sexta e no sábado!");
+      await bot.sendTextMesssageWraper(user.id, "Notas de recorte devem ter todas as faturas cobradas!");
+      return true;
+    }
+    if((request.tipo == TypeRequest.xlsInfo) && (user.has_privilege == false))
+    {
+      await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para gerar relatórios!");
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      return true;
+    }
+    return false;
   }
   async public Task routeInformation()
   {
+    if(await has_impediment()) return;
+    respostas = telbot.Temporary.executar(cfg, this.request.aplicacao!, this.request.informacao!);
     if(respostas.Count == 0)
     {
       var erro = new Exception("Erro no script do SAP");
@@ -68,18 +92,6 @@ public class HandleInformation
   // Para envio de faturas em PDF
   async public Task SendDocument()
   {
-    if(cfg.GERAR_FATURAS == false)
-    {
-      await bot.sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
-      return;
-    }
-    if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
-    {
-      await bot.sendTextMesssageWraper(user.id, "Essa aplicação não deve ser usada na sexta e no sábado!");
-      await bot.sendTextMesssageWraper(user.id, "Notas de recorte devem ter todas as faturas cobradas!");
-      return;
-    }
     try
     {
       foreach (string fatura in respostas)
@@ -125,12 +137,6 @@ public class HandleInformation
   // Para envio de planilhas
   async public Task SendWorksheet()
   {
-    if(user.has_privilege == false)
-    {
-      await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para gerar relatórios!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
-      return;
-    }
     try
     {
       await using Stream stream = System.IO.File.OpenRead(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
