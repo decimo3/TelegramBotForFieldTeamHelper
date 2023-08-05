@@ -35,7 +35,7 @@ public class HandleManager
     {
       try
       {
-        Database.recuperarUsuario(id);
+        if(Database.recuperarUsuario(id) is null) throw new InvalidOperationException("O usuário não existe no banco de dados!");
         if(Database.atualizarUsuario(id, user.id))
         {
           await bot.sendTextMesssageWraper(id, "Usuário atualizado com sucesso!");
@@ -95,6 +95,7 @@ public class HandleManager
         await bot.sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
         Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
       }
+      return;
     }
     else
     {
