@@ -65,6 +65,7 @@ public static class Validador
     }
     else
     {
+      if(args.Length == 1) return null;
       var estaNaNaOrdemCerta = Validador.orderOperandos(args[0], args[1]);
       if(estaNaNaOrdemCerta is null) return null;
       request.aplicacao = ((bool)estaNaNaOrdemCerta) ? args[0] : args[1];
