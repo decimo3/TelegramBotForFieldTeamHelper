@@ -113,7 +113,7 @@ public static class Database
   {
     try
     {
-      recuperarUsuario(id);
+      if(recuperarUsuario(id) is null) return false;
       using(var connection = new SQLiteConnection(connectionString))
       {
         connection.Open();
