@@ -53,6 +53,7 @@ public static class Validador
   }
   public static Request? isRequest(string text)
   {
+    text = text.ToLower();
     var request = new Request();
     if(!isValidArguments(text)) return null;
     var args = text.Split(" ");
