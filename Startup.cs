@@ -22,7 +22,6 @@ class Startup
     if(args.Contains("--em-desenvolvimento")) DotEnv.Load();
     if(System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development") DotEnv.Load();
     var config = new Configuration(args);
-    Console.WriteLine(config.HOSTNAME);
     if(config.HOSTNAME != "PAT033630")
     {
       Console.BackgroundColor = ConsoleColor.Red;
