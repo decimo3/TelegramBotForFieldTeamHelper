@@ -7,7 +7,7 @@ public class logsModel
   public DateTime create_at {get; set;}
   public bool is_sucess {get; set;}
   public logsModel() {}
-  public logsModel(long id, string solicitacao, string informacao, bool is_sucess)
+  public logsModel(long id, string? solicitacao, string? informacao, bool is_sucess)
   {
     this.id = id;
     this.solicitacao = solicitacao;
