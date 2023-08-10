@@ -43,15 +43,17 @@ public class HandleMessage
   }
   public async Task RequestContact(long id)
   {
+    var msg = "É necessário informar o seu telefone para continuar";
     var requestReplyKeyboard = new ReplyKeyboardMarkup( new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") });
-    await bot.SendTextMessageAsync(chatId: id, text: "É necessário informar sem telefone para continuar", replyMarkup: requestReplyKeyboard);
-    Console.WriteLine($"< {DateTime.Now} chatbot: É necessário informar sem telefone para continuar");
+    await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
+    Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     return; 
   }
   public async Task RemoveRequest(long id)
   {
-    await bot.SendTextMessageAsync(chatId: id, text: "Obrigado por informar o telefone!", replyMarkup: new ReplyKeyboardRemove());
-    Console.WriteLine($"< {DateTime.Now} chatbot: Obrigado por informar o telefone!");
+    var msg = "Telefone cadastrado! Será necessário repetir a solicitação anterior, que será atendida normalmente!";
+    await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: new ReplyKeyboardRemove());
+    Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     return;
   }
 }
