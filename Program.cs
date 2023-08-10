@@ -69,8 +69,6 @@ public class Program
     if(user.phone_number == 0)
     {
       await msg.RequestContact(message.From.Id);
-      Console.WriteLine("Teste numero de telefone");
-      return;
     }
     if(cfg.SAP_OFFLINE)
     {

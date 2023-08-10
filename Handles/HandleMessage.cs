@@ -51,7 +51,7 @@ public class HandleMessage
   }
   public async Task RemoveRequest(long id)
   {
-    var msg = "Telefone cadastrado! Será necessário repetir a solicitação anterior, que será atendida normalmente!";
+    var msg = "Telefone cadastrado! Agora serás atendido normalmente!";
     await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: new ReplyKeyboardRemove());
     Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     return;
