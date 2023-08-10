@@ -2,6 +2,7 @@ namespace telbot.handle;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Exceptions;
+using Telegram.Bot.Types.ReplyMarkups;
 public class HandleMessage
 {
   private ITelegramBotClient bot;
@@ -39,5 +40,18 @@ public class HandleMessage
   public async Task SendPhotoAsyncWraper(long id, Stream stream)
   {
     await bot.SendPhotoAsync(id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+  }
+  public async Task RequestContact(long id)
+  {
+    var requestReplyKeyboard = new ReplyKeyboardMarkup( new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") });
+    await bot.SendTextMessageAsync(chatId: id, text: "É necessário informar sem telefone para continuar", replyMarkup: requestReplyKeyboard);
+    Console.WriteLine($"< {DateTime.Now} chatbot: É necessário informar sem telefone para continuar");
+    return; 
+  }
+  public async Task RemoveRequest(long id)
+  {
+    await bot.SendTextMessageAsync(chatId: id, text: "Obrigado por informar o telefone!", replyMarkup: new ReplyKeyboardRemove());
+    Console.WriteLine($"< {DateTime.Now} chatbot: Obrigado por informar o telefone!");
+    return;
   }
 }
