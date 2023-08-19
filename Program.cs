@@ -34,7 +34,7 @@ public class Program
       if (update.Message.Type == MessageType.Contact && update.Message.Contact != null)
       {
         Database.inserirTelefone(update.Message.From.Id, Int64.Parse(update.Message.Contact.PhoneNumber));
-        msg.RemoveRequest(update.Message.From.Id);
+        await msg.RemoveRequest(update.Message.From.Id);
         return;
       }
       else
@@ -69,6 +69,7 @@ public class Program
     if(user.phone_number == 0)
     {
       await msg.RequestContact(message.From.Id);
+      return;
     }
     if(cfg.SAP_OFFLINE)
     {
