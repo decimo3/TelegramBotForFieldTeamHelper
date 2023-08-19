@@ -43,7 +43,9 @@ public class HandleMessage
   }
   public async Task RequestContact(long id)
   {
-    var msg = "É necessário informar o seu telefone para continuar";
+    await bot.SendTextMessageAsync(chatId: id, text: "É necessário informar o seu telefone para continuar!");
+    await bot.SendTextMessageAsync(chatId: id, text: "Não será mais autorizado sem cadastrar o número de telefone");
+    var msg = "Clique no botão abaixo para enviar o seu número!";
     var requestReplyKeyboard = new ReplyKeyboardMarkup( new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") });
     await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
     Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
