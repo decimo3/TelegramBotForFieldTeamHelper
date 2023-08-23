@@ -51,9 +51,9 @@ public class HandleMessage
     Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     return; 
   }
-  public async Task RemoveRequest(long id)
+  public async Task RemoveRequest(long id, string tel)
   {
-    var msg = "Telefone cadastrado! Agora serás atendido normalmente!";
+    var msg = $"Telefone {tel} cadastrado! Agora serás atendido normalmente!";
     await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: new ReplyKeyboardRemove());
     Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     return;
