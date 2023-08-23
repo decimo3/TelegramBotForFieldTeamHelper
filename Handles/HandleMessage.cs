@@ -10,7 +10,7 @@ public class HandleMessage
   {
     this.bot = bot;
   }
-  public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
+    public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
   {
     try
     {
@@ -43,8 +43,8 @@ public class HandleMessage
   }
   public async Task RequestContact(long id)
   {
-    await bot.SendTextMessageAsync(chatId: id, text: "É necessário informar o seu telefone para continuar!");
-    await bot.SendTextMessageAsync(chatId: id, text: "Não será mais autorizado sem cadastrar o número de telefone");
+    await sendTextMesssageWraper(id, "É necessário informar o seu telefone para continuar!");
+    await sendTextMesssageWraper(id, "Não será mais autorizado sem cadastrar o número de telefone");
     var msg = "Clique no botão abaixo para enviar o seu número!";
     var requestReplyKeyboard = new ReplyKeyboardMarkup( new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") });
     await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
