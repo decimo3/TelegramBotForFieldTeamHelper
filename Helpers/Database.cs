@@ -20,7 +20,7 @@ public static class Database
             update_at DATETIME NOT NULL,
             has_privilege BOOLEAN NOT NULL DEFAULT FALSE,
             inserted_by INT NOT NULL,
-            phone_number INT UNIQUE
+            phone_number INT UNIQUE DEFAULT 0
             )";
         command.ExecuteNonQuery();
         command.CommandText = @$"CREATE TABLE IF NOT EXISTS logsModel(
