@@ -12,8 +12,11 @@ public class Configuration
   public readonly bool SAP_OFFLINE;
   public readonly int INSTANCIA;
   public readonly string HOSTNAME;
+  public readonly string ALLOWED_PC;
   public Configuration(string[] args)
   {
+    ALLOWED_PC = System.Environment.GetEnvironmentVariable("ALLOWED_PC")!;
+    if(ALLOWED_PC is null) throw new InvalidOperationException("Environment variable ALLOWED_PC is not set!");
     HOSTNAME = System.Environment.GetEnvironmentVariable("COMPUTERNAME")!;
     if(HOSTNAME is null) throw new InvalidOperationException("Environment variable HOSTNAME is not set!");
     CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();

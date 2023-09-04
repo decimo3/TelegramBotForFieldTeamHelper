@@ -10,7 +10,7 @@ class Startup
     Console.WriteLine("# Repository: TelegramBotForFieldTeamHelper #");
     Console.WriteLine("#############################################");
     var agora = DateTime.Now;
-    var prazo = new DateTime(year: 2023, month: 9, day: 1);
+    var prazo = new DateTime(year: 2023, month: 10, day: 1);
     if(agora > prazo)
     {
       Console.BackgroundColor = ConsoleColor.Red;
@@ -22,8 +22,7 @@ class Startup
     if(args.Contains("--em-desenvolvimento")) DotEnv.Load();
     if(System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development") DotEnv.Load();
     var config = new Configuration(args);
-    Console.WriteLine(config.HOSTNAME);
-    if(config.HOSTNAME != "PAT033630")
+    if(config.HOSTNAME != config.ALLOWED_PC)
     {
       Console.BackgroundColor = ConsoleColor.Red;
       Console.Beep();
