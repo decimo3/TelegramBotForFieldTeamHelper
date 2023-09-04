@@ -29,7 +29,20 @@ public class Program
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
     var msg = new HandleMessage(bot);
-    if (update.Type == UpdateType.Message) await HandleMessage(update.Message!);
+    if (update.Type == UpdateType.Message)
+    {
+      if (update.Message.Type == MessageType.Contact && update.Message.Contact != null)
+      {
+        Database.inserirTelefone(update.Message.From.Id, Int64.Parse(update.Message.Contact.PhoneNumber));
+        await msg.RemoveRequest(update.Message.From.Id, update.Message.Contact.PhoneNumber);
+        return;
+      }
+      else
+      {
+        await HandleMessage(update.Message!);
+      }
+    }
+    
     else await msg.ErrorReport(id: cfg.ID_ADM_BOT, error: new InvalidOperationException(update.ToString()));
     return;
   }
@@ -51,6 +64,11 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Eu não estou autorizado a te passar informações!");
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
       await msg.sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso ao BOT");
+      return;
+    }
+    if(user.phone_number == 0)
+    {
+      await msg.RequestContact(message.From.Id);
       return;
     }
     if(cfg.SAP_OFFLINE)

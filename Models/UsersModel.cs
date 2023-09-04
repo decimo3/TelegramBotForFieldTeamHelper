@@ -12,6 +12,8 @@ public class UsersModel : IValidatableObject
   public bool has_privilege {get; set;}
   [Required]
   public long inserted_by {get; set;}
+  [Required]
+  public long phone_number {get; set;}
   public UsersModel() {}
   public UsersModel(long id, long inserted_by)
   {
