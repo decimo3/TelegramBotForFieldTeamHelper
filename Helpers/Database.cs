@@ -20,7 +20,7 @@ public static class Database
             update_at DATETIME NOT NULL,
             has_privilege BOOLEAN NOT NULL DEFAULT FALSE,
             inserted_by INT NOT NULL,
-            phone_number INT UNIQUE DEFAULT 0
+            phone_number INT DEFAULT 0
             )";
         command.ExecuteNonQuery();
         command.CommandText = @$"CREATE TABLE IF NOT EXISTS logsModel(
@@ -28,6 +28,7 @@ public static class Database
             aplicacao VARCHAR(16) NOT NULL,
             informacao INT NOT NULL,
             create_at DATETIME NOT NULL,
+            received_at DATETIME NOT NULL,
             is_sucess BOOLEAN NOT NULL DEFAULT TRUE
             )";
         command.ExecuteNonQuery();
@@ -85,7 +86,8 @@ public static class Database
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = @$"INSERT INTO logsModel(id, aplicacao, informacao, create_at, is_sucess) VALUES ({log.id}, '{log.solicitacao}', '{log.informacao}', '{log.create_at.ToString("u")}', {log.is_sucess})";
+        command.CommandText = @$"INSERT INTO logsModel(id, aplicacao, informacao, create_at, is_sucess, received_at)
+        VALUES ({log.id}, '{log.solicitacao}', '{log.informacao}', '{log.create_at.ToString("u")}', {log.is_sucess}, '{log.received_at.ToString("u")}')";
         command.ExecuteNonQuery();
       }
     }
@@ -164,7 +166,7 @@ public static class Database
         connection.Open();
         using(var command = connection.CreateCommand())
         {
-          command.CommandText = $"SELECT id, aplicacao, informacao, create_at, is_sucess FROM logsModel WHERE date(create_at) == date('{dia}')";
+          command.CommandText = $"SELECT id, aplicacao, informacao, create_at, is_sucess, received_at FROM logsModel WHERE date(create_at) == date('{dia}')";
           using(var dataReader = command.ExecuteReader())
           {
             if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
@@ -176,6 +178,7 @@ public static class Database
                 informacao = dataReader.GetString(2),
                 create_at = dataReader.GetDateTime(3),
                 is_sucess = dataReader.GetBoolean(4),
+                received_at = dataReader.GetDateTime(5)
               });
             }
             return logs;
