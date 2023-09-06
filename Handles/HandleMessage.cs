@@ -33,8 +33,8 @@ public class HandleMessage
     if(SAPerrorMessage is not null) await sendTextMesssageWraper(id, SAPerrorMessage);
     await sendTextMesssageWraper(id, "Não foi possível processar a sua solicitação!");
     await sendTextMesssageWraper(id, "Solicite a informação para o monitor(a)");
-    if(request is null) Database.inserirRelatorio(new logsModel(id, string.Empty, string.Empty, false));
-    else Database.inserirRelatorio(new logsModel(id, request.aplicacao, request.informacao, false));
+    if(request is null) Database.inserirRelatorio(new logsModel(id, string.Empty, string.Empty, false, DateTime.Now));
+    else Database.inserirRelatorio(new logsModel(id, request.aplicacao, request.informacao, false, request.received_at));
     return;
   }
   public async Task SendPhotoAsyncWraper(long id, Stream stream)
