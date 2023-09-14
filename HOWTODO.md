@@ -18,11 +18,17 @@ O chatbot após o `build`, criará uma pasta chamada `MestreRuan` onde estará o
 
 O arquivo `telbot.exe` pode ser executado diretamente pelo explorer, com dois cliques, usando as configurações padrões. Para alterar o comportamento do programa conforme a necessidade é necessário executar o programa **via linha de comando**.
 
-Para executar via linha de comando, use o atalho `Inicio + R` e digite `cmd` na janela Executar ou use o caminho: **Menu iniciar >> Sistema do Windows >> Prompt de Comando**.
+Para executar via linha de comando, use o atalho `Inicio + R` e digite `cmd` na janela Executar.
 
-Uma janela irá abrir com o caminho do usuário, será então necessário entrar na pasta onde o chatbot está instalado com o comando `cd MestreRuan`.
+![Janela EXECUTAR do Windows](./assert/executar.png)
 
-Após estar na pasta do chatbot, inicie o chatbot com o comando `telbot`.
+Ou use o caminho: **Menu iniciar >> Sistema do Windows >> Prompt de Comando**.
+
+![Menu Iniciar do Windows](./assert/menu_iniciar.png)
+
+Uma janela irá abrir com o caminho do usuário, será então necessário entrar na pasta onde o chatbot está instalado com o comando `cd MestreRuan`. Após estar na pasta do chatbot, inicie o chatbot com o comando `telbot`.
+
+![Iniciando o chatbot via linha de comando](./assert/prompt_de_comando.png)
 
 ## Argumentos via linha de comando
 
