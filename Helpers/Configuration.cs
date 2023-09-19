@@ -11,22 +11,49 @@ public class Configuration
   public readonly bool GERAR_FATURAS;
   public readonly bool SAP_OFFLINE;
   public readonly int INSTANCIA;
-  public readonly string HOSTNAME;
-  public readonly string ALLOWED_PC;
+  public readonly string CURRENT_PC;
+  public readonly string LICENCE;
+  public readonly DateTime EXPIRATION;
   public Configuration(string[] args)
   {
-    ALLOWED_PC = System.Environment.GetEnvironmentVariable("ALLOWED_PC")!;
-    if(ALLOWED_PC is null) throw new InvalidOperationException("Environment variable ALLOWED_PC is not set!");
-    HOSTNAME = System.Environment.GetEnvironmentVariable("COMPUTERNAME")!;
-    if(HOSTNAME is null) throw new InvalidOperationException("Environment variable HOSTNAME is not set!");
+    LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE");
+    if(LICENCE is null) throw new InvalidOperationException("Environment variable BOT_LICENCE is not set!");
+    var AUTHORIZATION = Authorization.RecoveryToken(LICENCE);
+    if(AUTHORIZATION is null) throw new InvalidOperationException("Token in environment variable BOT_LICENCE is not valid!");
+    
+    var agora = DateTime.Now;
+    var prazo = DateTimeOffset.FromUnixTimeSeconds(AUTHORIZATION.exp).DateTime;
+    if(agora > prazo)
+    {
+      Console.BackgroundColor = ConsoleColor.Red;
+      Console.Beep();
+      Console.Write("O período de licença de uso expirou!");
+      Console.BackgroundColor = ConsoleColor.Black;
+      Console.WriteLine("Necessário entrar em contato com o administrador do sistema!");
+      return;
+    }
+    
+    CURRENT_PC = System.Environment.GetEnvironmentVariable("COMPUTERNAME");
+    if(CURRENT_PC is null) throw new InvalidOperationException("Environment variable CURRENT_PC is not set!");
+    if(CURRENT_PC != AUTHORIZATION.allowed_pc)
+    {
+      Console.BackgroundColor = ConsoleColor.Red;
+      Console.Beep();
+      Console.Write("A licença de uso não permite o uso em outra máquina!");
+      Console.BackgroundColor = ConsoleColor.Black;
+      Console.WriteLine("Necessário entrar em contato com o administrador do sistema!");
+      return;
+    }
+    
     CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
-    BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN")!;
+    
+    BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN");
     if(BOT_TOKEN is null) throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
     if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
-    ID_ADM_BOT = Int64.Parse(System.Environment.GetEnvironmentVariable("ID_ADM_BOT")!);
-    if(ID_ADM_BOT == 0) throw new InvalidOperationException("Environment variable ID_ADM_BOT is not set!");
+    
+    ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
     DIAS_EXPIRACAO = 30;
     INSTANCIA = 0; // valor padrão caso não encontre o argumento no loop
     GERAR_FATURAS = true; // valor padrão caso não encontre o argumento no loop
@@ -47,18 +74,6 @@ public class Configuration
       {
         if(Int32.TryParse(arg.Split("=")[1], out int instancia)) INSTANCIA = instancia;
         else throw new InvalidOperationException("Argumento 'instancia' não está no formato correto! Use the format: '--sap-instancia=<numInstancia>'");
-      }
-      if(arg.StartsWith("--bot-token"))
-      {
-        try
-        {
-          BOT_TOKEN = arg.Split("=")[1];
-          if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
-        }
-        catch
-        {
-          throw new InvalidOperationException("Argumento 'token' não está no formato correto! Use the format: '--bot-token=<tokenDoBot>'");
-        }
       }
     }
   }
