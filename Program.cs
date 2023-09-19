@@ -53,7 +53,6 @@ public class Program
   }
   async Task HandleMessage(Message message)
   {
-    var agora = DateTime.Now;
     var msg = new HandleMessage(bot);
     if (message.From is null) return;
     if (message.Text is null) return;
@@ -94,7 +93,7 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
     }
-    var request = Validador.isRequest(message.Text, agora);
+    var request = Validador.isRequest(message.Text, message.Date.ToLocalTime());
     if (request is null)
     {
       await msg.sendTextMesssageWraper(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
