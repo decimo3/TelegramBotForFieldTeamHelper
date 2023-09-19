@@ -22,7 +22,7 @@ public class HandleInformation
     if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == false))
     {
       await bot.sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
       return true;
     }
     if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
@@ -34,7 +34,7 @@ public class HandleInformation
     if((request.tipo == TypeRequest.xlsInfo) && (user.has_privilege == false))
     {
       await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para gerar relatórios!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
       return true;
     }
     return false;
@@ -86,7 +86,7 @@ public class HandleInformation
       textoMensagem += "\n";
     }
     await bot.sendTextMesssageWraper(user.id, textoMensagem);
-    Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true));
+    Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     return;
   }
   // Para envio de faturas em PDF
@@ -105,7 +105,7 @@ public class HandleInformation
         stream.Dispose();
         await bot.sendTextMesssageWraper(user.id, fatura, false);
       }
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     }
     catch (System.Exception error)
     {
@@ -123,7 +123,7 @@ public class HandleInformation
       await bot.SendPhotoAsyncWraper(user.id, stream);
       stream.Dispose();
       System.IO.File.Delete(@$"{cfg.CURRENT_PATH}\tmp\temporario.png");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
       if((request.aplicacao == "agrupamento") && (DateTime.Today.DayOfWeek == DayOfWeek.Friday))
       await bot.sendTextMesssageWraper(user.id, "*ATENÇÃO:* Não pode cortar agrupamento por nota de recorte!");
       await bot.sendTextMesssageWraper(user.id, $"Enviado relatorio de {request.aplicacao}!", false);
@@ -144,7 +144,7 @@ public class HandleInformation
       stream.Dispose();
       System.IO.File.Delete(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
       await bot.sendTextMesssageWraper(user.id, $"Enviado arquivo de {request.aplicacao}: {agora.ToString("yyyyMMdd_HHmmss")}.XLSX", false);
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     }
     catch (System.Exception error)
     {

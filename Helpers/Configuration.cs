@@ -13,7 +13,6 @@ public class Configuration
   public readonly int INSTANCIA;
   public readonly string CURRENT_PC;
   public readonly string LICENCE;
-  public readonly string ALLOWED_PC;
   public readonly DateTime EXPIRATION;
   public Configuration(string[] args)
   {
@@ -21,6 +20,7 @@ public class Configuration
     if(LICENCE is null) throw new InvalidOperationException("Environment variable BOT_LICENCE is not set!");
     var AUTHORIZATION = Authorization.RecoveryToken(LICENCE);
     if(AUTHORIZATION is null) throw new InvalidOperationException("Token in environment variable BOT_LICENCE is not valid!");
+    
     var agora = DateTime.Now;
     var prazo = DateTimeOffset.FromUnixTimeSeconds(AUTHORIZATION.exp).DateTime;
     if(agora > prazo)
@@ -32,7 +32,7 @@ public class Configuration
       Console.WriteLine("Necessário entrar em contato com o administrador do sistema!");
       return;
     }
-
+    
     CURRENT_PC = System.Environment.GetEnvironmentVariable("COMPUTERNAME");
     if(CURRENT_PC is null) throw new InvalidOperationException("Environment variable CURRENT_PC is not set!");
     if(CURRENT_PC != AUTHORIZATION.allowed_pc)
@@ -44,7 +44,7 @@ public class Configuration
       Console.WriteLine("Necessário entrar em contato com o administrador do sistema!");
       return;
     }
-
+    
     CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";

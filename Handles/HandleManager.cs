@@ -28,7 +28,7 @@ public class HandleManager
     if(!user.has_privilege)
     {
       await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
       return;
     }
     if(Int64.TryParse(request.informacao, out long id))
@@ -40,13 +40,13 @@ public class HandleManager
         {
           await bot.sendTextMesssageWraper(id, "Usuário atualizado com sucesso!");
           await bot.sendTextMesssageWraper(user.id, "Usuário atualizado com sucesso!");
-          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true));
+          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
         }
         else
         {
           await bot.sendTextMesssageWraper(user.id, "Houve um problema em atualizar o usuário");
           await bot.sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
-          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
         }
       }
       catch
@@ -56,13 +56,13 @@ public class HandleManager
           Database.inserirUsuario(new UsersModel(id, user.id));
           await bot.sendTextMesssageWraper(id, "Usuário autorizado com sucesso!");
           await bot.sendTextMesssageWraper(user.id, "Usuário autorizado com sucesso!");
-          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true));
+          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
         }
         catch
         {
           await bot.sendTextMesssageWraper(user.id, "Houve um problema em autorizar o usuário");
           await bot.sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
-          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+          Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
         }
         return;
       }
@@ -70,7 +70,7 @@ public class HandleManager
     else
     {
       await bot.sendTextMesssageWraper(user.id, "O identificador do usuário não é válido!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
     }
     return;
   }
@@ -79,7 +79,7 @@ public class HandleManager
     if(user.id != cfg.ID_ADM_BOT)
     {
       await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para promover usuários!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
       return;
     }
     if(Int64.TryParse(request.informacao, out long id))
@@ -87,20 +87,20 @@ public class HandleManager
       if(Database.promoverUsuario(id, user.id))
       {
         await bot.sendTextMesssageWraper(user.id, "Usuário promovido com sucesso!");
-        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true));
+        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
       }
       else
       {
         await bot.sendTextMesssageWraper(user.id, "Houve um problema em promover o usuário");
         await bot.sendTextMesssageWraper(user.id, "Verifique as informações e tente novamente");
-        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
       }
       return;
     }
     else
     {
       await bot.sendTextMesssageWraper(user.id, "O identificador do usuário não é válido!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false));
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
     }
     return;
   }

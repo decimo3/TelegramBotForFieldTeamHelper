@@ -51,10 +51,11 @@ public static class Validador
     var regex = new Regex("^[0-9]{8,10}:[a-zA-Z0-9_-]{35}$");
     return regex.IsMatch(token);
   }
-  public static Request? isRequest(string text)
+  public static Request? isRequest(string text, DateTime agora)
   {
     text = text.ToLower();
     var request = new Request();
+    request.received_at = agora;
     if(!isValidArguments(text)) return null;
     var args = text.Split(" ");
     if (args[0].StartsWith("/"))

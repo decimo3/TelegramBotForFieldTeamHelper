@@ -29,7 +29,20 @@ public class Program
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
     var msg = new HandleMessage(bot);
-    if (update.Type == UpdateType.Message) await HandleMessage(update.Message!);
+    if (update.Type == UpdateType.Message)
+    {
+      if (update.Message!.Type == MessageType.Contact && update.Message.Contact != null)
+      {
+        Database.inserirTelefone(update.Message.From!.Id, Int64.Parse(update.Message.Contact.PhoneNumber));
+        await msg.RemoveRequest(update.Message.From.Id, update.Message.Contact.PhoneNumber);
+        return;
+      }
+      else
+      {
+        await HandleMessage(update.Message!);
+      }
+    }
+    
     else await msg.ErrorReport(id: cfg.ID_ADM_BOT, error: new InvalidOperationException(update.ToString()));
     return;
   }
@@ -40,7 +53,6 @@ public class Program
   }
   async Task HandleMessage(Message message)
   {
-    var agora = DateTime.Now;
     var msg = new HandleMessage(bot);
     if (message.From is null) return;
     if (message.Text is null) return;
@@ -51,6 +63,11 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Eu não estou autorizado a te passar informações!");
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
       await msg.sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso ao BOT");
+      return;
+    }
+    if(user.phone_number == 0)
+    {
+      await msg.RequestContact(message.From.Id);
       return;
     }
     if(cfg.SAP_OFFLINE)
@@ -76,7 +93,7 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
     }
-    var request = Validador.isRequest(message.Text);
+    var request = Validador.isRequest(message.Text, message.Date.ToLocalTime());
     if (request is null)
     {
       await msg.sendTextMesssageWraper(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
