@@ -31,9 +31,9 @@ public class Program
     var msg = new HandleMessage(bot);
     if (update.Type == UpdateType.Message)
     {
-      if (update.Message.Type == MessageType.Contact && update.Message.Contact != null)
+      if (update.Message!.Type == MessageType.Contact && update.Message.Contact != null)
       {
-        Database.inserirTelefone(update.Message.From.Id, Int64.Parse(update.Message.Contact.PhoneNumber));
+        Database.inserirTelefone(update.Message.From!.Id, Int64.Parse(update.Message.Contact.PhoneNumber));
         await msg.RemoveRequest(update.Message.From.Id, update.Message.Contact.PhoneNumber);
         return;
       }
