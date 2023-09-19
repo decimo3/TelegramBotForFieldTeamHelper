@@ -2,8 +2,8 @@ namespace telbot;
 using telbot.models;
 public static class Authorization
 {
-  private static string secret = System.Environment.GetEnvironmentVariable("BOT_SECRET");
-  public static TokenModel RecoveryToken (string token)
+  private static string secret = "michael_jackson_da_silva";
+  public static TokenModel? RecoveryToken (string token)
   {
     var DecodedToken = new JWT.Builder.JwtBuilder()
       .WithAlgorithm(new JWT.Algorithms.HMACSHA256Algorithm())
