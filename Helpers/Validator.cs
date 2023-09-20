@@ -36,8 +36,6 @@ public static class Validador
     if(aplicacao == "relatorio") return TypeRequest.xlsInfo;
     if(aplicacao == "manobra") return TypeRequest.xlsInfo;
     if(aplicacao == "medidor") return TypeRequest.txtInfo;
-    if(aplicacao == "passivo") return TypeRequest.pdfInfo;
-    if(aplicacao == "suspenso") return TypeRequest.txtInfo;
     return null;
   }
   public static bool? orderOperandos (string info1, string info2)
