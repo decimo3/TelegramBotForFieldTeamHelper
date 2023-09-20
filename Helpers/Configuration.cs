@@ -63,17 +63,18 @@ public class Configuration
     else IS_DEVELOPMENT = (env == "Development") ? true : false;
     foreach (var arg in args)
     {
-      if(arg == "--sem-faturas") GERAR_FATURAS = false;
-      if(arg == "--sap-offline") SAP_OFFLINE = true;
-      if(arg == "--em-desenvolvimento")
-      {
-        INSTANCIA = 1;
-        IS_DEVELOPMENT = true;
-      }
       if(arg.StartsWith("--sap-instancia"))
       {
         if(Int32.TryParse(arg.Split("=")[1], out int instancia)) INSTANCIA = instancia;
         else throw new InvalidOperationException("Argumento 'instancia' não está no formato correto! Use the format: '--sap-instancia=<numInstancia>'");
+        continue;
+      }
+      switch (arg)
+      {
+        case "--sem-faturas": GERAR_FATURAS = false; break;
+        case "--sap-offline": SAP_OFFLINE = true; break;
+        case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
+        default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
     }
   }
