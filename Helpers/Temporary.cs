@@ -3,12 +3,13 @@ public static class Temporary
 {
   public static List<string> executar(Configuration cfg, string aplicacao, string informacao)
   {
-    string[] args = System.Environment.GetCommandLineArgs();
+    var argumentos = $"{aplicacao} {informacao} {cfg.INSTANCIA}";
+    if(cfg.SAP_RESTRITO) argumentos += " --sap-restrito";
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
           FileName = cfg.SAP_SCRIPT,
-          Arguments = $"{aplicacao} {informacao} {cfg.INSTANCIA}",
+          Arguments = argumentos,
           UseShellExecute = false,
           RedirectStandardOutput = true,
           CreateNoWindow = true
