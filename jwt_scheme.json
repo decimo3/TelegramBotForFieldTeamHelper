@@ -1,0 +1,18 @@
+{
+  "header": 
+  {
+    "alg": "HS256",
+    "typ": "JWT"
+  },
+  "payload":
+  {
+    "adm_id_bot": 0,
+    "sap_access": 0,
+    "allowed_pc": "echo %COMPUTERNAME% no cmd",
+    "exp": 1704067199
+  },
+  "signature":
+  {
+    "secret": "sua_senha_aqui"
+  }
+}
