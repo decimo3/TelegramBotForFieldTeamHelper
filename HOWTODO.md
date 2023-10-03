@@ -1,21 +1,5 @@
 # Instruções de operação do chatbot
 
-O chatbot após o `build`, criará uma pasta chamada `MestreRuan` onde estará os arquivos necessários para seu funcionamento: 
-
-```
-%USERPROFILE%/Mestre Ruan/
-|
-├── tmp/
-├── telbot.exe
-├── sap.exe
-├── img.exe
-├── fileDialog.vbs
-├── database.db
-├── sni.dll
-├── SQLite.Interop.dll
-└── telbot.pdb
-```
-
 O arquivo `telbot.exe` pode ser executado diretamente pelo explorer, com dois cliques, usando as configurações padrões. Para alterar o comportamento do programa conforme a necessidade é necessário executar o programa **via linha de comando**.
 
 Para executar via linha de comando, use o atalho `Inicio + R` e digite `cmd` na janela Executar.
