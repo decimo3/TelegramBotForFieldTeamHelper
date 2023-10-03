@@ -1,19 +1,19 @@
 namespace telbot;
 public class Configuration
 {
-  public readonly string BOT_TOKEN;
+  public readonly string? BOT_TOKEN;
   public readonly long ID_ADM_BOT;
   public readonly bool IS_DEVELOPMENT;
-  public readonly string CURRENT_PATH;
-  public readonly string SAP_SCRIPT;
-  public readonly string IMG_SCRIPT;
+  public readonly string? CURRENT_PATH;
+  public readonly string? SAP_SCRIPT;
+  public readonly string? IMG_SCRIPT;
   public readonly int DIAS_EXPIRACAO;
   public readonly bool GERAR_FATURAS;
   public readonly bool SAP_OFFLINE;
   public readonly int INSTANCIA;
-  public readonly string CURRENT_PC;
-  public readonly string LICENCE;
-  public readonly DateTime EXPIRATION;
+  public readonly string? CURRENT_PC;
+  public readonly string? LICENCE;
+  public readonly bool SAP_RESTRITO;
   public Configuration(string[] args)
   {
     LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE");
