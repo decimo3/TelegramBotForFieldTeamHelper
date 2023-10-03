@@ -54,6 +54,7 @@ public class Configuration
     if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
     
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
+    SAP_RESTRITO = AUTHORIZATION.sap_access;
     DIAS_EXPIRACAO = 30;
     INSTANCIA = 0; // valor padrão caso não encontre o argumento no loop
     GERAR_FATURAS = true; // valor padrão caso não encontre o argumento no loop
@@ -74,6 +75,7 @@ public class Configuration
         case "--sem-faturas": GERAR_FATURAS = false; break;
         case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
+        case "--sap-restrito": SAP_RESTRITO = true; break;
         default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
     }
