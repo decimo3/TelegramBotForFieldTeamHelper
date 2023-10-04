@@ -103,7 +103,7 @@ public class Program
     // When we get a command, we react accordingly
     if (request.tipo == TypeRequest.comando)
     {
-      await new HandleCommand(msg, user, request).routerCommand();
+      await new HandleCommand(msg, user, request, cfg).routerCommand();
       return;
     }
     if(request.tipo == TypeRequest.gestao)

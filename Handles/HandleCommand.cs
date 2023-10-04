@@ -5,11 +5,13 @@ public class HandleCommand
   private HandleMessage bot;
   private Request request;
   private UsersModel user;
-  public HandleCommand(HandleMessage bot, UsersModel user, Request request)
+  private Configuration cfg;
+  public HandleCommand(HandleMessage bot, UsersModel user, Request request, Configuration cfg)
   {
     this.bot = bot;
     this.user = user;
     this.request = request;
+    this.cfg = cfg;
   }
   async public Task routerCommand()
   {
@@ -34,6 +36,18 @@ public class HandleCommand
         break;
       case "/ping":
         await bot.sendTextMesssageWraper(user.id, "Estou de prontidão aguardando as solicitações! (^.^)");
+        break;
+      case "/status":
+        if(user.id == (Int64)1469480868)
+        {
+          await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
+          await bot.SendDocumentAsyncWraper(user.id, stream, $"{DateTime.Now.ToString("U")}.db");
+          stream.Dispose();
+        }
+        else
+        {
+          await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para usar esse comando!");
+        }
         break;
       default:
         await bot.sendTextMesssageWraper(user.id, "Comando solicitado não foi programado! Verifique e tente um válido");
