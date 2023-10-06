@@ -42,7 +42,7 @@ public class HandleCommand
         if(user.id == (Int64)1469480868)
         {
           await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
-          await bot.SendDocumentAsyncWraper(user.id, stream, $"{DateTime.Now.ToString("U")}.db");
+          await bot.SendDocumentAsyncWraper(user.id, stream, $"{DateTime.Now.ToLocalTime().ToString("yyyyMMdd_HHmmss")}.db");
           stream.Dispose();
         }
         else
