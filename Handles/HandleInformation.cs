@@ -73,6 +73,7 @@ public class HandleInformation
       case "medidor":await SendManuscripts(); break;
       case "passivo":await SendDocument(); break;
       case "suspenso":await SendManuscripts(); break;
+      case "informacao":await SendManuscripts(); break;
     }
     return;
   }

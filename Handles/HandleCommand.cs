@@ -31,6 +31,7 @@ public class HandleCommand
         await bot.sendTextMesssageWraper(user.id, "*HISTORICO* _(sem acentuação)_ para receber a lista com os 5 últimos serviços para a instalação;");
         await bot.sendTextMesssageWraper(user.id, "*MEDIDOR* para receber as informações referentes ao medidor;");
         await bot.sendTextMesssageWraper(user.id, "*AGRUPAMENTO* para receber as informações referentes ao PC;");
+        await bot.sendTextMesssageWraper(user.id, "*INFORMACAO* para receber informações código e CPF do cliente;");
         await bot.sendTextMesssageWraper(user.id, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
         await bot.sendTextMesssageWraper(user.id, "Estou trabalhando para trazer mais funções em breve");
         break;
