@@ -23,7 +23,7 @@ public class HandleInformation
     if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == true))
     {
       var knockout = DateTime.Now.AddMinutes(-3);
-      if(System.DateTime.Compare(knockout, request.received_at) > 0) // o certo é '>=';
+      if(System.DateTime.Compare(knockout, request.received_at) > 0)
       {
           await bot.sendTextMesssageWraper(user.id, "Devido a fila de solicitações, estaremos te enviando as informações do cliente!");
           request.aplicacao = "informacao";
@@ -33,14 +33,15 @@ public class HandleInformation
     }
     if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == false))
     {
-      await bot.sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
-      return true;
+      await bot.sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!\nEstaremos te enviando as informações do cliente!");
+      request.aplicacao = "informacao";
+      return false;
     }
     if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
     {
       await bot.sendTextMesssageWraper(user.id, "Essa aplicação não deve ser usada na sexta e no sábado!");
       await bot.sendTextMesssageWraper(user.id, "Notas de recorte devem ter todas as faturas cobradas!");
+      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
       return true;
     }
     if((request.tipo == TypeRequest.xlsInfo) && (user.has_privilege == false))
