@@ -19,6 +19,18 @@ public class HandleInformation
   }
   async private Task<bool> has_impediment()
   {
+    // Knockout system to mitigate the queue
+    if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == true))
+    {
+      var knockout = DateTime.Now.AddMinutes(-3);
+      if(System.DateTime.Compare(knockout, request.received_at) > 0) // o certo é '>=';
+      {
+          await bot.sendTextMesssageWraper(user.id, "Devido a fila de solicitações, estaremos te enviando as informações do cliente!");
+          request.aplicacao = "informacao";
+          return false;
+      }
+      return false;
+    }
     if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == false))
     {
       await bot.sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!");
