@@ -1,3 +1,4 @@
+using System.Threading;
 using dotenv.net;
 namespace telbot;
 class Startup
@@ -13,6 +14,9 @@ class Startup
     if(System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development") DotEnv.Load();
     var config = new Configuration(args);
     Database.configurarBanco(config);
+    Task task = Task.Factory.StartNew(() => {
+      var wakeup = new WakeUpSAP(config);
+    });
     var program = new Program(config);
   }
 }
