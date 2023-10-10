@@ -37,7 +37,7 @@ public static class Temporary
     proc.Dispose();
     return linha;
   }
-  public static IEnumerable<Process> GetChildProcesses(this Process process)
+  private static IEnumerable<Process> GetChildProcesses(this Process process)
   {
     var children = new List<Process>();
     var queryProcess = $"Select * From Win32_Process Where ParentProcessID={process.Id}";
