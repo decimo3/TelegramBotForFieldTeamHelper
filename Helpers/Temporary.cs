@@ -28,7 +28,7 @@ public static class Temporary
           mo.Kill();
         }
       }
-    }, null, 60_000, Timeout.Infinite);
+    }, null, cfg.ESPERA, 0);
     while (!proc.StandardOutput.EndOfStream)
     {
       linha.Add(proc.StandardOutput.ReadLine()!);

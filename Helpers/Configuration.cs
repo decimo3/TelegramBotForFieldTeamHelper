@@ -14,6 +14,7 @@ public class Configuration
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
   public readonly bool SAP_RESTRITO;
+  public readonly int ESPERA;
   public Configuration(string[] args)
   {
     LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE");
@@ -56,6 +57,7 @@ public class Configuration
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
     SAP_RESTRITO = AUTHORIZATION.sap_access;
     DIAS_EXPIRACAO = 30;
+    ESPERA = 60_000;
     INSTANCIA = 0; // valor padrão caso não encontre o argumento no loop
     GERAR_FATURAS = true; // valor padrão caso não encontre o argumento no loop
     SAP_OFFLINE = false; // valor padrão caso não encontre o argumento no loop
@@ -68,6 +70,12 @@ public class Configuration
       {
         if(Int32.TryParse(arg.Split("=")[1], out int instancia)) INSTANCIA = instancia;
         else throw new InvalidOperationException("Argumento 'instancia' não está no formato correto! Use the format: '--sap-instancia=<numInstancia>'");
+        continue;
+      }
+      if(arg.StartsWith("--sap-espera"))
+      { 
+        if(Int32.TryParse(arg.Split("=")[1], out int espera)) ESPERA = espera * 1000;
+        else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
         continue;
       }
       switch (arg)
