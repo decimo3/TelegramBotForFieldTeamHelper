@@ -20,7 +20,7 @@ public class Program
       // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool, so we use cancellation token
       bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
       // Tell the user the bot is online
-      Console.WriteLine("Start listening for updates. Press enter to stop");
+      Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
       Console.ReadLine();
       // Send cancellation request to stop the bot
       cts.Cancel();
