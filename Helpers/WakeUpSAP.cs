@@ -1,8 +1,13 @@
 namespace telbot;
 public class WakeUpSAP
 {
+  private readonly Configuration cfg;
   private readonly Int32 tempo = 5 * 60 * 1_000;
   public WakeUpSAP(Configuration cfg)
+  {
+    this.cfg = cfg;
+  }
+  public void Start()
   {
     Console.WriteLine($"< {DateTime.Now} Manager: Iniciado sistema de despertador do SapAutomation!");
     while(true)
