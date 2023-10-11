@@ -2,7 +2,6 @@ namespace telbot;
 public class WakeUpSAP
 {
   private readonly Configuration cfg;
-  private readonly Int32 tempo = 5 * 60 * 1_000;
   public WakeUpSAP(Configuration cfg)
   {
     this.cfg = cfg;
@@ -20,6 +19,7 @@ public class WakeUpSAP
       {
         Console.WriteLine($"< {DateTime.Now} Manager: Realizando consulta para manter o SAP acordado...");
           var resposta = Temporary.executar(cfg, "desperta", "1380763967");
+          if(resposta.Count == 0) resposta.Add("ERRO: O SAP demorou muito tempo na solicitação e foi encerrado!");
           if(resposta[0].StartsWith("ERRO"))
           {
             Console.Beep();
@@ -36,7 +36,7 @@ public class WakeUpSAP
           }
         }
       Console.WriteLine($"< {DateTime.Now} Manager: Última verificação foi realizada agora mesmo.");
-      System.Threading.Thread.Sleep(tempo);
+      System.Threading.Thread.Sleep(cfg.ESPERA);
       }
     }
 }
