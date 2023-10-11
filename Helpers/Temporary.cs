@@ -21,14 +21,13 @@ public static class Temporary
     var tempo = new System.Threading.Timer(state => {
       if(!proc.HasExited)
       {
-        linha.Insert(0,"ERRO: O SAP demorou muito tempo na solicitação e foi encerrado!");
         var mos = Temporary.GetChildProcesses(proc);
         foreach (var mo in mos)
         {
           mo.Kill();
         }
       }
-    }, null, cfg.ESPERA, 0);
+    }, null, cfg.ESPERA, Timeout.Infinite);
     while (!proc.StandardOutput.EndOfStream)
     {
       linha.Add(proc.StandardOutput.ReadLine()!);
