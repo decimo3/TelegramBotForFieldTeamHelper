@@ -100,6 +100,11 @@ public class Program
       await msg.sendTextMesssageWraper(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
+    if(Database.verificarRelatorio(request))
+    {
+      await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
+      return;
+    }
     // When we get a command, we react accordingly
     if (request.tipo == TypeRequest.comando)
     {

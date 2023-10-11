@@ -212,5 +212,15 @@ public static class Database
       }
     }
   }
-  
+  public static bool verificarRelatorio(models.Request request)
+  {
+    using var connection = new SQLiteConnection(connectionString);
+    connection.Open();
+    using var command = connection.CreateCommand();
+    command.CommandText = @$"SELECT COUNT(*) FROM logsmodel WHERE aplicacao = '{request.aplicacao}' AND informacao = '{request.informacao}' AND DATE(create_at) == '{DateTime.Now.ToString("yyyy-MM-dd")}';";
+    using var dataReader = command.ExecuteReader();
+    if (!dataReader.HasRows) return false;
+    else dataReader.Read();
+    return dataReader.GetInt32(0) > 0;
+  }
 }
