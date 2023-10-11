@@ -1,21 +1,5 @@
 # Instruções de operação do chatbot
 
-O chatbot após o `build`, criará uma pasta chamada `MestreRuan` onde estará os arquivos necessários para seu funcionamento: 
-
-```
-%USERPROFILE%/Mestre Ruan/
-|
-├── tmp/
-├── telbot.exe
-├── sap.exe
-├── img.exe
-├── fileDialog.vbs
-├── database.db
-├── sni.dll
-├── SQLite.Interop.dll
-└── telbot.pdb
-```
-
 O arquivo `telbot.exe` pode ser executado diretamente pelo explorer, com dois cliques, usando as configurações padrões. Para alterar o comportamento do programa conforme a necessidade é necessário executar o programa **via linha de comando**.
 
 Para executar via linha de comando, use o atalho `Inicio + R` e digite `cmd` na janela Executar.
@@ -54,9 +38,15 @@ Esse argumento fará o chatbot ignorar todas as solicitações recebidas, envian
 
 #### --sem-faturas
 
-Esse argumento fará o chatbot  ignorar todas as solicitações de faturas, enviando uma mensagem notificando que o sistema SAP não está gerando faturas.
+Esse argumento fará o chatbot trocar as solicitações de FATURA por INFORMACAO, e envia uma mensagem notificando que o sistema SAP não está gerando faturas.
 
-> Usado quando houver problema para o sistema da Light gerar faturas, para que as equipes estejam cientes.
+> Usado quando houver problema para o sistema da Light gerar faturas, para que as equipes estejam cientes, e as informações para que peguem no LIA.
+
+#### --sap-espera
+
+Esse argumento é utilizado para definir o tempo de espera de uma solicitação realizada para o SAP, e deve ser usada no formato de atribuição (--sap-espera=tempo_de_espera_em_segundos).
+
+> O tempo padrão de espera para uma solicitação é de 60 segundos. Esse parâmetro deve ser usado quando houver lentidão no sistema SAP e as solicitações estiverem demorando um pouco mais que o normal.
 
 ## Solução de problemas
 

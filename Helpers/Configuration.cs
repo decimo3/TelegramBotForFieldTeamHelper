@@ -1,19 +1,20 @@
 namespace telbot;
 public class Configuration
 {
-  public readonly string BOT_TOKEN;
+  public readonly string? BOT_TOKEN;
   public readonly long ID_ADM_BOT;
   public readonly bool IS_DEVELOPMENT;
-  public readonly string CURRENT_PATH;
-  public readonly string SAP_SCRIPT;
-  public readonly string IMG_SCRIPT;
+  public readonly string? CURRENT_PATH;
+  public readonly string? SAP_SCRIPT;
+  public readonly string? IMG_SCRIPT;
   public readonly int DIAS_EXPIRACAO;
   public readonly bool GERAR_FATURAS;
   public readonly bool SAP_OFFLINE;
   public readonly int INSTANCIA;
-  public readonly string CURRENT_PC;
-  public readonly string LICENCE;
-  public readonly DateTime EXPIRATION;
+  public readonly string? CURRENT_PC;
+  public readonly string? LICENCE;
+  public readonly bool SAP_RESTRITO;
+  public readonly int ESPERA;
   public Configuration(string[] args)
   {
     LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE");
@@ -54,7 +55,9 @@ public class Configuration
     if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
     
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
+    SAP_RESTRITO = AUTHORIZATION.sap_access;
     DIAS_EXPIRACAO = 30;
+    ESPERA = 60_000;
     INSTANCIA = 0; // valor padrão caso não encontre o argumento no loop
     GERAR_FATURAS = true; // valor padrão caso não encontre o argumento no loop
     SAP_OFFLINE = false; // valor padrão caso não encontre o argumento no loop
@@ -69,11 +72,18 @@ public class Configuration
         else throw new InvalidOperationException("Argumento 'instancia' não está no formato correto! Use the format: '--sap-instancia=<numInstancia>'");
         continue;
       }
+      if(arg.StartsWith("--sap-espera"))
+      { 
+        if(Int32.TryParse(arg.Split("=")[1], out int espera)) ESPERA = espera * 1000;
+        else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
+        continue;
+      }
       switch (arg)
       {
         case "--sem-faturas": GERAR_FATURAS = false; break;
         case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
+        case "--sap-restrito": SAP_RESTRITO = true; break;
         default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
     }
