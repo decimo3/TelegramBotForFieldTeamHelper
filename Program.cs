@@ -100,6 +100,12 @@ public class Program
       await msg.sendTextMesssageWraper(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
+    // Gets the installation of the request and since every request will be made by the installation
+    if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando)
+    {
+      var resposta = telbot.Temporary.executar(cfg, "desperta", request.informacao!);
+      request.informacao = resposta[0];
+    }
     if(Database.verificarRelatorio(request))
     {
       await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
