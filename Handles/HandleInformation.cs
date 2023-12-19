@@ -110,11 +110,14 @@ public class HandleInformation
     {
       foreach (string fatura in respostas)
       {
-        if (fatura == "None" || fatura == null || fatura == "")
-        {
-          continue;
-        }
-        await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\tmp\{fatura}");
+        if (fatura == "None" || fatura == null || fatura == "") continue;
+        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao!))
+          throw new InvalidOperationException("ERRO: A fatura recuperada não corresponde com a solicitada!");
+      }
+      foreach (string fatura in respostas)
+      {
+        if (fatura == "None" || fatura == null || fatura == "") continue;
+        await using Stream stream = System.IO.File.OpenRead($"./tmp/{fatura}");
         await bot.SendDocumentAsyncWraper(user.id, stream, fatura);
         stream.Dispose();
         await bot.sendTextMesssageWraper(user.id, fatura, false);
