@@ -104,7 +104,20 @@ public class Program
     if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando)
     {
       var resposta = telbot.Temporary.executar(cfg, "desperta", request.informacao!);
-      request.informacao = resposta[0];
+      if(resposta.Any())
+      {
+        if(!resposta[0].StartsWith("ERRO")) request.informacao = resposta[0];
+        else 
+        {
+          await msg.ErrorReport(user.id, new Exception(), request, resposta[0]);
+          return;
+        }
+      }
+      else
+      {
+        await msg.ErrorReport(user.id, new IndexOutOfRangeException("Não foi recebida nenhuma resposta do SAP"), request);
+        return;
+      }
     }
     if(Database.verificarRelatorio(request))
     {
