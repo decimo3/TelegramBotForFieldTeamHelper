@@ -87,6 +87,7 @@ public class HandleInformation
       case "passivo":await SendDocument(); break;
       case "suspenso":await SendManuscripts(); break;
       case "informacao":await SendManuscripts(); break;
+      case "cruzamento":await SendPicture(); break;
     }
     return;
   }

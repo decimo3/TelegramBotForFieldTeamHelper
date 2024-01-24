@@ -33,8 +33,8 @@ public class HandleCommand
         await bot.sendTextMesssageWraper(user.id, "*MEDIDOR* para receber as informações referentes ao medidor;");
         await bot.sendTextMesssageWraper(user.id, "*AGRUPAMENTO* para receber as informações referentes ao PC;");
         await bot.sendTextMesssageWraper(user.id, "*INFORMACAO* para receber informações código e CPF do cliente;");
+        await bot.sendTextMesssageWraper(user.id, "*CRUZAMENTO* para receber as ruas que cruzam com o logradouro da nota;");
         await bot.sendTextMesssageWraper(user.id, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
-        await bot.sendTextMesssageWraper(user.id, "Estou trabalhando para trazer mais funções em breve");
         break;
       case "/ping":
         await bot.sendTextMesssageWraper(user.id, "Estou de prontidão aguardando as solicitações! (^.^)");
