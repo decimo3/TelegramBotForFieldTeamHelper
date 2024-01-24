@@ -55,7 +55,6 @@ public class Configuration
     if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
     
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
-    SAP_RESTRITO = AUTHORIZATION.sap_access;
     DIAS_EXPIRACAO = 30;
     ESPERA = 60_000;
     INSTANCIA = 0; // valor padrão caso não encontre o argumento no loop
