@@ -119,7 +119,7 @@ public class Program
         return;
       }
     }
-    if(Database.verificarRelatorio(request))
+    if(Database.verificarRelatorio(request, user.id))
     {
       await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
       return;
