@@ -217,7 +217,7 @@ public static class Database
     using var connection = new SQLiteConnection(connectionString);
     connection.Open();
     using var command = connection.CreateCommand();
-    command.CommandText = @$"SELECT COUNT(*) FROM logsmodel WHERE aplicacao = '{request.aplicacao}' AND informacao = {request.informacao} AND id = {id} AND DATE(create_at) = '{DateTime.Now.ToString("yyyy-MM-dd")}' AND is_sucess = 1;";
+    command.CommandText = @$"SELECT COUNT(*) FROM logsmodel WHERE aplicacao = '{request.aplicacao}' AND informacao = '{request.informacao}' AND id = '{id}' AND DATE(create_at) = '{DateTime.Now.ToString("yyyy-MM-dd")}' AND is_sucess = 1;";
     using var dataReader = command.ExecuteReader();
     if (!dataReader.HasRows) return false;
     else dataReader.Read();
