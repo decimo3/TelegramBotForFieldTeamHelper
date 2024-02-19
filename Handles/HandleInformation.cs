@@ -55,20 +55,13 @@ public class HandleInformation
   async public Task routeInformation()
   {
     if(await has_impediment()) return;
-    respostas = telbot.Temporary.executar(cfg, this.request.aplicacao!, this.request.informacao!);
-    if(respostas.Count == 0)
+    if (this.request.tipo == TypeRequest.anyInfo)
     {
-      var erro = new Exception("Erro no script do SAP");
-      await bot.ErrorReport(id: user.id, request: request, error: erro);
+      await this.SendMultiples();
       return;
     }
-    if(respostas[0].StartsWith("ERRO"))
-    {
-      var erro = new Exception("Erro no script do SAP");
-      await bot.ErrorReport(id: user.id, error: erro, request: request, respostas[0]);
-      return;
-    }
-    switch (request.aplicacao)
+    await this.ExecuteSAP();
+    switch (this.request.aplicacao)
     {
       case "telefone":await SendManuscripts(); break;
       case "coordenada":await SendCoordinates(); break;
@@ -173,6 +166,41 @@ public class HandleInformation
     catch (System.Exception error)
     {
       await bot.ErrorReport(id: user.id, request: request, error: error);
+    }
+    return;
+  }
+  async public Task SendMultiples()
+  {
+    switch(this.request.aplicacao)
+    {
+      case "acesso":
+        this.request.aplicacao = "coordenada";
+        await this.ExecuteSAP();
+        await SendCoordinates();
+        this.request.aplicacao = "leiturista";
+        await this.ExecuteSAP();
+        await SendPicture();
+        this.request.aplicacao = "cruzamento";
+        await this.ExecuteSAP();
+        await SendPicture();
+      break;
+    }
+    return;
+  }
+  async public Task ExecuteSAP()
+  {
+    respostas = telbot.Temporary.executar(cfg, this.request.aplicacao!, this.request.informacao!);
+    if(respostas.Count == 0)
+    {
+      var erro = new Exception("Erro no script do SAP");
+      await bot.ErrorReport(id: user.id, request: request, error: erro);
+      return;
+    }
+    if(respostas[0].StartsWith("ERRO"))
+    {
+      var erro = new Exception("Erro no script do SAP");
+      await bot.ErrorReport(id: user.id, error: erro, request: request, respostas[0]);
+      return;
     }
     return;
   }
