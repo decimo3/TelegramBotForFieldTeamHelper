@@ -28,6 +28,12 @@ public class HandleMessage
   {
     await bot.SendDocumentAsync(id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename));
   }
+  public async Task SendCoordinateAsyncWraper(long id, string mapLink)
+  {
+    var re = new System.Text.RegularExpressions.Regex(@"\-[0-9]{1,3}\.[0-9]{5,}");
+    var loc = re.Matches(mapLink);
+    await bot.SendLocationAsync(id, Double.Parse(loc[0].Value.Replace('.', ',')), Double.Parse(loc[1].Value.Replace('.', ',')));
+  }
   public async Task ErrorReport(long id, Exception error, telbot.models.Request? request=null, string? SAPerrorMessage=null)
   {
     if(SAPerrorMessage is not null) await sendTextMesssageWraper(id, SAPerrorMessage);

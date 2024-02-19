@@ -71,7 +71,7 @@ public class HandleInformation
     switch (request.aplicacao)
     {
       case "telefone":await SendManuscripts(); break;
-      case "coordenada":await SendManuscripts(); break;
+      case "coordenada":await SendCoordinates(); break;
       case "localizacao":await SendManuscripts(); break;
       case "leiturista":await SendPicture(); break;
       case "roteiro":await SendPicture(); break;
@@ -101,6 +101,12 @@ public class HandleInformation
       textoMensagem += "\n";
     }
     await bot.sendTextMesssageWraper(user.id, textoMensagem);
+    Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+    return;
+  }
+  async public Task SendCoordinates()
+  {
+    await bot.SendCoordinateAsyncWraper(user.id, respostas[0]);
     Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     return;
   }
