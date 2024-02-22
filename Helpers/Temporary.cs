@@ -16,7 +16,7 @@ public static class Temporary
         CreateNoWindow = true
       };
     proc.StartInfo = startInfo;
-    var linha = new List<string>();
+    var linhas = new List<string>();
     proc.Start();
     var tempo = new System.Threading.Timer(state => {
       if(!proc.HasExited)
@@ -30,11 +30,12 @@ public static class Temporary
     }, null, cfg.ESPERA, Timeout.Infinite);
     while (!proc.StandardOutput.EndOfStream)
     {
-      linha.Add(proc.StandardOutput.ReadLine()!);
+      var linha = proc.StandardOutput.ReadLine();
+      if(linha != null && linha != String.Empty) linhas.Add(linha);
     }
     tempo.Dispose();
     proc.Dispose();
-    return linha;
+    return linhas;
   }
   private static IEnumerable<Process> GetChildProcesses(this Process process)
   {
