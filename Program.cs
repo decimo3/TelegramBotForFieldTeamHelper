@@ -93,7 +93,7 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
     }
-    var request = Validador.isRequest(message.Text, message.Date.ToLocalTime());
+    var request = Validador.isRequest(message.Text, message.Date.ToLocalTime(), message.MessageId);
     if (request is null)
     {
       await msg.sendTextMesssageWraper(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
