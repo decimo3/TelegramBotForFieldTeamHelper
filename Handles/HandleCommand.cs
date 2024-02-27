@@ -36,6 +36,7 @@ public class HandleCommand
         await bot.sendTextMesssageWraper(user.id, "*CRUZAMENTO* para receber as ruas que cruzam com o logradouro da nota;");
         await bot.sendTextMesssageWraper(user.id, "*CONSUMO* para receber informações das últimas leituras e consumos do cliente;");
         await bot.sendTextMesssageWraper(user.id, "*ACESSO* para receber as COORDENADAS, LEITURISTA e CRUZAMENTOS de uma vez só;");
+        await bot.sendTextMesssageWraper(user.id, "*ABERTURA* para receber o resultado da análise automática da instalação para abertura de nota de recuperação;");
         await bot.sendTextMesssageWraper(user.id, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
         break;
       case "/ping":

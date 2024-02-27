@@ -82,6 +82,7 @@ public class HandleInformation
       case "informacao":await SendManuscripts(); break;
       case "cruzamento":await SendPicture(); break;
       case "consumo":await SendPicture(); break;
+      case "abertura":await SendManuscripts(); break;
     }
     return;
   }

@@ -40,6 +40,7 @@ public static class Validador
     if(aplicacao == "cruzamento") return TypeRequest.picInfo;
     if(aplicacao == "acesso") return TypeRequest.anyInfo;
     if(aplicacao == "consumo") return TypeRequest.picInfo;
+    if(aplicacao == "abertura") return TypeRequest.txtInfo;
     return null;
   }
   public static bool? orderOperandos (string info1, string info2)
