@@ -1,19 +1,8 @@
 namespace telbot.handle;
 using telbot.models;
-public class HandleCommand
+public static class Command
 {
-  private HandleMessage bot;
-  private Request request;
-  private UsersModel user;
-  private Configuration cfg;
-  public HandleCommand(HandleMessage bot, UsersModel user, Request request, Configuration cfg)
-  {
-    this.bot = bot;
-    this.user = user;
-    this.request = request;
-    this.cfg = cfg;
-  }
-  async public Task routerCommand()
+  public async static Task HandleCommand(HandleMessage bot, UsersModel user, Request request, Configuration cfg)
   {
     switch (request.aplicacao)
     {

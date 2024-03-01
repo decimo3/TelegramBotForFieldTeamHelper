@@ -1,29 +1,18 @@
 namespace telbot.handle;
 using telbot.models;
-public class HandleManager
+public static class Manager
 {
-  private HandleMessage bot;
-  private Request request;
-  private UsersModel user;
-  private Configuration cfg;
-  public HandleManager(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
-  {
-    this.bot = bot;
-    this.cfg = cfg;
-    this.user = user;
-    this.request = request;
-  }
-  async public Task routerManager()
+  public async static Task HandleManager(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
     switch (request.aplicacao)
     {
-      case "autorizar": await autorizar(); break;
-      case "atualizar": await autorizar(); break;
-      case "promover": await promover(); break;
+      case "autorizar": await autorizar(bot, cfg, user, request); break;
+      case "atualizar": await autorizar(bot, cfg, user, request); break;
+      case "promover": await promover(bot, cfg, user, request); break;
     }
     return;
   }
-  async public Task autorizar()
+  public async static Task autorizar(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
     if(!user.has_privilege)
     {
@@ -74,7 +63,7 @@ public class HandleManager
     }
     return;
   }
-  async public Task promover()
+  public async static Task promover(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
     if(user.id != cfg.ID_ADM_BOT)
     {
