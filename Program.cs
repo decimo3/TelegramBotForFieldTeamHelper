@@ -39,7 +39,7 @@ public class Program
       }
       else
       {
-        await HandleMessage(update.Message!);
+        await HandleMessage(msg, update.Message!);
       }
     }
     
@@ -51,9 +51,8 @@ public class Program
     await Console.Error.WriteLineAsync(exception.Message);
     await Console.Error.WriteLineAsync(exception.StackTrace);
   }
-  async Task HandleMessage(Message message)
+  async Task HandleMessage(HandleMessage msg, Message message)
   {
-    var msg = new HandleMessage(bot);
     if (message.From is null) return;
     if (message.Text is null) return;
     Console.WriteLine($"> {message.Date.ToLocalTime()} usuario: {message.From.Id} escreveu: {message.Text}");
