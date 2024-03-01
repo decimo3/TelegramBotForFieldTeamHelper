@@ -125,17 +125,51 @@ public class Program
       return;
     }
     // When we get a command, we react accordingly
-    if (request.tipo == TypeRequest.comando)
+    switch(request.tipo)
     {
-      await new HandleCommand(msg, user, request, cfg).routerCommand();
-      return;
+      case TypeRequest.comando: 
+        await Command.HandleCommand(msg, user, request, cfg);
+      break;
+      case TypeRequest.gestao:
+        await Manager.HandleManager(msg, cfg, user, request);
+      break;
+      case TypeRequest.anyInfo:
+        await Information.SendMultiples(msg, cfg, user, request);
+      break;
+      case TypeRequest.txtInfo:
+        await Information.SendManuscripts(msg, cfg, user, request);
+      break;
+      case TypeRequest.picInfo: 
+        await Information.SendPicture(msg, cfg, user, request); 
+      break;
+      case TypeRequest.xlsInfo:
+        if(!user.has_privilege)
+        {
+          await msg.sendTextMesssageWraper(user.id, "Você não tem permissão para gerar relatórios!");
+          break;
+        }
+        await Information.SendWorksheet(msg, cfg, user, request);
+      break;
+      case TypeRequest.pdfInfo:
+        if(!cfg.GERAR_FATURAS)
+        {
+          await msg.ErrorReport(user.id, new Exception(), request, "O sistema SAP não está gerando faturas!");
+          break;
+        }
+        if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
+        {
+          await msg.ErrorReport(user.id, new Exception(), request, "Essa aplicação não deve ser usada na sexta e no sábado!");
+          break;
+        }
+        var knockout = DateTime.Now.AddMinutes(-3);
+        if(System.DateTime.Compare(knockout, request.received_at) > 0)
+        {
+          await msg.ErrorReport(user.id, new Exception(), request, "Sua solicitação expirou! Solicite novamente!");
+          break;
+        }
+        await Information.SendDocument(msg, cfg, user, request);
+        break;
     }
-    if(request.tipo == TypeRequest.gestao)
-    {
-      await new HandleManager(msg, cfg, user, request).routerManager();
-      return;
-    }
-    await new HandleInformation(msg, cfg, user, request).routeInformation();
     return;
   }
 }
