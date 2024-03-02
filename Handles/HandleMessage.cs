@@ -10,29 +10,53 @@ public class HandleMessage
   {
     this.bot = bot;
   }
-    public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
+  public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
   {
     try
     {
       if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: ParseMode.Markdown);
       Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
     }
-    catch (ApiRequestException error)
+    catch
     {
-      Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
-      Console.WriteLine($"< {DateTime.Now} chatbot: Não foi possível enviar mensagem ao usuario");
-      Console.WriteLine($"< {DateTime.Now} chatbot: {error.Message}");
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = userId,
+        mensagem = message
+      });
     }
   }
   public async Task SendDocumentAsyncWraper(long id, Stream stream, string filename)
   {
-    await bot.SendDocumentAsync(id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename));
+    try
+    {
+      await bot.SendDocumentAsync(id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename));
+    }
+    catch
+    {
+      stream.Position = 0;
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        mensagem = filename,
+        binario = stream
+      });
+    }
   }
   public async Task SendCoordinateAsyncWraper(long id, string mapLink)
   {
-    var re = new System.Text.RegularExpressions.Regex(@"\-[0-9]{1,3}\.[0-9]{5,}");
-    var loc = re.Matches(mapLink);
-    await bot.SendLocationAsync(id, Double.Parse(loc[0].Value.Replace('.', ',')), Double.Parse(loc[1].Value.Replace('.', ',')));
+    try
+    {
+      var re = new System.Text.RegularExpressions.Regex(@"\-[0-9]{1,3}\.[0-9]{5,}");
+      var loc = re.Matches(mapLink);
+      await bot.SendLocationAsync(id, Double.Parse(loc[0].Value.Replace('.', ',')), Double.Parse(loc[1].Value.Replace('.', ',')));
+      Console.WriteLine($"< {DateTime.Now} chatbot: Enviada coordenadas da instalação: {loc[0].Value},{loc[1].Value}");
+    }
+    catch
+    {
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        mensagem = mapLink
+      });
+    }
   }
   public async Task ErrorReport(long id, Exception error, telbot.models.Request? request=null, string? SAPerrorMessage=null)
   {
@@ -45,23 +69,55 @@ public class HandleMessage
   }
   public async Task SendPhotoAsyncWraper(long id, Stream stream)
   {
-    await bot.SendPhotoAsync(id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+    try
+    {
+      await bot.SendPhotoAsync(id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+    }
+    catch
+    {
+      stream.Position = 0;
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        binario = stream
+      });
+    }
   }
   public async Task RequestContact(long id)
   {
-    await sendTextMesssageWraper(id, "É necessário informar o seu telefone para continuar!");
-    await sendTextMesssageWraper(id, "Não será mais autorizado sem cadastrar o número de telefone");
-    var msg = "Clique no botão abaixo para enviar o seu número!";
-    var requestReplyKeyboard = new ReplyKeyboardMarkup( new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") });
-    await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
-    Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
-    return; 
+    try
+    {
+      await sendTextMesssageWraper(id, "É necessário informar o seu telefone para continuar!");
+      await sendTextMesssageWraper(id, "Não será mais autorizado sem cadastrar o número de telefone");
+      var msg = "Clique no botão abaixo para enviar o seu número!";
+      var requestReplyKeyboard = new ReplyKeyboardMarkup( new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") });
+      await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
+      Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
+    }
+    catch
+    {
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id
+      });
+    }
+    return;
   }
   public async Task RemoveRequest(long id, string tel)
   {
-    var msg = $"Telefone {tel} cadastrado! Agora serás atendido normalmente!";
-    await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: new ReplyKeyboardRemove());
-    Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
+    try
+    {
+      var msg = $"Telefone {tel} cadastrado! Agora serás atendido normalmente!";
+      var requestReplyKeyboard = new ReplyKeyboardRemove();
+      await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
+      Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
+    }
+    catch
+    {
+      if(!tel.StartsWith('+')) tel = '+' + tel;
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        mensagem = tel
+      });
+    }
     return;
   }
 }
