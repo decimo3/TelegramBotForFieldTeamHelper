@@ -29,6 +29,7 @@ public class Program
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
     var msg = new HandleMessage(bot);
+    await Recovery.ErrorSendMessageRecovery(msg);
     if (update.Type == UpdateType.Message)
     {
       if (update.Message!.Type == MessageType.Contact && update.Message.Contact != null)
@@ -42,7 +43,6 @@ public class Program
         await HandleMessage(msg, update.Message!);
       }
     }
-    
     else await msg.ErrorReport(id: cfg.ID_ADM_BOT, error: new InvalidOperationException(update.ToString()));
     return;
   }
