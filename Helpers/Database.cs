@@ -38,6 +38,12 @@ public static class Database
           VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', 1, {cfg.ID_ADM_BOT}, 0);";
           command.ExecuteNonQuery();
         }
+        command.CommandText = @$"CREATE TABLE IF NOT EXISTS errorReport(
+            identificador INT NOT NULL,
+            mensagem TEXT,
+            binario BLOB
+            )";
+        command.ExecuteNonQuery();
       }
       connection.Close();
     }
@@ -222,5 +228,76 @@ public static class Database
     if (!dataReader.HasRows) return false;
     else dataReader.Read();
     return dataReader.GetInt32(0) > 0;
+  }
+  public static void InserirPerdido(long id, string mensagem)
+  {
+    using(var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = @$"INSERT INTO errorReport (identificador, mensagem) VALUES ('{id}', '{mensagem}');";
+        command.ExecuteNonQuery();
+      }
+    }
+  }
+  public static void InserirPerdido(errorReport report)
+  {
+    byte[] bytes = Array.Empty<byte>();
+    if(report.binario != null) 
+    {
+      var memoryStream = new MemoryStream();
+      report.binario.CopyTo(memoryStream);
+      bytes = memoryStream.ToArray();
+    }
+    using (var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using (var command = connection.CreateCommand())
+      {
+        command.CommandText = $"INSERT INTO errorReport (identificador, mensagem, binario) VALUES (@id, @message, @data);";
+        command.Parameters.AddWithValue("@id", report.identificador);
+        command.Parameters.AddWithValue("@message", report.mensagem);
+        command.Parameters.AddWithValue("@data", bytes);
+        command.ExecuteNonQuery();
+      }
+    }
+  }
+  public static List<errorReport> RecuperarPerdido()
+  {
+    var errorReportList = new List<errorReport>();
+    using (var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using (var command = connection.CreateCommand())
+      {
+        command.CommandText = $"SELECT identificador, mensagem, binario FROM errorReport;";
+        using (var reader = command.ExecuteReader())
+        {
+          if(!reader.HasRows) return errorReportList;
+          while(reader.Read())
+          {
+            var report = new errorReport();
+            report.identificador = reader.GetInt64(0);
+            report.mensagem = reader.GetString(1);
+            report.binario = (reader["binario"] is DBNull) ? Stream.Null : reader.GetStream(2);
+            errorReportList.Add(report);
+          }
+        }
+      }
+    }
+    return errorReportList;
+  }
+  public static void ExcluirPerdidos()
+  {
+    using (var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using (var command = connection.CreateCommand())
+      {
+        command.CommandText = $"DELETE FROM errorReport;";
+        command.ExecuteNonQuery();
+      }
+    }
   }
 }
