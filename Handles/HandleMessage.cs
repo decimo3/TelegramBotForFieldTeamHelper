@@ -1,7 +1,6 @@
 namespace telbot.handle;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types.ReplyMarkups;
 public class HandleMessage
 {
@@ -36,8 +35,7 @@ public class HandleMessage
       stream.Position = 0;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = filename,
-        binario = stream
+        mensagem = "Não foi possível enviar a mensagem devido a queda da internet"
       });
     }
   }
@@ -78,7 +76,7 @@ public class HandleMessage
       stream.Position = 0;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        binario = stream
+        mensagem = "Não foi possível enviar a mensagem devido a queda da internet"
       });
     }
   }
