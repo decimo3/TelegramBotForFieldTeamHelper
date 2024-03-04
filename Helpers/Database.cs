@@ -279,8 +279,16 @@ public static class Database
           {
             var report = new errorReport();
             report.identificador = reader.GetInt64(0);
-            report.mensagem = reader.GetString(1);
-            report.binario = (reader["binario"] is DBNull) ? Stream.Null : reader.GetStream(2);
+            report.mensagem = (reader["mensagem"] is DBNull) ? String.Empty : reader.GetString(1);
+            if(reader["binario"] is DBNull) report.binario = Stream.Null;
+            else
+            {
+              byte[] bytes = (byte[])reader["binario"];
+              using (MemoryStream memstream = new MemoryStream(bytes))
+              {
+                memstream.CopyTo(report.binario);
+              }
+            }
             errorReportList.Add(report);
           }
         }
