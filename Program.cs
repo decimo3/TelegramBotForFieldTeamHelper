@@ -121,10 +121,13 @@ public class Program
         return;
       }
     }
-    if(Database.verificarRelatorio(request, user.id))
+    if(cfg.IS_DEVELOPMENT == false)
     {
-      await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
-      return;
+      if(Database.verificarRelatorio(request, user.id))
+      {
+        await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
+        return;
+      }
     }
     // When we get a command, we react accordingly
     switch(request.tipo)
