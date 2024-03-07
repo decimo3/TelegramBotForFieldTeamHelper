@@ -197,23 +197,30 @@ public static class Database
       return logs;
     }
   }
-  public static List<long> todosUsuarios()
+  public static List<UsersModel> recuperarUsuario()
   {
-    var todes = new List<long>();
+    var usuarios = new List<UsersModel>();
     using (var connection = new SQLiteConnection(connectionString))
     {
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = $"SELECT id FROM usersModel";
+        command.CommandText = @$"SELECT id, create_at, update_at, has_privilege, inserted_by, phone_number FROM usersModel";
         using(var dataReader = command.ExecuteReader())
         {
-          if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
+          if(!dataReader.HasRows) return usuarios;
           while(dataReader.Read())
           {
-            todes.Append(dataReader.GetInt64(0));
+            usuarios.Add(new UsersModel() {
+              id = dataReader.GetInt64(0),
+              create_at = dataReader.GetDateTime(1),
+              update_at = dataReader.GetDateTime(2),
+              has_privilege = dataReader.GetBoolean(3),
+              inserted_by = dataReader.GetInt64(4),
+              phone_number = dataReader.GetInt64(5)
+            });
           }
-          return todes;
+          return usuarios;
         }
       }
     }
