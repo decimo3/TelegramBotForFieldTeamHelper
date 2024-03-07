@@ -15,6 +15,7 @@ public class Configuration
   public readonly string? LICENCE;
   public readonly bool SAP_RESTRITO;
   public readonly int ESPERA;
+  public readonly string LOCKFILE = "sap.lock";
   public Configuration(string[] args)
   {
     LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE");
