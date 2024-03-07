@@ -92,4 +92,11 @@ public static class Temporary
         System.IO.File.WriteAllLines($"{cfg.CURRENT_PATH}/dados.csv", linha);
       }
   }
+  public static void ConsoleWriteError(String output)
+  {
+    Console.BackgroundColor = ConsoleColor.Red;
+    Console.Beep();
+    Console.WriteLine(output);
+    Console.BackgroundColor = ConsoleColor.Black;
+  }
 }
