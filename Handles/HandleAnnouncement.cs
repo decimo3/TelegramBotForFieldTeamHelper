@@ -37,6 +37,8 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
+      DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+      if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));
       if(usuario.has_privilege)
       {
@@ -60,6 +62,8 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
+      DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+      if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, comunicado_mensagem, true, false));
     }
     await Task.WhenAll(tasks);
