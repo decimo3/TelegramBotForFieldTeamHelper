@@ -71,10 +71,7 @@ public class Program
   }
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
-    Console.BackgroundColor = ConsoleColor.Red;
-    Console.Beep();
-    Console.WriteLine($"< {DateTime.Now} chatbot: {exception.Message}");
-    Console.BackgroundColor = ConsoleColor.Black;
+    Temporary.ConsoleWriteError($"< {DateTime.Now} chatbot: {exception.Message}");
     return;
   }
   async Task HandleMessage(HandleMessage msg, Message message)

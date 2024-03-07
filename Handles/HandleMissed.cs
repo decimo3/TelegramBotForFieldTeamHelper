@@ -4,10 +4,7 @@ public static class Recovery
   public static void ErrorSendMessageReport(errorReport report)
   {
     Database.InserirPerdido(report);
-    Console.BackgroundColor = ConsoleColor.Red;
-    Console.Beep();
-    Console.WriteLine($"< {DateTime.Now} chatbot: Não foi possível enviar mensagem ao usuario");
-    Console.BackgroundColor = ConsoleColor.Black;
+    Temporary.ConsoleWriteError($"< {DateTime.Now} chatbot: Não foi possível enviar mensagem ao usuario {report.identificador}");
   }
   public async static Task ErrorSendMessageRecovery(HandleMessage msg)
   {
