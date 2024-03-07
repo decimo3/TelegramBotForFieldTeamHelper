@@ -25,7 +25,9 @@ public class Program
       {
         while(true)
         {
-          HandleAnnouncement.Vencimento(msg, cfg);
+          var hora_agora = DateTime.Now.Hour;
+          if(hora_agora >= 8 && hora_agora <= 18)
+            HandleAnnouncement.Vencimento(msg, cfg);
           Thread.Sleep(cfg.ESPERA); // 1_800_000 (meia-hora)
         }
       }
