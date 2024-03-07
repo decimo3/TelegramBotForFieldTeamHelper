@@ -16,6 +16,7 @@ public class Configuration
   public readonly bool SAP_RESTRITO;
   public readonly int ESPERA;
   public readonly string LOCKFILE = "sap.lock";
+  public readonly bool VENCIMENTOS = false;
   public Configuration(string[] args)
   {
     LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE");
@@ -84,8 +85,12 @@ public class Configuration
         case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
         case "--sap-restrito": SAP_RESTRITO = true; break;
+        case "--vencimentos": VENCIMENTOS = true; break;
         default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
     }
+    if(SAP_OFFLINE && VENCIMENTOS)
+      throw new InvalidOperationException("Não é possível usar os argumentos '--vencimentos' e '--sap-offline' ao mesmo tempo");
+    
   }
 }
