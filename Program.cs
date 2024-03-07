@@ -17,10 +17,20 @@ public class Program
     // 
     using (var cts = new CancellationTokenSource())
     {
-      // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool, so we use cancellation token
       bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
-      // Tell the user the bot is online
       Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
+      var msg = new handle.HandleMessage(bot);
+      HandleAnnouncement.Comunicado(msg, cfg);
+      while(true)
+      {
+        while(true)
+        {
+          if(!System.IO.File.Exists(cfg.LOCKFILE)) break;
+          else System.Threading.Thread.Sleep(1_000);
+        }
+        HandleAnnouncement.Vencimento(msg, cfg);
+        Thread.Sleep(cfg.ESPERA);
+      }
       Console.ReadLine();
       // Send cancellation request to stop the bot
       cts.Cancel();
@@ -40,7 +50,14 @@ public class Program
       }
       else
       {
+        while(true)
+        {
+          if(!System.IO.File.Exists(cfg.LOCKFILE)) break;
+          else System.Threading.Thread.Sleep(1_000);
+        }
+        System.IO.File.Create(cfg.LOCKFILE).Close();
         await HandleMessage(msg, update.Message!);
+        System.IO.File.Delete(cfg.LOCKFILE);
       }
     }
     else await msg.ErrorReport(id: cfg.ID_ADM_BOT, error: new InvalidOperationException(update.ToString()));
