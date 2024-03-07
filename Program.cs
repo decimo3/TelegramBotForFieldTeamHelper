@@ -25,10 +25,13 @@ public class Program
       {
         while(true)
         {
-          var hora_agora = DateTime.Now.Hour;
-          if(hora_agora >= 8 && hora_agora <= 18)
-            HandleAnnouncement.Vencimento(msg, cfg);
-          Thread.Sleep(cfg.ESPERA); // 1_800_000 (meia-hora)
+          if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
+          {
+            var hora_agora = DateTime.Now.Hour;
+            if(hora_agora >= 8 && hora_agora <= 19)
+              HandleAnnouncement.Vencimento(msg, cfg);
+          }
+          Thread.Sleep(3_600_000); // (uma hora)
         }
       }
       else
