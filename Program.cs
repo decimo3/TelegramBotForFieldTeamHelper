@@ -21,19 +21,20 @@ public class Program
       Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
       var msg = new handle.HandleMessage(bot);
       HandleAnnouncement.Comunicado(msg, cfg);
-      while(true)
+      if(cfg.VENCIMENTOS)
       {
         while(true)
         {
-          if(!System.IO.File.Exists(cfg.LOCKFILE)) break;
-          else System.Threading.Thread.Sleep(1_000);
+          HandleAnnouncement.Vencimento(msg, cfg);
+          Thread.Sleep(cfg.ESPERA); // 1_800_000 (meia-hora)
         }
-        HandleAnnouncement.Vencimento(msg, cfg);
-        Thread.Sleep(cfg.ESPERA);
       }
-      Console.ReadLine();
-      // Send cancellation request to stop the bot
-      cts.Cancel();
+      else
+      {
+        Console.ReadLine();
+        // Send cancellation request to stop the bot
+        cts.Cancel();
+      }
     }
   }
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
