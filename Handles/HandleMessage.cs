@@ -9,12 +9,12 @@ public class HandleMessage
   {
     this.bot = bot;
   }
-  public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true)
+  public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true, bool exibir=true)
   {
     try
     {
       if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: ParseMode.Markdown);
-      Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
+      if(exibir) Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
     }
     catch
     {

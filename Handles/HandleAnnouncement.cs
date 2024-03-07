@@ -37,7 +37,7 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
-      tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem));
+      tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));
       if(usuario.has_privilege)
       {
         relatorio_stream.Position = 0;
@@ -60,7 +60,7 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
-      tasks.Add(msg.sendTextMesssageWraper(usuario.id, comunicado_mensagem));
+      tasks.Add(msg.sendTextMesssageWraper(usuario.id, comunicado_mensagem, true, false));
     }
     await Task.WhenAll(tasks);
     Console.WriteLine(comunicado_mensagem);
