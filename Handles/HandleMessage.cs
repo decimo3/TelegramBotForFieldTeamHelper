@@ -139,4 +139,32 @@ public class HandleMessage
       return String.Empty;
     }
   }
+  public async Task SendVideoAsyncWraper(long id, string media_id)
+  {
+    try
+    {
+      await bot.SendVideoAsync(id, video: media_id);
+    }
+    catch
+    {
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        mensagem = "Não foi possível enviar o vídeo"
+      });
+    }
+  }
+  public async Task SendPhotoAsyncWraper(long id, string media_id)
+  {
+    try
+    {
+      await bot.SendPhotoAsync(id, photo: media_id);
+    }
+    catch
+    {
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        mensagem = "Não foi possível enviar o vídeo"
+      });
+    }
+  }
 }
