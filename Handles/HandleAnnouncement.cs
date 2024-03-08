@@ -53,10 +53,25 @@ public static class HandleAnnouncement
   }
   public static async void Comunicado(HandleMessage msg, Configuration cfg)
   {
-    var comunicado_arquivo = cfg.CURRENT_PATH + "\\comunicado.txt";
-    if(!System.IO.File.Exists(comunicado_arquivo)) return;
+    var mensagem_caminho = cfg.CURRENT_PATH + "\\comunicado.txt";
+    var imagem_caminho = cfg.CURRENT_PATH + "\\comunicado.jpg";
+    var videoclipe_caminho = cfg.CURRENT_PATH + "\\comunicado.mp4";
+
+    var has_txt = System.IO.File.Exists(mensagem_caminho);
+    var has_jpg = System.IO.File.Exists(imagem_caminho);
+    var has_mp4 = System.IO.File.Exists(videoclipe_caminho);
+    
+    if(!has_txt && !has_jpg && !has_mp4) return;
+    
     System.IO.File.Create(cfg.LOCKFILE).Close();
-    var comunicado_mensagem = System.IO.File.ReadAllText(comunicado_arquivo);
+    
+    var comunicado_mensagem = has_txt ? File.ReadAllText(mensagem_caminho) : String.Empty;
+    Stream comunicado_imagem = has_jpg ? File.OpenRead(imagem_caminho) : Stream.Null;
+    Stream comunicado_video = has_mp4 ? File.OpenRead(videoclipe_caminho) : Stream.Null;
+    
+    var photo_id = has_jpg ? await msg.SendPhotoAsyncWraper(cfg.ID_ADM_BOT, comunicado_imagem) : String.Empty;
+    var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : String.Empty;
+
     Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos:");
     var usuarios = Database.recuperarUsuario();
     var tasks = new List<Task>();
@@ -64,11 +79,29 @@ public static class HandleAnnouncement
     {
       DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
       if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
-      tasks.Add(msg.sendTextMesssageWraper(usuario.id, comunicado_mensagem, true, false));
+      if(has_txt) tasks.Add(msg.sendTextMesssageWraper(usuario.id, comunicado_mensagem, true, false));
+      if(usuario.id == cfg.ID_ADM_BOT) continue;
+      if(has_jpg && (photo_id != String.Empty)) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, photo_id));
+      if(has_mp4 && (video_id != String.Empty)) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id));
     }
     await Task.WhenAll(tasks);
-    Console.WriteLine(comunicado_mensagem);
-    System.IO.File.Delete(comunicado_arquivo);
+    comunicado_imagem.Close();
+    comunicado_video.Close();
+    if(has_txt)
+    {
+      Console.WriteLine(comunicado_mensagem);
+      System.IO.File.Delete(mensagem_caminho);
+    }
+    if(has_jpg)
+    {
+      Console.WriteLine("Enviada imagem do comunicado!");
+      System.IO.File.Delete(imagem_caminho);
+    }
+    if(has_mp4)
+    {
+      Console.WriteLine("Enviado video do comunicado!");
+      System.IO.File.Delete(videoclipe_caminho);
+    }
     System.IO.File.Delete(cfg.LOCKFILE);
   }
 }
