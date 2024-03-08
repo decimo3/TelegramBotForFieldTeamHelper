@@ -43,7 +43,7 @@ public class HandleMessage
   {
     try
     {
-      var re = new System.Text.RegularExpressions.Regex(@"\-[0-9]{1,3}\.[0-9]{5,}");
+      var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
       var loc = re.Matches(mapLink);
       await bot.SendLocationAsync(id, Double.Parse(loc[0].Value.Replace('.', ',')), Double.Parse(loc[1].Value.Replace('.', ',')));
       Console.WriteLine($"< {DateTime.Now} chatbot: Enviada coordenadas da instalação: {loc[0].Value},{loc[1].Value}");
