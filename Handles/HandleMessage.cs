@@ -65,11 +65,13 @@ public class HandleMessage
     else Database.inserirRelatorio(new logsModel(id, request.aplicacao, request.informacao, false, request.received_at));
     return;
   }
-  public async Task SendPhotoAsyncWraper(long id, Stream stream)
+  public async Task<string> SendPhotoAsyncWraper(long id, Stream stream)
   {
     try
     {
-      await bot.SendPhotoAsync(id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+      var photo = await bot.SendPhotoAsync(id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+      if(photo.Photo is null) throw new Exception("Não foi possível enviar o vídeo");
+      return photo.Photo.First().FileId;
     }
     catch
     {
@@ -78,6 +80,7 @@ public class HandleMessage
         identificador = id,
         mensagem = "Não foi possível enviar a mensagem devido a queda da internet"
       });
+      return String.Empty;
     }
   }
   public async Task RequestContact(long id)
