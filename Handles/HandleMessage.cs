@@ -121,4 +121,22 @@ public class HandleMessage
     }
     return;
   }
+  public async Task<string> SendVideoAsyncWraper(long id, Stream stream)
+  {
+    try
+    {
+      var video = await bot.SendVideoAsync(id, video: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+      if(video.Video is null) throw new Exception("Não foi possível enviar o vídeo");
+      return video.Video.FileId;
+    }
+    catch
+    {
+      stream.Position = 0;
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        mensagem = "Não foi possível enviar o vídeo"
+      });
+      return String.Empty;
+    }
+  }
 }
