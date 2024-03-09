@@ -21,7 +21,7 @@ public class Program
       Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
       var msg = new handle.HandleMessage(bot);
       HandleAnnouncement.Comunicado(msg, cfg);
-      if(cfg.VENCIMENTOS)
+      if(cfg.VENCIMENTOS > 0)
       {
         while(true)
         {
@@ -31,7 +31,7 @@ public class Program
             if(hora_agora >= 8 && hora_agora <= 19)
               HandleAnnouncement.Vencimento(msg, cfg);
           }
-          Thread.Sleep(3_600_000); // (uma hora)
+          Thread.Sleep(cfg.VENCIMENTOS);
         }
       }
       else
@@ -69,7 +69,9 @@ public class Program
     else await msg.ErrorReport(id: cfg.ID_ADM_BOT, error: new InvalidOperationException(update.ToString()));
     return;
   }
+  #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
+  #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
   {
     Temporary.ConsoleWriteError($"< {DateTime.Now} chatbot: {exception.Message}");
     return;
