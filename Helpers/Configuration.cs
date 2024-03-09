@@ -1,70 +1,52 @@
 namespace telbot;
 public class Configuration
 {
-  public readonly string? BOT_TOKEN;
-  public readonly long ID_ADM_BOT;
-  public readonly bool IS_DEVELOPMENT;
-  public readonly string? CURRENT_PATH;
-  public readonly string? SAP_SCRIPT;
-  public readonly string? IMG_SCRIPT;
-  public readonly int DIAS_EXPIRACAO;
-  public readonly bool GERAR_FATURAS;
-  public readonly bool SAP_OFFLINE;
-  public readonly int INSTANCIA;
+  public readonly string BOT_TOKEN = String.Empty;
+  public readonly long ID_ADM_BOT = 0;
+  public readonly bool IS_DEVELOPMENT = false;
+  public readonly string CURRENT_PATH = String.Empty;
+  public readonly string SAP_SCRIPT = String.Empty;
+  public readonly string IMG_SCRIPT = String.Empty;
+  public readonly int DIAS_EXPIRACAO = 30;
+  public readonly bool GERAR_FATURAS = true;
+  public readonly bool SAP_OFFLINE = false;
+  public readonly int INSTANCIA = 0;
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
-  public readonly bool SAP_RESTRITO;
-  public readonly int ESPERA;
+  public readonly bool SAP_RESTRITO = false;
+  public readonly int ESPERA = 60_000;
   public readonly string LOCKFILE = "sap.lock";
-  public readonly bool VENCIMENTOS = false;
+  public readonly int VENCIMENTOS = 0;
   public Configuration(string[] args)
   {
-    LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE");
-    if(LICENCE is null) throw new InvalidOperationException("Environment variable BOT_LICENCE is not set!");
-    var AUTHORIZATION = Authorization.RecoveryToken(LICENCE);
-    if(AUTHORIZATION is null) throw new InvalidOperationException("Token in environment variable BOT_LICENCE is not valid!");
+    LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE") ??
+      throw new InvalidOperationException("Environment variable BOT_LICENCE is not set!");
+    var AUTHORIZATION = Authorization.RecoveryToken(LICENCE) ??
+      throw new InvalidOperationException("Token in environment variable BOT_LICENCE is not valid!");
+    
+    ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
     
     var agora = DateTime.Now;
     var prazo = DateTimeOffset.FromUnixTimeSeconds(AUTHORIZATION.exp).DateTime;
-    if(agora > prazo)
-    {
-      Console.BackgroundColor = ConsoleColor.Red;
-      Console.Beep();
-      Console.Write("O período de licença de uso expirou!");
-      Console.BackgroundColor = ConsoleColor.Black;
-      Console.WriteLine("Necessário entrar em contato com o administrador do sistema!");
-      return;
-    }
-    
-    CURRENT_PC = System.Environment.GetEnvironmentVariable("COMPUTERNAME");
-    if(CURRENT_PC is null) throw new InvalidOperationException("Environment variable CURRENT_PC is not set!");
-    if(CURRENT_PC != AUTHORIZATION.allowed_pc)
-    {
-      Console.BackgroundColor = ConsoleColor.Red;
-      Console.Beep();
-      Console.Write("A licença de uso não permite o uso em outra máquina!");
-      Console.BackgroundColor = ConsoleColor.Black;
-      Console.WriteLine("Necessário entrar em contato com o administrador do sistema!");
-      return;
-    }
+    if(agora > prazo) throw new InvalidOperationException("O período de licença de uso expirou!");
+
+    CURRENT_PC = System.Environment.GetEnvironmentVariable("COMPUTERNAME") ??
+      throw new InvalidOperationException("Environment variable CURRENT_PC is not set!");
+    if(CURRENT_PC != AUTHORIZATION.allowed_pc) throw new InvalidOperationException("A licença de uso não permite o uso em outra máquina!");
     
     CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
     
-    BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN");
-    if(BOT_TOKEN is null) throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
+    BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN") ??
+      throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
     if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
     
-    ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
-    DIAS_EXPIRACAO = 30;
-    ESPERA = 60_000;
-    INSTANCIA = 0; // valor padrão caso não encontre o argumento no loop
-    GERAR_FATURAS = true; // valor padrão caso não encontre o argumento no loop
-    SAP_OFFLINE = false; // valor padrão caso não encontre o argumento no loop
+
     var env = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
     if(env is null) IS_DEVELOPMENT = false;
     else IS_DEVELOPMENT = (env == "Development") ? true : false;
+
     foreach (var arg in args)
     {
       if(arg.StartsWith("--sap-instancia"))
@@ -79,18 +61,22 @@ public class Configuration
         else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
         continue;
       }
+      if(arg.StartsWith("--vencimentos"))
+      { 
+        if(Int32.TryParse(arg.Split("=")[1], out int vencimento)) VENCIMENTOS = vencimento * 1000;
+        else throw new InvalidOperationException("Argumento 'vencimentos' não está no formato correto! Use the format: '--vencimentos=<segundos_espera>'");
+        continue;
+      }
       switch (arg)
       {
         case "--sem-faturas": GERAR_FATURAS = false; break;
         case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
         case "--sap-restrito": SAP_RESTRITO = true; break;
-        case "--vencimentos": VENCIMENTOS = true; break;
         default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
     }
-    if(SAP_OFFLINE && VENCIMENTOS)
+    if(SAP_OFFLINE && VENCIMENTOS > 0)
       throw new InvalidOperationException("Não é possível usar os argumentos '--vencimentos' e '--sap-offline' ao mesmo tempo");
-    
   }
 }
