@@ -127,6 +127,12 @@ public class Program
     // Gets the installation of the request and since every request will be made by the installation
     if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando)
     {
+      var knockout = DateTime.Now.AddMinutes(-5);
+      if(System.DateTime.Compare(knockout, request.received_at) > 0)
+      {
+        await msg.ErrorReport(user.id, new Exception(), request, "Sua solicitação expirou! Solicite novamente!");
+        return;
+      }
       var resposta = telbot.Temporary.executar(cfg, "desperta", request.informacao!);
       if(resposta.Any())
       {
@@ -186,12 +192,6 @@ public class Program
         if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
         {
           await msg.ErrorReport(user.id, new Exception(), request, "Essa aplicação não deve ser usada na sexta e no sábado!");
-          break;
-        }
-        var knockout = DateTime.Now.AddMinutes(-3);
-        if(System.DateTime.Compare(knockout, request.received_at) > 0)
-        {
-          await msg.ErrorReport(user.id, new Exception(), request, "Sua solicitação expirou! Solicite novamente!");
           break;
         }
         await Information.SendDocument(msg, cfg, user, request);
