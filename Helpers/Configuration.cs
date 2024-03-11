@@ -63,7 +63,7 @@ public class Configuration
       }
       if(arg.StartsWith("--vencimentos"))
       { 
-        if(Int32.TryParse(arg.Split("=")[1], out int vencimento)) VENCIMENTOS = vencimento * 1000;
+        if(Int32.TryParse(arg.Split("=")[1], out int vencimento)) VENCIMENTOS = vencimento * 1000 * 60;
         else throw new InvalidOperationException("Argumento 'vencimentos' não está no formato correto! Use the format: '--vencimentos=<segundos_espera>'");
         continue;
       }
