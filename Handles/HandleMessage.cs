@@ -24,11 +24,13 @@ public class HandleMessage
       });
     }
   }
-  public async Task SendDocumentAsyncWraper(long id, Stream stream, string filename)
+  public async Task<string> SendDocumentAsyncWraper(long id, Stream stream, string filename)
   {
     try
     {
-      await bot.SendDocumentAsync(id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename));
+      var documento = await bot.SendDocumentAsync(id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename));
+      if(documento.Document == null) throw new Exception("Não foi possível enviar o arquivo");
+      return documento.Document.FileId;
     }
     catch
     {
@@ -37,6 +39,7 @@ public class HandleMessage
         identificador = id,
         mensagem = "Não foi possível enviar a mensagem devido a queda da internet"
       });
+      return String.Empty;
     }
   }
   public async Task SendCoordinateAsyncWraper(long id, string mapLink)
@@ -164,6 +167,20 @@ public class HandleMessage
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
         mensagem = "Não foi possível enviar o vídeo"
+      });
+    }
+  }
+  public async Task SendDocumentAsyncWraper(long id, string media_id)
+  {
+    try
+    {
+      await bot.SendDocumentAsync(id, document: media_id);
+    }
+    catch
+    {
+      Recovery.ErrorSendMessageReport(new errorReport(){
+        identificador = id,
+        mensagem = "Não foi possível enviar o arquivo"
       });
     }
   }
