@@ -50,17 +50,27 @@ public static class HandleAnnouncement
     var relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Match(relatorio_mensagem).Value;
     var padrao_trocar = @"$3-$2-$1_$4-$5-$6\.csv";
     relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Replace(relatorio_filename, padrao_trocar);
+    var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_arquivo, relatorio_filename);
+    if(relatorio_identificador == String.Empty)
+    {
+      relatorio_arquivo.Close();
+      Temporary.ConsoleWriteError("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      System.IO.File.Delete(cfg.LOCKFILE);
+      System.Threading.Thread.Sleep(CINCO_MINUTOS);
+      continue;
+    }
     var usuarios = Database.recuperarUsuario();
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
+      if(usuario.id == cfg.ID_ADM_BOT) continue;
       DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
       if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));
       if(usuario.has_privilege)
       {
         relatorio_arquivo.Position = 0;
-        tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, relatorio_arquivo, relatorio_filename));
+        tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, relatorio_identificador));
       }
     }
     await Task.WhenAll(tasks);
