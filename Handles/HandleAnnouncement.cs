@@ -63,13 +63,12 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
-      if(usuario.id == cfg.ID_ADM_BOT) continue;
       DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
       if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));
+      if(usuario.id == cfg.ID_ADM_BOT) continue;
       if(usuario.has_privilege)
       {
-        relatorio_arquivo.Position = 0;
         tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, relatorio_identificador));
       }
     }
