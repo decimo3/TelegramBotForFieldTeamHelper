@@ -65,9 +65,10 @@ public static class HandleAnnouncement
     {
       DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
       if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
+      if(usuario.has_privilege == UsersModel.userLevel.desautorizar) continue;
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));
       if(usuario.id == cfg.ID_ADM_BOT) continue;
-      if(usuario.has_privilege)
+      if((int)usuario.has_privilege > 0)
       {
         tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, relatorio_identificador));
       }
@@ -110,6 +111,7 @@ public static class HandleAnnouncement
     {
       DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
       if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
+      if(usuario.has_privilege == UsersModel.userLevel.desautorizar) continue;
       if(has_txt) tasks.Add(msg.sendTextMesssageWraper(usuario.id, comunicado_mensagem, true, false));
       if(usuario.id == cfg.ID_ADM_BOT) continue;
       if(has_jpg && (photo_id != String.Empty)) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, photo_id));

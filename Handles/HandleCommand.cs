@@ -33,7 +33,7 @@ public static class Command
         await bot.sendTextMesssageWraper(user.id, "Estou de prontidão aguardando as solicitações! (^.^)");
         break;
       case "/status":
-        if(user.id == (Int64)1469480868)
+        if(user.has_privilege == UsersModel.userLevel.proprietario)
         {
           await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
           await bot.SendDocumentAsyncWraper(user.id, stream, $"{DateTime.Now.ToLocalTime().ToString("yyyyMMdd_HHmmss")}.db");

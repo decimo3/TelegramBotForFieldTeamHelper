@@ -94,10 +94,11 @@ public class Program
       await msg.RequestContact(message.From.Id);
       return;
     }
-    if(cfg.SAP_OFFLINE)
+    if(user.has_privilege == UsersModel.userLevel.desautorizar)
     {
-      var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
-      await msg.sendTextMesssageWraper(message.From.Id, messagem);
+      await msg.sendTextMesssageWraper(message.From.Id, "Você foi banido do sistema chatbot, e não poderá mais usar seus serviços");
+      await msg.sendTextMesssageWraper(message.From.Id, "Para restaurar o seu acesso ao sistema, solicite ao seu supervisor o acesso ao BOT.");
+      await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do telegram é {message.From.Id}, esse número deverá ser informado ao seu supervisor.");
       return;
     }
     // verifica se o cadastro expirou
@@ -122,6 +123,12 @@ public class Program
     {
       await msg.sendTextMesssageWraper(user.id, "Verifique o formato da informação e tente novamente da forma correta!");
       await msg.sendTextMesssageWraper(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+      return;
+    }
+    if(cfg.SAP_OFFLINE && request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando)
+    {
+      var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
+      await msg.sendTextMesssageWraper(message.From.Id, messagem);
       return;
     }
     // Gets the installation of the request and since every request will be made by the installation
@@ -164,6 +171,11 @@ public class Program
         await Command.HandleCommand(msg, user, request, cfg);
       break;
       case TypeRequest.gestao:
+        if(!user.pode_autorizar())
+        {
+          await msg.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
+          break;
+        }
         await Manager.HandleManager(msg, cfg, user, request);
       break;
       case TypeRequest.anyInfo:
@@ -176,7 +188,7 @@ public class Program
         await Information.SendPicture(msg, cfg, user, request); 
       break;
       case TypeRequest.xlsInfo:
-        if(!user.has_privilege)
+        if(!user.pode_relatorios())
         {
           await msg.sendTextMesssageWraper(user.id, "Você não tem permissão para gerar relatórios!");
           break;
