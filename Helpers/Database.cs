@@ -1,3 +1,4 @@
+using System.Data.SqlClient;
 using System.Data.SQLite;
 namespace telbot;
 public static class Database
@@ -18,7 +19,7 @@ public static class Database
             id INT PRIMARY KEY,
             create_at DATETIME NOT NULL,
             update_at DATETIME NOT NULL,
-            has_privilege BOOLEAN NOT NULL DEFAULT FALSE,
+            has_privilege INT NOT NULL DEFAULT 0,
             inserted_by INT NOT NULL,
             phone_number INT DEFAULT 0
             )";
@@ -35,7 +36,7 @@ public static class Database
         if(recuperarUsuario(cfg.ID_ADM_BOT) is null)
         {
           command.CommandText = @$"INSERT INTO usersModel(id, create_at, update_at, has_privilege, inserted_by, phone_number)
-          VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', 1, {cfg.ID_ADM_BOT}, 0);";
+          VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', 1, {cfg.ID_ADM_BOT}, {UsersModel.userLevel.administrador});";
           command.ExecuteNonQuery();
         }
         command.CommandText = @$"CREATE TABLE IF NOT EXISTS errorReport(
@@ -64,7 +65,7 @@ public static class Database
             id = dataReader.GetInt64(0),
             create_at = dataReader.GetDateTime(1),
             update_at = dataReader.GetDateTime(2),
-            has_privilege = dataReader.GetBoolean(3),
+            has_privilege = (UsersModel.userLevel)dataReader.GetInt32(3),
             inserted_by = dataReader.GetInt64(4),
             phone_number = dataReader.GetInt64(5)
           };
@@ -98,7 +99,7 @@ public static class Database
       }
     }
   }
-  public static bool promoverUsuario(long id, long inserted_by)
+  public static bool promoverUsuario(long id, long inserted_by, UsersModel.userLevel has_privilege)
   {
     try
     {
@@ -108,7 +109,7 @@ public static class Database
         connection.Open();
         using(var command = connection.CreateCommand())
         {
-          command.CommandText = @$"UPDATE usersModel SET has_privilege = 1, inserted_by = {inserted_by}, update_at = '{DateTime.Now.ToString("u")}' WHERE id = {id}";
+          command.CommandText = @$"UPDATE usersModel SET has_privilege = {(int)has_privilege}, inserted_by = {inserted_by}, update_at = '{DateTime.Now.ToString("u")}' WHERE id = {id}";
           command.ExecuteNonQuery();
         }
       }
@@ -215,7 +216,7 @@ public static class Database
               id = dataReader.GetInt64(0),
               create_at = dataReader.GetDateTime(1),
               update_at = dataReader.GetDateTime(2),
-              has_privilege = dataReader.GetBoolean(3),
+              has_privilege = (UsersModel.userLevel)dataReader.GetInt32(3),
               inserted_by = dataReader.GetInt64(4),
               phone_number = dataReader.GetInt64(5)
             });
