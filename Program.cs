@@ -84,9 +84,12 @@ public class Program
     var user = Database.recuperarUsuario(message.From.Id);
     if(user is null)
     {
-      await msg.sendTextMesssageWraper(message.From.Id, "Eu não estou autorizado a te passar informações!");
-      await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
-      await msg.sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso ao BOT");
+      user = new(message.From.Id);
+      Database.inserirUsuario(user);
+      await msg.sendTextMesssageWraper(message.From.Id, "Seja bem vindo ao sistema de atendimento automático do chatbot!");
+      await msg.sendTextMesssageWraper(message.From.Id, "Eu não estou autorizado a te passar informações no momento");
+      await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é `{message.From.Id}`.");
+      await msg.sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso");
       return;
     }
     if(user.phone_number == 0)
