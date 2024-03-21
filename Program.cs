@@ -92,16 +92,16 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso");
       return;
     }
-    if(user.phone_number == 0)
-    {
-      await msg.RequestContact(message.From.Id);
-      return;
-    }
     if(user.has_privilege == UsersModel.userLevel.desautorizar)
     {
       await msg.sendTextMesssageWraper(message.From.Id, "Você foi banido do sistema chatbot, e não poderá mais usar seus serviços");
       await msg.sendTextMesssageWraper(message.From.Id, "Para restaurar o seu acesso ao sistema, solicite ao seu supervisor o acesso ao BOT.");
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do telegram é {message.From.Id}, esse número deverá ser informado ao seu supervisor.");
+      return;
+    }
+    if(user.phone_number == 0)
+    {
+      await msg.RequestContact(message.From.Id);
       return;
     }
     if(user.has_privilege == UsersModel.userLevel.eletricista)
