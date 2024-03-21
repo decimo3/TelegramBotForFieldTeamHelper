@@ -5,23 +5,26 @@ public class UsersModel : IValidatableObject
   [Required]
   public long id {get; set;}
   [Required]
-  public DateTime create_at {get; set;} 
+  public DateTime create_at {get; set;} = DateTime.Now;
   [Required]
-  public DateTime update_at {get; set;}
+  public DateTime update_at {get; set;} =  DateTime.MinValue;
   [Required]
-  public userLevel has_privilege {get; set;}
+  public userLevel has_privilege {get; set;} = userLevel.desautorizar;
   [Required]
-  public long inserted_by {get; set;}
+  public long inserted_by {get; set;} = 0;
   [Required]
-  public long phone_number {get; set;}
+  public long phone_number {get; set;} = 0;
   public UsersModel() {}
   public UsersModel(long id, long inserted_by)
   {
     this.id = id;
     this.inserted_by = inserted_by;
-    this.create_at = DateTime.Now;
     this.update_at = DateTime.Now;
     this.has_privilege = userLevel.eletricista;
+  }
+  public UsersModel(long id)
+  {
+    this.id = id;
   }
   public IEnumerable<ValidationResult> Validate (ValidationContext context)
   {
