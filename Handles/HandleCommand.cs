@@ -59,10 +59,13 @@ public static class Command
         var info = new System.Text.StringBuilder();
         info.Append($"*Identificador:* {user.id}\n");
         info.Append($"*Telefone:* {user.phone_number}\n");
-        var prazo = user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
-        var dias = prazo - DateTime.Today;
-        info.Append($"*Expiração:* {prazo.ToString("dd/MM/yyyy")} ({(int)dias.TotalDays} dias)\n");
         info.Append($"*Autorização:* {user.has_privilege.ToString()}\n");
+        if(user.has_privilege == UsersModel.userLevel.eletricista)
+        {
+          var prazo = user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+          var dias = prazo - DateTime.Today;
+          info.Append($"*Expiração:* {prazo.ToString("dd/MM/yyyy")} ({(int)dias.TotalDays} dias)\n");
+        }
         await bot.sendTextMesssageWraper(user.id, info.ToString());
         break;
     }
