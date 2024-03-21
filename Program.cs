@@ -165,7 +165,7 @@ public class Program
       var resposta = telbot.Temporary.executar(cfg, "desperta", request.informacao!);
       if(resposta.Any())
       {
-        if(!resposta[0].StartsWith("ERRO")) request.informacao = resposta[0];
+        if(!resposta[0].StartsWith("ERRO")) request.informacao = Int64.Parse(resposta.First());
         else 
         {
           await msg.ErrorReport(user.id, new Exception(), request, resposta[0]);
