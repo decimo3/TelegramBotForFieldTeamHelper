@@ -36,7 +36,7 @@ public class UsersModel : IValidatableObject
     desautorizar = -1,
     eletricista = 0,
     supervisor = 1,
-    monitorador = 2,
+    controlador = 2,
     comunicador = 3,
     administrador = 4,
     proprietario = 5,
@@ -69,7 +69,7 @@ public class UsersModel : IValidatableObject
   }
   public bool pode_relatorios()
   {
-    if(this.has_privilege == userLevel.monitorador) return true;
+    if(this.has_privilege == userLevel.controlador) return true;
     if(this.has_privilege == userLevel.supervisor) return true;
     if(this.has_privilege == userLevel.administrador) return true;
     if(this.has_privilege == userLevel.proprietario) return true;
