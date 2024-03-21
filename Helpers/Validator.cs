@@ -71,7 +71,7 @@ public static class Validador
     if (args[0].StartsWith("/"))
     {
       request.aplicacao = args[0];
-      request.informacao = null;
+      request.informacao = 0;
       request.tipo = TypeRequest.comando;
       return request;
     }
@@ -81,7 +81,7 @@ public static class Validador
       var estaNaNaOrdemCerta = Validador.orderOperandos(args[0], args[1]);
       if(estaNaNaOrdemCerta is null) return null;
       request.aplicacao = ((bool)estaNaNaOrdemCerta) ? args[0] : args[1];
-      request.informacao = ((bool)estaNaNaOrdemCerta) ? args[1] : args[0];
+      request.informacao = ((bool)estaNaNaOrdemCerta) ? Int64.Parse(args[1]) : Int64.Parse(args[0]);
       request.tipo = isAplicacaoOption(request.aplicacao);
       if(request.tipo is null) return null;
       return request;

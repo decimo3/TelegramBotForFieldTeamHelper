@@ -1,7 +1,7 @@
 namespace telbot;
 public static class PdfChecker
 {
-  public static bool PdfCheck(String filepath, String instalacao)
+  public static bool PdfCheck(String filepath, long instalacao)
   {
     try
     {
@@ -17,7 +17,7 @@ public static class PdfChecker
       }
       reader.Close();
       String result = text.ToString();
-      return result.Contains(instalacao);
+      return result.Contains(instalacao.ToString());
     }
     catch
     {
