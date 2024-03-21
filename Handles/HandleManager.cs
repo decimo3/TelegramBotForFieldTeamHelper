@@ -9,12 +9,7 @@ public static class Manager
       await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
       return;
     }
-    if(!Int64.TryParse(request.informacao, out long id))
-    {
-      await bot.sendTextMesssageWraper(user.id, "O identificador do usuário não é válido!");
-      return;
-    }
-    var usuario = Database.recuperarUsuario(id);
+    var usuario = Database.recuperarUsuario(request.informacao);
     if(usuario == null)
     {
       await bot.sendTextMesssageWraper(user.id, "Não há registro que esse usuário entrou em contato com o chatbot!");
