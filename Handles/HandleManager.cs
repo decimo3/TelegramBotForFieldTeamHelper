@@ -33,25 +33,37 @@ public static class Manager
         return;
       }
     }
-    var cargo = Enum.Parse<UsersModel.userLevel>(request.aplicacao!);
-    usuario.has_privilege = cargo;
-    usuario.update_at = DateTime.Now;
+    usuario.update_at = request.received_at;
     switch (request.aplicacao)
     {
       case "autorizar":
       case "atualizar":
+        if((int)usuario.has_privilege > 0)
+        {
+          await bot.sendTextMesssageWraper(user.id, $"Usuário {usuario.id} com acesso de {usuario.has_privilege.ToString()} não tem prazo de expiração!");
+        }
+        else
+        {
+          usuario.has_privilege = UsersModel.userLevel.eletricista;
+          await alterarUsuario(bot, user, usuario, request);
+        }
+      break;
       case "desautorizar":
+        usuario.has_privilege = UsersModel.userLevel.desautorizar;
         await alterarUsuario(bot, user, usuario, request);
       break;
-      case "monitorador":
+      case "controlador":
       case "comunicador":
       case "supervisor":
+        var cargo = Enum.Parse<UsersModel.userLevel>(request.aplicacao!);
+        usuario.has_privilege = cargo;
         if(!user.pode_promover())
           await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
         else
           await alterarUsuario(bot, user, usuario, request);
       break;
       case "administrador":
+        usuario.has_privilege = UsersModel.userLevel.administrador;
         if(user.has_privilege != UsersModel.userLevel.proprietario)
           await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para promover administradores!");
         else
@@ -67,6 +79,7 @@ public static class Manager
       Database.alterarUsuario(new_user, old_user.id);
       await bot.sendTextMesssageWraper(old_user.id, "Usuário atualizado com sucesso!");
       await bot.sendTextMesssageWraper(new_user.id, "Usuário atualizado com sucesso!");
+      if(new_user.phone_number == 0) await bot.RequestContact(new_user.id);
       Database.inserirRelatorio(new logsModel(old_user.id, request.aplicacao, request.informacao, true, request.received_at));
     }
     catch
