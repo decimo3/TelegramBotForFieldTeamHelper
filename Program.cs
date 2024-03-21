@@ -44,6 +44,12 @@ public class Program
   }
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
+    if(cfg.IS_DEVELOPMENT)
+    {
+      var json_options = new System.Text.Json.JsonSerializerOptions();
+      json_options.WriteIndented = true;
+      Console.WriteLine(System.Text.Json.JsonSerializer.Serialize<Update>(update, json_options));
+    }
     var msg = new HandleMessage(bot);
     await Recovery.ErrorSendMessageRecovery(msg);
     if (update.Type == UpdateType.Message)
