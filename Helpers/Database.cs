@@ -36,7 +36,7 @@ public static class Database
         if(recuperarUsuario(cfg.ID_ADM_BOT) is null)
         {
           command.CommandText = @$"INSERT INTO usersModel(id, create_at, update_at, has_privilege, inserted_by, phone_number)
-          VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', 1, {cfg.ID_ADM_BOT}, {UsersModel.userLevel.administrador});";
+          VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', '{(int)UsersModel.userLevel.proprietario}', {cfg.ID_ADM_BOT}, 0);";
           command.ExecuteNonQuery();
         }
         command.CommandText = @$"CREATE TABLE IF NOT EXISTS errorReport(
@@ -81,7 +81,7 @@ public static class Database
       using(var command = connection.CreateCommand())
       {
         command.CommandText = @$"INSERT INTO usersModel(id, create_at, update_at, has_privilege, inserted_by)
-        VALUES ({user_model.id}, '{user_model.create_at.ToString("u")}', '{user_model.update_at.ToString("u")}', {user_model.has_privilege}, {user_model.inserted_by})";
+        VALUES ({user_model.id}, '{user_model.create_at.ToString("u")}', '{user_model.update_at.ToString("u")}', {(int)user_model.has_privilege}, {user_model.inserted_by})";
         command.ExecuteNonQuery();
       }
     }
@@ -312,6 +312,22 @@ public static class Database
       using (var command = connection.CreateCommand())
       {
         command.CommandText = $"DELETE FROM errorReport;";
+        command.ExecuteNonQuery();
+      }
+    }
+  }
+  public static void alterarUsuario(UsersModel user, long inserted_by)
+  {
+    using(var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = @$"UPDATE usersModel SET
+        update_at = '{DateTime.Now}',
+        has_privilege = '{(int)user.has_privilege}',
+        inserted_by = '{inserted_by}'
+        WHERE id = '{user.id}'";
         command.ExecuteNonQuery();
       }
     }
