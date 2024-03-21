@@ -77,11 +77,11 @@ public class Program
   }
   #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
-  #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
   {
     Temporary.ConsoleWriteError($"< {DateTime.Now} chatbot: {exception.Message}");
     return;
   }
+  #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
   async Task HandleMessage(HandleMessage msg, Message message)
   {
     if (message.From is null) return;
