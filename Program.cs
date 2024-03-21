@@ -85,8 +85,6 @@ public class Program
   async Task HandleMessage(HandleMessage msg, Message message)
   {
     if (message.From is null) return;
-    if (message.Text is null) return;
-    Console.WriteLine($"> {message.Date.ToLocalTime()} usuario: {message.From.Id} escreveu: {message.Text}");
     var user = Database.recuperarUsuario(message.From.Id);
     if(user is null)
     {
@@ -98,6 +96,18 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso");
       return;
     }
+    var has_txt = message.Text != null && message.Text.Length > 50;
+    var has_jpg = message.Photo != null ? message.Photo.First().FileId : null;
+    var has_mp4 = message.Video != null ? message.Video.FileId : null;
+    if(user.pode_transmitir() && (has_jpg != null || has_mp4 != null || has_txt))
+    {
+      if(has_txt) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Text, null, null);
+      if(has_jpg != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Caption, has_jpg, null);
+      if(has_mp4 != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Caption, null, has_mp4);
+      return;
+    }
+    if (message.Text is null) return;
+    Console.WriteLine($"> {message.Date.ToLocalTime()} usuario: {message.From.Id} escreveu: {message.Text}");
     if(user.has_privilege == UsersModel.userLevel.desautorizar)
     {
       await msg.sendTextMesssageWraper(message.From.Id, "Você foi banido do sistema chatbot, e não poderá mais usar seus serviços");
