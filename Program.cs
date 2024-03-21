@@ -101,7 +101,9 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do telegram é {message.From.Id}, esse número deverá ser informado ao seu supervisor.");
       return;
     }
-    // verifica se o cadastro expirou
+    if(user.has_privilege == UsersModel.userLevel.eletricista)
+    {
+    // verifica se o cadastro de eletricistas expirou
     DateTime expiracao = user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
     DateTime sinalizar = user.update_at.AddDays(cfg.DIAS_EXPIRACAO - 7);
     if(System.DateTime.Compare(DateTime.Now, expiracao) > 0)
@@ -117,6 +119,7 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Sua autorização está quase expirando!");
       await msg.sendTextMesssageWraper(message.From.Id, "Solicite a **atualização** para o seu supervisor!");
       await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do Telegram é {message.From.Id}.");
+    }
     }
     var request = Validador.isRequest(message.Text, message.Date.ToLocalTime(), message.MessageId);
     if (request is null)
