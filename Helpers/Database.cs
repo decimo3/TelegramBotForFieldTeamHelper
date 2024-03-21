@@ -94,7 +94,7 @@ public static class Database
       using(var command = connection.CreateCommand())
       {
         command.CommandText = @$"INSERT INTO logsModel(id, aplicacao, informacao, create_at, is_sucess, received_at)
-        VALUES ({log.id}, '{log.solicitacao}', '{log.informacao}', '{log.create_at.ToString("u")}', {log.is_sucess}, '{log.received_at.ToString("u")}')";
+        VALUES ({log.id}, '{log.solicitacao}', {log.informacao}, '{log.create_at.ToString("u")}', {log.is_sucess}, '{log.received_at.ToString("u")}')";
         command.ExecuteNonQuery();
       }
     }
@@ -160,42 +160,6 @@ public static class Database
     catch
     {
       return false;
-    }
-  }
-  public static List<logsModel> statusTelbot()
-  {
-    var logs = new List<logsModel>();
-    var dia = new DateTime(year: 2023, month: 4, day: 22).ToString("yyyy-MM-dd");
-    try
-    {
-      using (var connection = new SQLiteConnection(connectionString))
-      {
-        connection.Open();
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = $"SELECT id, aplicacao, informacao, create_at, is_sucess, received_at FROM logsModel WHERE date(create_at) == date('{dia}')";
-          using(var dataReader = command.ExecuteReader())
-          {
-            if(!dataReader.HasRows) throw new InvalidOperationException("Aconteceu algum erro no banco!");
-            while(dataReader.Read())
-            {
-              logs.Add(new logsModel() {
-                id = dataReader.GetInt64(0),
-                solicitacao = dataReader.GetString(1),
-                informacao = dataReader.GetString(2),
-                create_at = dataReader.GetDateTime(3),
-                is_sucess = dataReader.GetBoolean(4),
-                received_at = dataReader.GetDateTime(5)
-              });
-            }
-            return logs;
-          }
-        }
-      }
-    }
-    catch
-    {
-      return logs;
     }
   }
   public static List<UsersModel> recuperarUsuario()
@@ -324,7 +288,7 @@ public static class Database
       using(var command = connection.CreateCommand())
       {
         command.CommandText = @$"UPDATE usersModel SET
-        update_at = '{DateTime.Now}',
+        update_at = '{DateTime.Now.ToString("u")}',
         has_privilege = '{(int)user.has_privilege}',
         inserted_by = '{inserted_by}'
         WHERE id = '{user.id}'";
