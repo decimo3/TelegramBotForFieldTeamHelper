@@ -19,10 +19,8 @@ class Startup
     }
     /*
     Database.configurarBanco(config);
-    var wakeup = new WakeUpSAP(config);
-    Task task = Task.Factory.StartNew(() => {
-      wakeup.Start();
-    });
+    if(File.Exists($"{config.CURRENT_PATH}\\{config.LOCKFILE}"))
+      File.Delete($"{config.CURRENT_PATH}\\{config.LOCKFILE}");
     var program = new Program(config);
     */
   }

@@ -2,7 +2,7 @@ using System.Diagnostics;
 namespace telbot;
 public static class Temporary
 {
-  public static List<string> executar(Configuration cfg, string aplicacao, string informacao)
+  public static List<string> executar(Configuration cfg, string aplicacao, long informacao)
   {
     var argumentos = $"{aplicacao} {informacao} {cfg.INSTANCIA}";
     if(cfg.SAP_RESTRITO) argumentos += " --sap-restrito";
@@ -16,7 +16,7 @@ public static class Temporary
         CreateNoWindow = true
       };
     proc.StartInfo = startInfo;
-    var linha = new List<string>();
+    var linhas = new List<string>();
     proc.Start();
     var tempo = new System.Threading.Timer(state => {
       if(!proc.HasExited)
@@ -30,11 +30,12 @@ public static class Temporary
     }, null, cfg.ESPERA, Timeout.Infinite);
     while (!proc.StandardOutput.EndOfStream)
     {
-      linha.Add(proc.StandardOutput.ReadLine()!);
+      var linha = proc.StandardOutput.ReadLine();
+      if(linha != null && linha != String.Empty) linhas.Add(linha);
     }
     tempo.Dispose();
     proc.Dispose();
-    return linha;
+    return linhas;
   }
   private static IEnumerable<Process> GetChildProcesses(this Process process)
   {
@@ -90,5 +91,12 @@ public static class Temporary
         }
         System.IO.File.WriteAllLines($"{cfg.CURRENT_PATH}/dados.csv", linha);
       }
+  }
+  public static void ConsoleWriteError(String output)
+  {
+    Console.BackgroundColor = ConsoleColor.Red;
+    Console.Beep();
+    Console.WriteLine(output);
+    Console.BackgroundColor = ConsoleColor.Black;
   }
 }

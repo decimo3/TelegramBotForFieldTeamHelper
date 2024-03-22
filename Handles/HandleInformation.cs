@@ -1,98 +1,16 @@
 namespace telbot.handle;
 using telbot.models;
-public class HandleInformation
+public static class Information
 {
-  private HandleMessage bot;
-  private Request request;
-  private UsersModel user;
-  private Configuration cfg;
-  private List<string> respostas;
-  private DateTime agora;
-  public HandleInformation(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task SendManuscripts(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
-    this.bot = bot;
-    this.cfg = cfg;
-    this.user = user;
-    this.request = request;
-    this.agora = DateTime.Now;
-    this.respostas = new();
-  }
-  async private Task<bool> has_impediment()
-  {
-    if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
+    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var verificacao = VerificarSAP(respostas);
+    if(verificacao != null)
     {
-      await bot.sendTextMesssageWraper(user.id, "Essa aplicação não deve ser usada na sexta e no sábado!");
-      await bot.sendTextMesssageWraper(user.id, "Notas de recorte devem ter todas as faturas cobradas!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
-      return true;
-    }
-    // Knockout system to mitigate the queue
-    if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == true))
-    {
-      var knockout = DateTime.Now.AddMinutes(-3);
-      if(System.DateTime.Compare(knockout, request.received_at) > 0)
-      {
-          await bot.sendTextMesssageWraper(user.id, "Devido a fila de solicitações, estaremos te enviando as informações do cliente!");
-          request.aplicacao = "informacao";
-          return false;
-      }
-      return false;
-    }
-    if((request.tipo == TypeRequest.pdfInfo) && (cfg.GERAR_FATURAS == false))
-    {
-      await bot.sendTextMesssageWraper(user.id, "O sistema SAP não está gerando faturas no momento!\nEstaremos te enviando as informações do cliente!");
-      request.aplicacao = "informacao";
-      return false;
-    }
-    if((request.tipo == TypeRequest.xlsInfo) && (user.has_privilege == false))
-    {
-      await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para gerar relatórios!");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, false, request.received_at));
-      return true;
-    }
-    return false;
-  }
-  async public Task routeInformation()
-  {
-    if(await has_impediment()) return;
-    respostas = telbot.Temporary.executar(cfg, this.request.aplicacao!, this.request.informacao!);
-    if(respostas.Count == 0)
-    {
-      var erro = new Exception("Erro no script do SAP");
-      await bot.ErrorReport(id: user.id, request: request, error: erro);
+      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
       return;
     }
-    if(respostas[0].StartsWith("ERRO"))
-    {
-      var erro = new Exception("Erro no script do SAP");
-      await bot.ErrorReport(id: user.id, error: erro, request: request, respostas[0]);
-      return;
-    }
-    switch (request.aplicacao)
-    {
-      case "telefone":await SendManuscripts(); break;
-      case "coordenada":await SendManuscripts(); break;
-      case "localizacao":await SendManuscripts(); break;
-      case "leiturista":await SendPicture(); break;
-      case "roteiro":await SendPicture(); break;
-      case "fatura":await SendDocument(); break;
-      case "debito":await SendDocument(); break;
-      case "historico":await SendPicture(); break;
-      case "contato":await SendManuscripts(); break;
-      case "agrupamento":await SendPicture(); break;
-      case "pendente":await SendPicture(); break;
-      case "relatorio":await SendWorksheet(); break;
-      case "manobra":await SendWorksheet(); break;
-      case "medidor":await SendManuscripts(); break;
-      case "passivo":await SendDocument(); break;
-      case "suspenso":await SendManuscripts(); break;
-      case "informacao":await SendManuscripts(); break;
-    }
-    return;
-  }
-  // Para envio de texto simples
-  async public Task SendManuscripts()
-  {
     string textoMensagem = String.Empty;
     foreach (var resposta in respostas)
     {
@@ -103,18 +21,40 @@ public class HandleInformation
     Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     return;
   }
-  // Para envio de faturas em PDF
-  async public Task SendDocument()
+  async public static Task SendCoordinates(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
+    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var verificacao = VerificarSAP(respostas);
+    if(verificacao != null)
+    {
+      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      return;
+    }
+    await bot.SendCoordinateAsyncWraper(user.id, respostas[0]);
+    Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+    return;
+  }
+  async public static Task SendDocument(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  {
+    var respostas = telbot.Temporary.executar(cfg, request.aplicacao, request.informacao);
+    var verificacao = VerificarSAP(respostas);
+    if(verificacao != null)
+    {
+      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      return;
+    }
     try
     {
       foreach (string fatura in respostas)
       {
-        if (fatura == "None" || fatura == null || fatura == "")
-        {
-          continue;
-        }
-        await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\tmp\{fatura}");
+        if (fatura == "None" || fatura == null || fatura == "") continue;
+        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao))
+          throw new InvalidOperationException("ERRO: A fatura recuperada não corresponde com a solicitada!");
+      }
+      foreach (string fatura in respostas)
+      {
+        if (fatura == "None" || fatura == null || fatura == "") continue;
+        await using Stream stream = System.IO.File.OpenRead($"./tmp/{fatura}");
         await bot.SendDocumentAsyncWraper(user.id, stream, fatura);
         stream.Dispose();
         await bot.sendTextMesssageWraper(user.id, fatura, false);
@@ -127,9 +67,15 @@ public class HandleInformation
     }
     return;
   }
-  // Para envio de relatórios
-  async public Task SendPicture()
+  async public static Task SendPicture(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
+    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var verificacao = VerificarSAP(respostas);
+    if(verificacao != null)
+    {
+      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      return;
+    }
     try
     {
       telbot.Temporary.executar(cfg, respostas);
@@ -148,9 +94,16 @@ public class HandleInformation
     }
     return;
   }
-  // Para envio de planilhas
-  async public Task SendWorksheet()
+  async public static Task SendWorksheet(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
+    var agora = DateTime.Now;
+    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var verificacao = VerificarSAP(respostas);
+    if(verificacao != null)
+    {
+      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      return;
+    }
     try
     {
       await using Stream stream = System.IO.File.OpenRead(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
@@ -165,5 +118,26 @@ public class HandleInformation
       await bot.ErrorReport(id: user.id, request: request, error: error);
     }
     return;
+  }
+  async public static Task SendMultiples(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  {
+    switch(request.aplicacao)
+    {
+      case "acesso":
+        request.aplicacao = "coordenada";
+        await SendCoordinates(bot, cfg, user, request);
+        request.aplicacao = "leiturista";
+        await SendPicture(bot, cfg, user, request);
+        request.aplicacao = "cruzamento";
+        await SendPicture(bot, cfg, user, request);
+      break;
+    }
+    return;
+  }
+  public static String? VerificarSAP(List<String> respostas)
+  {
+    if(respostas.Count == 0) return "ERRO: Não foi recebida nenhuma resposta do SAP";
+    if(respostas[0].StartsWith("ERRO")) return respostas.First();
+    return null;
   }
 }
