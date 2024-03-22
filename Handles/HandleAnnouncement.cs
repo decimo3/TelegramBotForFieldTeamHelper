@@ -128,7 +128,7 @@ public static class HandleAnnouncement
   }
   public static async Task Comunicado(HandleMessage msg, Configuration cfg, long myself, string? text, string? image_id, string? video_id)
   {
-    if(text != null) text += "*COMUNICADO DO CHATBOT MESTRERUAN:*\n\n";
+    if(text != null) text = "*COMUNICADO DO CHATBOT MESTRERUAN:*\n\n" + text;
     Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - Comunicado");
     var usuarios = Database.recuperarUsuario();
     var tasks = new List<Task>();
@@ -146,5 +146,6 @@ public static class HandleAnnouncement
       if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id));
     }
     await Task.WhenAll(tasks);
+    
   }
 }
