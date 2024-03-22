@@ -13,7 +13,7 @@ public static class HandleAnnouncement
     }
     Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - Vencimentos");
     System.IO.File.Create(cfg.LOCKFILE).Close();
-    var relatorio_resultado = Temporary.executar(cfg, "vencimento", "7");
+    var relatorio_resultado = Temporary.executar(cfg, "vencimento", 7);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any())
     {
@@ -65,9 +65,11 @@ public static class HandleAnnouncement
     {
       DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
       if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
+      if(usuario.has_privilege == UsersModel.userLevel.desautorizar) continue;
+      if(usuario.has_privilege == UsersModel.userLevel.comunicador) continue;
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));
       if(usuario.id == cfg.ID_ADM_BOT) continue;
-      if(usuario.has_privilege)
+      if(usuario.pode_relatorios())
       {
         tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, relatorio_identificador));
       }
@@ -103,19 +105,8 @@ public static class HandleAnnouncement
     var photo_id = has_jpg ? await msg.SendPhotoAsyncWraper(cfg.ID_ADM_BOT, comunicado_imagem) : String.Empty;
     var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : String.Empty;
 
-    Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - Comunicado");
-    var usuarios = Database.recuperarUsuario();
-    var tasks = new List<Task>();
-    foreach (var usuario in usuarios)
-    {
-      DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
-      if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
-      if(has_txt) tasks.Add(msg.sendTextMesssageWraper(usuario.id, comunicado_mensagem, true, false));
-      if(usuario.id == cfg.ID_ADM_BOT) continue;
-      if(has_jpg && (photo_id != String.Empty)) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, photo_id));
-      if(has_mp4 && (video_id != String.Empty)) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id));
-    }
-    await Task.WhenAll(tasks);
+    await Comunicado(msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id);
+
     comunicado_imagem.Close();
     comunicado_video.Close();
     if(has_txt)
@@ -134,5 +125,27 @@ public static class HandleAnnouncement
       System.IO.File.Delete(videoclipe_caminho);
     }
     System.IO.File.Delete(cfg.LOCKFILE);
+  }
+  public static async Task Comunicado(HandleMessage msg, Configuration cfg, long myself, string? text, string? image_id, string? video_id)
+  {
+    if(text != null) text = "*COMUNICADO DO CHATBOT MESTRERUAN:*\n\n" + text;
+    Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - Comunicado");
+    var usuarios = Database.recuperarUsuario();
+    var tasks = new List<Task>();
+    foreach (var usuario in usuarios)
+    {
+      if(usuario.id == myself) continue;
+      if(usuario.has_privilege == UsersModel.userLevel.desautorizar) continue;
+      if(usuario.has_privilege == UsersModel.userLevel.eletricista)
+      {
+        DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+        if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
+      }
+      if(text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.id, text, true, false));
+      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, image_id));
+      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id));
+    }
+    await Task.WhenAll(tasks);
+    
   }
 }

@@ -36,7 +36,7 @@ public static class Information
   }
   async public static Task SendDocument(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
-    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var respostas = telbot.Temporary.executar(cfg, request.aplicacao, request.informacao);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
@@ -48,7 +48,7 @@ public static class Information
       foreach (string fatura in respostas)
       {
         if (fatura == "None" || fatura == null || fatura == "") continue;
-        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao!))
+        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao))
           throw new InvalidOperationException("ERRO: A fatura recuperada não corresponde com a solicitada!");
       }
       foreach (string fatura in respostas)
