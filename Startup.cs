@@ -1,9 +1,8 @@
-using System.Threading;
 using dotenv.net;
 namespace telbot;
 class Startup
 {
-  public static async Task Main(string[] args)
+  public static void Main(string[] args)
   {
     Console.WriteLine("#############################################");
     Console.WriteLine("# BOT de atendimento automágico MestreRuan  #");
@@ -13,15 +12,10 @@ class Startup
     if(args.Contains("--em-desenvolvimento")) DotEnv.Load();
     if(System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development") DotEnv.Load();
     var config = new Configuration(args);
-    if(!config.IS_DEVELOPMENT)
-    {
-      await Updater.CheckUpdates();
-    }
-    /*
     Database.configurarBanco(config);
+    telbot.Helpers.Updater.Update(config);
     if(File.Exists($"{config.CURRENT_PATH}\\{config.LOCKFILE}"))
       File.Delete($"{config.CURRENT_PATH}\\{config.LOCKFILE}");
     var program = new Program(config);
-    */
   }
 }
