@@ -17,6 +17,8 @@ public class Configuration
   public readonly int ESPERA = 60_000;
   public readonly string LOCKFILE = "sap.lock";
   public readonly int VENCIMENTOS = 0;
+  public readonly string UPDATE_PATH = @"\\localhost\Shared\chatbot";
+  public readonly string TEMP_FOLDER = String.Empty;
   public Configuration(string[] args)
   {
     LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE") ??
@@ -35,6 +37,7 @@ public class Configuration
     if(CURRENT_PC != AUTHORIZATION.allowed_pc) throw new InvalidOperationException("A licença de uso não permite o uso em outra máquina!");
     
     CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
+    TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
     
