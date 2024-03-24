@@ -18,7 +18,6 @@ public static class Updater
         ClearTemp(cfg);
         Download(cfg, update);
         Unzip(cfg);
-        // DbMods(db); not implemented yet
         Replace(cfg);
         ClearTemp(cfg);
         Restart();
@@ -83,13 +82,6 @@ public static class Updater
     var update_filepath = System.IO.Path.Combine(cfg.TEMP_FOLDER, "update.zip");
     System.IO.Compression.ZipFile.ExtractToDirectory(update_filepath, cfg.TEMP_FOLDER);
     System.IO.File.Delete(update_filepath);
-  }
-  public static void DbMods(Configuration cfg)
-  {
-    // TODO - Implement method to execute update script on database
-    var scripts = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER).Where(file => Path.GetExtension(file) == "sql");
-    // Database.ExecuteScript(script);
-    throw new NotImplementedException();
   }
   public static void Replace(Configuration cfg)
   {
