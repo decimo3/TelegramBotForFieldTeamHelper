@@ -93,7 +93,7 @@ public static class Updater
       if(file == "telbot.exe") continue;
       if(file == "database.db") continue;
       var new_file = System.IO.Path.Combine(cfg.TEMP_FOLDER, file);
-      var old_file = System.IO.Path.Combine("./", file);
+      var old_file = System.IO.Path.Combine(cfg.CURRENT_PATH, file);
       System.IO.File.Copy(new_file, old_file, true);
     }
     var new_version = System.IO.Path.Combine(cfg.TEMP_FOLDER, "telbot.exe");
