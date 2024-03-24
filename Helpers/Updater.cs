@@ -98,7 +98,7 @@ public static class Updater
     }
     var new_version = System.IO.Path.Combine(cfg.TEMP_FOLDER, "telbot.exe");
     var current_filepath = System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
-    var temporary_filepath = current_filepath += ".old";
+    var temporary_filepath = current_filepath + ".old";
     System.IO.File.Move(current_filepath, temporary_filepath);
     System.IO.File.Copy(new_version, current_filepath, true);
   }
