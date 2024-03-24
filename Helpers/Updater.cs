@@ -23,9 +23,14 @@ public static class Updater
         ClearTemp(cfg);
         Restart();
       }
-      catch
+      catch (Exception erro)
       {
         Temporary.ConsoleWriteError($"< {DateTime.Now} Manager: Erro ao tentar atualizar o sistema chatbot!");
+        if(cfg.IS_DEVELOPMENT)
+        {
+          Temporary.ConsoleWriteError(erro.Message);
+          Temporary.ConsoleWriteError(erro.StackTrace!);
+        }
       }
     }
   }
