@@ -20,7 +20,7 @@ public static class Updater
         Unzip(cfg);
         Replace(cfg);
         ClearTemp(cfg);
-        Restart();
+        Restart(cfg);
       }
       catch (Exception erro)
       {
@@ -102,11 +102,11 @@ public static class Updater
     System.IO.File.Move(current_filepath, temporary_filepath);
     System.IO.File.Copy(new_version, current_filepath, true);
   }
-  public static void Restart()
+  public static void Restart(Configuration cfg)
   {
     Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
-    var current_filepath = System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
-    System.Diagnostics.Process.Start(current_filepath);
+    var executable = System.IO.Path.Combine(cfg.CURRENT_PATH, "telbot.exe");
+    System.Diagnostics.Process.Start(executable);
     System.Environment.Exit(0);
   }
 }
