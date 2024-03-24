@@ -39,6 +39,7 @@ public static class Updater
     if(!System.IO.File.Exists(VersionFilepath))
       throw new FileNotFoundException();
     var version = System.IO.File.ReadAllText(VersionFilepath);
+    version = version.Replace(Environment.NewLine, "");
     var version_date = DateTime.ParseExact(version, "yyyyMMdd", null);
     Console.WriteLine($"< {DateTime.Now} Manager: Versão atual do sistema chatbot: {version_date.ToString("yyyyMMdd")}");
     return version_date;
