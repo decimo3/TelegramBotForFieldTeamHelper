@@ -12,6 +12,8 @@ class Startup
     if(args.Contains("--em-desenvolvimento")) DotEnv.Load();
     if(System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development") DotEnv.Load();
     var config = new Configuration(args);
+    if(File.Exists($"{config.CURRENT_PATH}\\telbot.exe.old"))
+      File.Delete($"{config.CURRENT_PATH}\\telbot.exe.old");
     telbot.Helpers.Updater.Update(config);
     Database.configurarBanco(config);
     if(File.Exists($"{config.CURRENT_PATH}\\{config.LOCKFILE}"))
