@@ -67,6 +67,7 @@ public static class Command
           var dias = prazo - DateTime.Today;
           info.Append($"*Expiração:* {prazo.ToString("dd/MM/yyyy")} ({(int)dias.TotalDays} dias)\n");
         }
+        info.Append($"Versão: {Updater.CurrentVersion(cfg).ToString("yyyyMMdd")}");
         await bot.sendTextMesssageWraper(user.id, info.ToString());
         break;
       case "/update":
