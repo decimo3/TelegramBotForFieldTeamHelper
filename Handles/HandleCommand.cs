@@ -1,4 +1,5 @@
 namespace telbot.handle;
+using telbot.Helpers;
 using telbot.models;
 public static class Command
 {
@@ -66,7 +67,29 @@ public static class Command
           var dias = prazo - DateTime.Today;
           info.Append($"*Expiração:* {prazo.ToString("dd/MM/yyyy")} ({(int)dias.TotalDays} dias)\n");
         }
+        info.Append($"Versão: {Updater.CurrentVersion(cfg).ToString("yyyyMMdd")}");
         await bot.sendTextMesssageWraper(user.id, info.ToString());
+        break;
+      case "/update":
+        if(user.has_privilege != UsersModel.userLevel.administrador)
+        {
+          await bot.sendTextMesssageWraper(user.id, "Somente administradores podem usar esse comando");
+          break;
+        }
+        var current_version = Updater.CurrentVersion(cfg);
+        await bot.sendTextMesssageWraper(user.id, $"Versão atual do sistema chatbot: {current_version.ToString("yyyyMMdd")}");
+        await bot.sendTextMesssageWraper(user.id, "Verificando se há novas versões do sistema chatbot...");
+        var updates_list = Updater.ListUpdates(cfg);
+        var update_version = Updater.HasUpdate(updates_list, current_version);
+        if(update_version == null)
+        {
+          await bot.sendTextMesssageWraper(user.id, "A versão atual já é a versão mais recente!");
+        }
+        else
+        {
+          await bot.sendTextMesssageWraper(user.id, $"Nova versão {update_version} do sistema chatbot encontrada!");
+          Updater.Restart(cfg);
+        }
         break;
     }
     return;
