@@ -82,34 +82,12 @@ public static class Command
         var update_version = Updater.HasUpdate(updates_list, current_version);
         if(update_version == null)
         {
-          await bot.sendTextMesssageWraper(user.id, $"A versão atual {current_version.ToString("yyyyMMdd")} já é a versão mais recente!");
+          await bot.sendTextMesssageWraper(user.id, "A versão atual já é a versão mais recente!");
         }
         else
         {
           await bot.sendTextMesssageWraper(user.id, $"Nova versão {update_version} do sistema chatbot encontrada!");
-          try
-          {
-            Updater.ClearTemp(cfg);
-            await bot.sendTextMesssageWraper(user.id, "(1/5) - Baixando a nova versão.");
-            Updater.Download(cfg, update_version);
-            await bot.sendTextMesssageWraper(user.id, "(2/5) - Descompactando a nova versão.");
-            Updater.Unzip(cfg);
-            await bot.sendTextMesssageWraper(user.id, "(3/5) - Realizando a atualização.");
-            Updater.Replace(cfg);
-            await bot.sendTextMesssageWraper(user.id, "(4/5) - Limpando arquivos temporários.");
-            Updater.ClearTemp(cfg);
-            await bot.sendTextMesssageWraper(user.id, "(5/5) - Reiniciando com a nova versão.");
-            Updater.Restart(cfg);
-          }
-          catch (Exception erro)
-          {
-            await bot.sendTextMesssageWraper(user.id, "Erro ao tentar atualizar o sistema chatbot!");
-            if(cfg.IS_DEVELOPMENT)
-            {
-              Temporary.ConsoleWriteError(erro.Message);
-              Temporary.ConsoleWriteError(erro.StackTrace!);
-            }
-          }
+          Updater.Restart(cfg);
         }
         break;
     }
