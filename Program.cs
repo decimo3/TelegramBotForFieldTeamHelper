@@ -120,7 +120,7 @@ public class Program
       await msg.RequestContact(message.From.Id);
       return;
     }
-    if(user.has_privilege == UsersModel.userLevel.eletricista)
+    if(!user.pode_promover())
     {
     // verifica se o cadastro de eletricistas expirou
     DateTime expiracao = user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
