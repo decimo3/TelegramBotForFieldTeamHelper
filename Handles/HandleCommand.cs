@@ -91,6 +91,23 @@ public static class Command
           Updater.Restart(cfg);
         }
         break;
+      case "/hotfix":
+        if(user.has_privilege != UsersModel.userLevel.administrador)
+        {
+          await bot.sendTextMesssageWraper(user.id, "Somente administradores podem usar esse comando");
+          break;
+        }
+        var version_filepath = System.IO.Path.Combine(cfg.CURRENT_PATH, "version");
+        var version_fileinfo = new System.IO.FileInfo(version_filepath);
+        var version_filediff = DateTime.Now - version_fileinfo.LastWriteTime;
+        if(version_filediff.TotalMinutes > 5)
+        {
+          System.IO.File.WriteAllText(version_filepath, DateTime.MinValue.ToString("yyyyMMdd"));
+          Updater.Restart(cfg);
+          break;
+        }
+        await bot.sendTextMesssageWraper(user.id, "Sistema atualizado com sucesso!");
+        break;
     }
     return;
   }
