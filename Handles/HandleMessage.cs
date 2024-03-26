@@ -4,6 +4,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 public class HandleMessage
 {
+  private readonly string errorMensagem = "Não foi possível responder a sua solicitação. Tente novamente!";
   private ITelegramBotClient bot;
   public HandleMessage(ITelegramBotClient bot)
   {
@@ -29,7 +30,7 @@ public class HandleMessage
     try
     {
       var documento = await bot.SendDocumentAsync(id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename));
-      if(documento.Document == null) throw new Exception("Não foi possível enviar o arquivo");
+      if(documento.Document == null) throw new Exception(errorMensagem);
       return documento.Document.FileId;
     }
     catch
@@ -37,7 +38,7 @@ public class HandleMessage
       stream.Position = 0;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = "Não foi possível enviar a mensagem devido a queda da internet"
+        mensagem = errorMensagem
       });
       return String.Empty;
     }
@@ -55,7 +56,7 @@ public class HandleMessage
     {
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = mapLink
+        mensagem = errorMensagem
       });
     }
   }
@@ -73,7 +74,7 @@ public class HandleMessage
     try
     {
       var photo = await bot.SendPhotoAsync(id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
-      if(photo.Photo is null) throw new Exception("Não foi possível enviar o vídeo");
+      if(photo.Photo is null) throw new Exception(errorMensagem);
       return photo.Photo.First().FileId;
     }
     catch
@@ -81,7 +82,7 @@ public class HandleMessage
       stream.Position = 0;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = "Não foi possível enviar a mensagem devido a queda da internet"
+        mensagem = errorMensagem
       });
       return String.Empty;
     }
@@ -129,7 +130,7 @@ public class HandleMessage
     try
     {
       var video = await bot.SendVideoAsync(id, video: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
-      if(video.Video is null) throw new Exception("Não foi possível enviar o vídeo");
+      if(video.Video is null) throw new Exception(errorMensagem);
       return video.Video.FileId;
     }
     catch
@@ -137,7 +138,7 @@ public class HandleMessage
       stream.Position = 0;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = "Não foi possível enviar o vídeo"
+        mensagem = errorMensagem
       });
       return String.Empty;
     }
@@ -152,7 +153,7 @@ public class HandleMessage
     {
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = "Não foi possível enviar o vídeo"
+        mensagem = errorMensagem
       });
     }
   }
@@ -166,7 +167,7 @@ public class HandleMessage
     {
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = "Não foi possível enviar o vídeo"
+        mensagem = errorMensagem
       });
     }
   }
@@ -180,7 +181,7 @@ public class HandleMessage
     {
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
-        mensagem = "Não foi possível enviar o arquivo"
+        mensagem = errorMensagem
       });
     }
   }
