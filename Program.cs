@@ -104,15 +104,16 @@ public class Program
       if(has_txt) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Text, null, null);
       if(has_jpg != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Caption, has_jpg, null);
       if(has_mp4 != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Caption, null, has_mp4);
+      await msg.sendTextMesssageWraper(user.id, "Comunicado enviado com sucesso!");
       return;
     }
     if (message.Text is null) return;
     Console.WriteLine($"> {message.Date.ToLocalTime()} usuario: {message.From.Id} escreveu: {message.Text}");
     if(user.has_privilege == UsersModel.userLevel.desautorizar)
     {
-      await msg.sendTextMesssageWraper(message.From.Id, "Você foi banido do sistema chatbot, e não poderá mais usar seus serviços");
+      await msg.sendTextMesssageWraper(message.From.Id, "Eu não estou autorizado a te passar informações no momento");
       await msg.sendTextMesssageWraper(message.From.Id, "Para restaurar o seu acesso ao sistema, solicite ao seu supervisor o acesso ao BOT.");
-      await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do telegram é {message.From.Id}, esse número deverá ser informado ao seu supervisor.");
+      await msg.sendTextMesssageWraper(message.From.Id, $"Seu identificador do telegram é `{message.From.Id}`, esse número deverá ser informado ao seu supervisor.");
       return;
     }
     if(user.phone_number == 0)
