@@ -63,10 +63,12 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
-      DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
-      if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
-      if(usuario.has_privilege == UsersModel.userLevel.desautorizar) continue;
-      if(usuario.has_privilege == UsersModel.userLevel.comunicador) continue;
+      if(!usuario.pode_consultar()) continue;
+      if(usuario.has_privilege == UsersModel.userLevel.eletricista)
+      {
+        DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+        if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
+      }
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));
       if(usuario.id == cfg.ID_ADM_BOT) continue;
       if(usuario.pode_relatorios())
@@ -95,15 +97,15 @@ public static class HandleAnnouncement
     
     System.IO.File.Create(cfg.LOCKFILE).Close();
     
-    var comunicado_mensagem = has_txt ? File.ReadAllText(mensagem_caminho) : String.Empty;
-    if(comunicado_mensagem.Length == 0) has_txt = false;
+    var comunicado_mensagem = has_txt ? File.ReadAllText(mensagem_caminho) : null;
+    if(comunicado_mensagem == null || comunicado_mensagem.Length == 0) has_txt = false;
     Stream comunicado_imagem = has_jpg ? File.OpenRead(imagem_caminho) : Stream.Null;
     if(comunicado_imagem.Length == 0) has_jpg = false;
     Stream comunicado_video = has_mp4 ? File.OpenRead(videoclipe_caminho) : Stream.Null;
     if(comunicado_video.Length == 0) has_mp4 = false;
     
-    var photo_id = has_jpg ? await msg.SendPhotoAsyncWraper(cfg.ID_ADM_BOT, comunicado_imagem) : String.Empty;
-    var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : String.Empty;
+    var photo_id = has_jpg ? await msg.SendPhotoAsyncWraper(cfg.ID_ADM_BOT, comunicado_imagem) : null;
+    var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : null;
 
     await Comunicado(msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id);
 
