@@ -4,6 +4,8 @@ public static class Updater
   public static void Update(Configuration cfg)
   {
     Console.WriteLine($"< {DateTime.Now} Manager: Verificando se há novas versões do sistema chatbot...");
+    try
+    {
     if(!System.IO.Directory.Exists(cfg.UPDATE_PATH))
       throw new DirectoryNotFoundException();
     if(!System.IO.Directory.Exists(cfg.TEMP_FOLDER))
@@ -13,8 +15,6 @@ public static class Updater
     var update = HasUpdate(updates, version);
     if(update != null)
     {
-      try
-      {
         ClearTemp(cfg);
         Download(cfg, update);
         Unzip(cfg);
@@ -22,14 +22,14 @@ public static class Updater
         ClearTemp(cfg);
         Restart(cfg);
       }
-      catch (Exception erro)
+    }
+    catch (Exception erro)
+    {
+      Temporary.ConsoleWriteError($"< {DateTime.Now} Manager: Erro ao tentar atualizar o sistema chatbot!");
+      if(cfg.IS_DEVELOPMENT)
       {
-        Temporary.ConsoleWriteError($"< {DateTime.Now} Manager: Erro ao tentar atualizar o sistema chatbot!");
-        if(cfg.IS_DEVELOPMENT)
-        {
-          Temporary.ConsoleWriteError(erro.Message);
-          Temporary.ConsoleWriteError(erro.StackTrace!);
-        }
+        Temporary.ConsoleWriteError(erro.Message);
+        Temporary.ConsoleWriteError(erro.StackTrace!);
       }
     }
   }
@@ -39,8 +39,8 @@ public static class Updater
     if(!System.IO.File.Exists(VersionFilepath))
       throw new FileNotFoundException();
     var version = System.IO.File.ReadAllText(VersionFilepath);
-    version = version.Replace(Environment.NewLine, "");
-    var version_date = DateTime.ParseExact(version, "yyyyMMdd", null);
+    var re = new System.Text.RegularExpressions.Regex(@"[0-9]{8}");
+    var version_date = DateTime.ParseExact(re.Match(version).Value, "yyyyMMdd", null);
     Console.WriteLine($"< {DateTime.Now} Manager: Versão atual do sistema chatbot: {version_date.ToString("yyyyMMdd")}");
     return version_date;
   }
