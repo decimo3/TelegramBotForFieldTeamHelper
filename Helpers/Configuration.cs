@@ -17,7 +17,8 @@ public class Configuration
   public readonly int ESPERA = 60_000;
   public readonly string LOCKFILE = "sap.lock";
   public readonly int VENCIMENTOS = 0;
-  public readonly string UPDATE_PATH = @"\\localhost\Shared\chatbot";
+  public readonly string SERVER_NAME = "localhost";
+  public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
   public Configuration(string[] args)
   {
@@ -40,6 +41,7 @@ public class Configuration
     TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
+    UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
     
     BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN") ??
       throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
