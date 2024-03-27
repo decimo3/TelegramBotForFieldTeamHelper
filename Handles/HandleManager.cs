@@ -33,14 +33,18 @@ public static class Manager
     {
       case "autorizar":
       case "atualizar":
-        if((int)usuario.has_privilege > 0)
+        if((int)usuario.has_privilege > 1)
         {
           await bot.sendTextMesssageWraper(user.id, $"Usuário {usuario.id} com acesso de {usuario.has_privilege.ToString()} não tem prazo de expiração!");
         }
         else
         {
-          usuario.has_privilege = UsersModel.userLevel.eletricista;
+          if(usuario.has_privilege == UsersModel.userLevel.desautorizar)
+          {
+            usuario.has_privilege = UsersModel.userLevel.eletricista;
+          }
           await alterarUsuario(bot, user, usuario, request);
+          
         }
       break;
       case "desautorizar":
