@@ -3,25 +3,31 @@ public static class Updater
 {
   public static void Update(Configuration cfg)
   {
-    Console.WriteLine($"< {DateTime.Now} Manager: Verificando se há novas versões do sistema chatbot...");
     try
     {
+    ClearTemp(cfg);
     if(!System.IO.Directory.Exists(cfg.UPDATE_PATH))
       throw new DirectoryNotFoundException();
     if(!System.IO.Directory.Exists(cfg.TEMP_FOLDER))
       throw new DirectoryNotFoundException();
     var version = CurrentVersion(cfg);
+    Console.WriteLine($"< {DateTime.Now} Manager: Versão atual do sistema chatbot: {version.ToString("yyyyMMdd")}");
     var updates = ListUpdates(cfg);
+    Console.WriteLine($"< {DateTime.Now} Manager: Verificando se há novas versões do sistema chatbot...");
     var update = HasUpdate(updates, version);
-    if(update != null)
+    if(update == null)
     {
-        ClearTemp(cfg);
-        Download(cfg, update);
-        Unzip(cfg);
-        Replace(cfg);
-        ClearTemp(cfg);
-        Restart(cfg);
-      }
+      Console.WriteLine($"< {DateTime.Now} Manager: Não foram encontradas atualizações para o sistema.");
+      return;
+    }
+    Console.WriteLine($"< {DateTime.Now} Manager: Nova versão {update} do sistema chatbot encontrada! Baixando...");
+    Download(cfg, update);
+    Console.WriteLine($"< {DateTime.Now} Manager: Download concluído! Descompactando arquivo de atualização...");
+    Unzip(cfg);
+    Console.WriteLine($"< {DateTime.Now} Manager: Aplicando atualização do sistema chatbot, por favor aguarde...");
+    Replace(cfg);
+    Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
+    Restart(cfg);
     }
     catch (Exception erro)
     {
@@ -41,7 +47,6 @@ public static class Updater
     var version = System.IO.File.ReadAllText(VersionFilepath);
     var re = new System.Text.RegularExpressions.Regex(@"[0-9]{8}");
     var version_date = DateTime.ParseExact(re.Match(version).Value, "yyyyMMdd", null);
-    Console.WriteLine($"< {DateTime.Now} Manager: Versão atual do sistema chatbot: {version_date.ToString("yyyyMMdd")}");
     return version_date;
   }
   public static List<DateTime> ListUpdates(Configuration cfg)
@@ -57,10 +62,6 @@ public static class Updater
     var update = updates.FirstOrDefault(update => update > current);
     if(update == default(DateTime)) return null;
     var update_string = update.ToString("yyyyMMdd");
-    if(update_string != null)
-      Console.WriteLine($"< {DateTime.Now} Manager: Nova versão {update_string} do sistema chatbot encontrada!");
-    else
-      Console.WriteLine($"< {DateTime.Now} Manager: A versão atual {current.ToString("yyyyMMdd")} já é a versão mais recente!");
     return update_string;
   }
   public static void ClearTemp(Configuration cfg)
@@ -86,7 +87,6 @@ public static class Updater
   }
   public static void Replace(Configuration cfg)
   {
-    Console.WriteLine($"< {DateTime.Now} Manager: Atualizando o sistema chatbot, por favor aguarde...");
     var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER).Select(file => { return System.IO.Path.GetFileName(file); });
     foreach (var file in files)
     {
@@ -105,7 +105,6 @@ public static class Updater
   }
   public static void Restart(Configuration cfg)
   {
-    Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
     var executable = System.IO.Path.Combine(cfg.CURRENT_PATH, "telbot.exe");
     System.Diagnostics.Process.Start(executable);
     System.Environment.Exit(0);
