@@ -211,6 +211,9 @@ public class Program
       case TypeRequest.txtInfo:
         await Information.SendManuscripts(msg, cfg, user, request);
       break;
+      case TypeRequest.xyzInfo:
+        await Information.SendCoordinates(msg, cfg, user, request);
+      break;
       case TypeRequest.picInfo: 
         await Information.SendPicture(msg, cfg, user, request); 
       break;

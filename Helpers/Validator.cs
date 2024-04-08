@@ -20,8 +20,8 @@ public static class Validador
   public static TypeRequest? isAplicacaoOption (string aplicacao)
   {
     if(aplicacao == "telefone") return TypeRequest.txtInfo;
-    if(aplicacao == "coordenada") return TypeRequest.txtInfo;
-    if(aplicacao == "localizacao") return TypeRequest.txtInfo;
+    if(aplicacao == "coordenada") return TypeRequest.xyzInfo;
+    if(aplicacao == "localizacao") return TypeRequest.xyzInfo;
     if(aplicacao == "leiturista") return TypeRequest.picInfo;
     if(aplicacao == "roteiro") return TypeRequest.picInfo;
     if(aplicacao == "fatura") return TypeRequest.pdfInfo;
@@ -47,6 +47,7 @@ public static class Validador
     if(aplicacao == "comunicador") return TypeRequest.gestao;
     if(aplicacao == "administrador") return TypeRequest.gestao;
     if(aplicacao == "supervisor") return TypeRequest.gestao;
+    if(aplicacao == "leitura") return TypeRequest.picInfo;
     return null;
   }
   public static bool? orderOperandos (string info1, string info2)
