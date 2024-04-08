@@ -1,3 +1,4 @@
+using telbot.Helpers;
 namespace telbot.handle;
 public static class HandleAnnouncement
 {
@@ -17,21 +18,21 @@ public static class HandleAnnouncement
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any())
     {
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
     if(relatorio_resultado.First().StartsWith("ERRO:"))
     {
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
     if(!System.IO.File.Exists(relatorio_caminho))
     {
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
@@ -40,7 +41,7 @@ public static class HandleAnnouncement
     if(relatorio_arquivo.Length == 0)
     {
       relatorio_arquivo.Close();
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
@@ -54,7 +55,7 @@ public static class HandleAnnouncement
     if(relatorio_identificador == String.Empty)
     {
       relatorio_arquivo.Close();
-      Temporary.ConsoleWriteError("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;

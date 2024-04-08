@@ -31,12 +31,7 @@ public static class Updater
     }
     catch (Exception erro)
     {
-      Temporary.ConsoleWriteError($"< {DateTime.Now} Manager: Erro ao tentar atualizar o sistema chatbot!");
-      if(cfg.IS_DEVELOPMENT)
-      {
-        Temporary.ConsoleWriteError(erro.Message);
-        Temporary.ConsoleWriteError(erro.StackTrace!);
-      }
+      ConsoleWrapper.Error(Entidade.Updater, erro);
     }
   }
   public static DateTime CurrentVersion(Configuration cfg)

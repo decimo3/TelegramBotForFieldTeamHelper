@@ -1,10 +1,11 @@
+using telbot.Helpers;
 namespace telbot.handle;
 public static class Recovery
 {
   public static void ErrorSendMessageReport(errorReport report)
   {
     Database.InserirPerdido(report);
-    Temporary.ConsoleWriteError($"< {DateTime.Now} chatbot: Não foi possível enviar mensagem ao usuario {report.identificador}");
+    ConsoleWrapper.Error(Entidade.Recovery, new Exception($"Não foi possível enviar a mensagem {report.mensagem} ao usuario"));
   }
   public async static Task ErrorSendMessageRecovery(HandleMessage msg)
   {

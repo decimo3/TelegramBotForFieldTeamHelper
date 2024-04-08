@@ -1,4 +1,6 @@
 namespace telbot.handle;
+
+using telbot.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -12,13 +14,15 @@ public class HandleMessage
   }
   public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true, bool exibir=true)
   {
+    ConsoleWrapper.Debug(Entidade.Chatbot, message);
     try
     {
       if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: ParseMode.Markdown);
       if(exibir) Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = userId,
         mensagem = message
@@ -33,9 +37,10 @@ public class HandleMessage
       if(documento.Document == null) throw new Exception(errorMensagem);
       return documento.Document.FileId;
     }
-    catch
+    catch (Exception erro)
     {
       stream.Position = 0;
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
         mensagem = errorMensagem
@@ -45,6 +50,7 @@ public class HandleMessage
   }
   public async Task SendCoordinateAsyncWraper(long id, string mapLink)
   {
+    ConsoleWrapper.Debug(Entidade.Messenger, mapLink);
     try
     {
       var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
@@ -52,8 +58,9 @@ public class HandleMessage
       await bot.SendLocationAsync(id, Double.Parse(loc[0].Value.Replace('.', ',')), Double.Parse(loc[1].Value.Replace('.', ',')));
       Console.WriteLine($"< {DateTime.Now} chatbot: Enviada coordenadas da instalação: {loc[0].Value},{loc[1].Value}");
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
         mensagem = errorMensagem
@@ -77,8 +84,9 @@ public class HandleMessage
       if(photo.Photo is null) throw new Exception(errorMensagem);
       return photo.Photo.First().FileId;
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       stream.Position = 0;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
@@ -98,8 +106,9 @@ public class HandleMessage
       await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
       Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id
       });
@@ -115,8 +124,9 @@ public class HandleMessage
       await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
       Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       if(!tel.StartsWith('+')) tel = '+' + tel;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
@@ -133,8 +143,9 @@ public class HandleMessage
       if(video.Video is null) throw new Exception(errorMensagem);
       return video.Video.FileId;
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       stream.Position = 0;
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
@@ -149,8 +160,9 @@ public class HandleMessage
     {
       await bot.SendVideoAsync(id, video: media_id);
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
         mensagem = errorMensagem
@@ -163,8 +175,9 @@ public class HandleMessage
     {
       await bot.SendPhotoAsync(id, photo: media_id);
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
         mensagem = errorMensagem
@@ -177,8 +190,9 @@ public class HandleMessage
     {
       await bot.SendDocumentAsync(id, document: media_id);
     }
-    catch
+    catch (Exception erro)
     {
+      ConsoleWrapper.Error(Entidade.Messenger, erro);
       Recovery.ErrorSendMessageReport(new errorReport(){
         identificador = id,
         mensagem = errorMensagem

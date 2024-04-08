@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using telbot.handle;
 using telbot.models;
+using telbot.Helpers;
 
 namespace telbot;
 public class Program
@@ -46,9 +47,7 @@ public class Program
   {
     if(cfg.IS_DEVELOPMENT)
     {
-      var json_options = new System.Text.Json.JsonSerializerOptions();
-      json_options.WriteIndented = true;
-      Console.WriteLine(System.Text.Json.JsonSerializer.Serialize<Update>(update, json_options));
+      ConsoleWrapper.Debug(Entidade.Usuario, System.Text.Json.JsonSerializer.Serialize<Update>(update));
     }
     var msg = new HandleMessage(bot);
     await Recovery.ErrorSendMessageRecovery(msg);
@@ -78,7 +77,7 @@ public class Program
   #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
-    Temporary.ConsoleWriteError($"< {DateTime.Now} chatbot: {exception.Message}");
+    ConsoleWrapper.Error(Entidade.Manager, exception);
     return;
   }
   #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
