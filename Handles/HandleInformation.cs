@@ -11,13 +11,7 @@ public static class Information
       await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
       return;
     }
-    string textoMensagem = String.Empty;
-    foreach (var resposta in respostas)
-    {
-      textoMensagem += resposta;
-      textoMensagem += "\n";
-    }
-    await bot.sendTextMesssageWraper(user.id, textoMensagem);
+    await bot.sendTextMesssageWraper(user.id, String.Join("\n", respostas));
     Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     return;
   }
