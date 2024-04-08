@@ -71,9 +71,9 @@ public static class Command
         await bot.sendTextMesssageWraper(user.id, info.ToString());
         break;
       case "/update":
-        if(user.has_privilege != UsersModel.userLevel.administrador)
+        if(user.has_privilege != UsersModel.userLevel.proprietario)
         {
-          await bot.sendTextMesssageWraper(user.id, "Somente administradores podem usar esse comando");
+          await bot.sendTextMesssageWraper(user.id, "Somente o proprietario podem usar esse comando");
           break;
         }
         var current_version = Updater.CurrentVersion(cfg);
@@ -92,9 +92,9 @@ public static class Command
         }
         break;
       case "/hotfix":
-        if(user.has_privilege != UsersModel.userLevel.administrador)
+        if(user.has_privilege != UsersModel.userLevel.proprietario)
         {
-          await bot.sendTextMesssageWraper(user.id, "Somente administradores podem usar esse comando");
+          await bot.sendTextMesssageWraper(user.id, "Somente o proprietario podem usar esse comando");
           break;
         }
         var version_filepath = System.IO.Path.Combine(cfg.CURRENT_PATH, "version");
