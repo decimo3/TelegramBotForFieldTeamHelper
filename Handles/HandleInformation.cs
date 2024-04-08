@@ -130,8 +130,8 @@ public static class Information
   }
   public static String? VerificarSAP(List<String> respostas)
   {
-    if(respostas.Count == 0) return "ERRO: Não foi recebida nenhuma resposta do SAP";
-    if(respostas[0].StartsWith("ERRO")) return respostas.First();
+    if(!respostas.Any()) return "ERRO: Não foi recebida nenhuma resposta do SAP";
+    if(respostas.First().StartsWith("ERRO")) return String.Join("\n", respostas);
     return null;
   }
 }
