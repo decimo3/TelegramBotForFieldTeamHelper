@@ -9,8 +9,6 @@ class Startup
     Console.WriteLine("# Author: decimo3 (github.com/decimo3)      #");
     Console.WriteLine("# Repository: TelegramBotForFieldTeamHelper #");
     Console.WriteLine("#############################################");
-    if(args.Contains("--em-desenvolvimento")) DotEnv.Load();
-    if(System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development") DotEnv.Load();
     var config = new Configuration(args);
     if(File.Exists($"{config.CURRENT_PATH}\\telbot.exe.old"))
       File.Delete($"{config.CURRENT_PATH}\\telbot.exe.old");
