@@ -100,10 +100,10 @@ public static class Information
     }
     try
     {
-      await using Stream stream = System.IO.File.OpenRead(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
-      await bot.SendDocumentAsyncWraper(user.id, stream, $"{agora.ToString("yyyyMMdd_HHmmss")}.XLSX");
+      await using Stream stream = System.IO.File.OpenRead(cfg.TEMP_FOLDER + "/temporario.csv");
+      await bot.SendDocumentAsyncWraper(user.id, stream, $"{agora.ToString("yyyyMMdd_HHmmss")}.csv");
       stream.Dispose();
-      System.IO.File.Delete(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
+      System.IO.File.Delete(cfg.TEMP_FOLDER + "/temporario.csv");
       await bot.sendTextMesssageWraper(user.id, $"Enviado arquivo de {request.aplicacao}: {agora.ToString("yyyyMMdd_HHmmss")}.XLSX", false);
       Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     }
