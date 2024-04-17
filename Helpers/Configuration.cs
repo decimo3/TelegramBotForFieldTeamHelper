@@ -1,3 +1,4 @@
+using dotenv.net;
 namespace telbot;
 public class Configuration
 {
@@ -16,42 +17,14 @@ public class Configuration
   public readonly bool SAP_RESTRITO = false;
   public readonly int ESPERA = 60_000;
   public readonly string LOCKFILE = "sap.lock";
-  public readonly int VENCIMENTOS = 0;
+  public readonly bool VENCIMENTOS = false;
+  public readonly bool BANDEIRADAS = false;
+  public readonly bool CROSSOVER = false;
   public readonly string SERVER_NAME = "localhost";
   public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
   public Configuration(string[] args)
   {
-    LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE") ??
-      throw new InvalidOperationException("Environment variable BOT_LICENCE is not set!");
-    var AUTHORIZATION = Authorization.RecoveryToken(LICENCE) ??
-      throw new InvalidOperationException("Token in environment variable BOT_LICENCE is not valid!");
-    
-    ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
-    
-    var agora = DateTime.Now;
-    var prazo = DateTimeOffset.FromUnixTimeSeconds(AUTHORIZATION.exp).DateTime;
-    if(agora > prazo) throw new InvalidOperationException("O período de licença de uso expirou!");
-
-    CURRENT_PC = System.Environment.GetEnvironmentVariable("COMPUTERNAME") ??
-      throw new InvalidOperationException("Environment variable CURRENT_PC is not set!");
-    if(CURRENT_PC != AUTHORIZATION.allowed_pc) throw new InvalidOperationException("A licença de uso não permite o uso em outra máquina!");
-    
-    CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
-    TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
-    SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
-    IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
-    UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
-    
-    BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN") ??
-      throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
-    if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
-    
-
-    var env = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-    if(env is null) IS_DEVELOPMENT = false;
-    else IS_DEVELOPMENT = (env == "Development") ? true : false;
-
     foreach (var arg in args)
     {
       if(arg.StartsWith("--sap-instancia"))
@@ -66,22 +39,44 @@ public class Configuration
         else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
         continue;
       }
-      if(arg.StartsWith("--vencimentos"))
-      { 
-        if(Int32.TryParse(arg.Split("=")[1], out int vencimento)) VENCIMENTOS = vencimento * 1000 * 60;
-        else throw new InvalidOperationException("Argumento 'vencimentos' não está no formato correto! Use the format: '--vencimentos=<segundos_espera>'");
-        continue;
-      }
       switch (arg)
       {
         case "--sem-faturas": GERAR_FATURAS = false; break;
         case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
         case "--sap-restrito": SAP_RESTRITO = true; break;
+        case "--vencimentos": VENCIMENTOS = true; break;
+        case "--bandeiradas": BANDEIRADAS = true; break;
+        case "--oeste-baixada": CROSSOVER = true; break;
         default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
     }
-    if(SAP_OFFLINE && VENCIMENTOS > 0)
-      throw new InvalidOperationException("Não é possível usar os argumentos '--vencimentos' e '--sap-offline' ao mesmo tempo");
+    if(SAP_OFFLINE && (VENCIMENTOS || BANDEIRADAS))
+      throw new InvalidOperationException("Não é possível usar os argumentos '--sap-offline' e '--vencimentos' ou --bandeiradas ao mesmo tempo");
+
+    if(IS_DEVELOPMENT == true) DotEnv.Load();
+
+    BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN") ??
+      throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
+    if(!Validador.isValidToken(BOT_TOKEN)) throw new InvalidOperationException("Environment variable BOT_TOKEN is not valid!");
+
+    LICENCE = System.Environment.GetEnvironmentVariable("BOT_LICENCE") ??
+      throw new InvalidOperationException("Environment variable BOT_LICENCE is not set!");
+    var AUTHORIZATION = Authorization.RecoveryToken(LICENCE) ??
+      throw new InvalidOperationException("Token in environment variable BOT_LICENCE is not valid!");
+
+    CURRENT_PC = System.Environment.GetEnvironmentVariable("COMPUTERNAME") ??
+      throw new InvalidOperationException("Environment variable CURRENT_PC is not set!");
+    if(CURRENT_PC != AUTHORIZATION.allowed_pc) throw new InvalidOperationException("A licença de uso não permite o uso em outra máquina!");
+
+    var prazo = DateTimeOffset.FromUnixTimeSeconds(AUTHORIZATION.exp).DateTime;
+    if(DateTime.Now > prazo) throw new InvalidOperationException("O período de licença de uso expirou!");
+
+    ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
+    CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
+    TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
+    SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
+    IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
+    UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
   }
 }
