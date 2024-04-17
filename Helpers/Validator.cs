@@ -34,7 +34,7 @@ public static class Validador
     if(aplicacao == "agrupamento") return TypeRequest.picInfo;
     if(aplicacao == "pendente") return TypeRequest.picInfo;
     if(aplicacao == "relatorio") return TypeRequest.xlsInfo;
-    if(aplicacao == "manobra") return TypeRequest.xlsInfo;
+    if(aplicacao == "bandeirada") return TypeRequest.xlsInfo;
     if(aplicacao == "medidor") return TypeRequest.txtInfo;
     if(aplicacao == "informacao") return TypeRequest.txtInfo;
     if(aplicacao == "cruzamento") return TypeRequest.picInfo;
@@ -48,6 +48,7 @@ public static class Validador
     if(aplicacao == "administrador") return TypeRequest.gestao;
     if(aplicacao == "supervisor") return TypeRequest.gestao;
     if(aplicacao == "leitura") return TypeRequest.picInfo;
+    if(aplicacao == "vencimento") return TypeRequest.xlsInfo;
     return null;
   }
   public static bool? orderOperandos (string info1, string info2)
