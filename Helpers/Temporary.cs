@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using telbot.Helpers;
 namespace telbot;
 public static class Temporary
 {
@@ -6,6 +7,7 @@ public static class Temporary
   {
     var argumentos = $"{aplicacao} {informacao} {cfg.INSTANCIA}";
     if(cfg.SAP_RESTRITO) argumentos += " --sap-restrito";
+    ConsoleWrapper.Debug(Entidade.Executor, $"{cfg.SAP_SCRIPT} {argumentos}");
     var proc = new System.Diagnostics.Process();
     var startInfo = new System.Diagnostics.ProcessStartInfo
       {
@@ -35,6 +37,7 @@ public static class Temporary
     }
     tempo.Dispose();
     proc.Dispose();
+    ConsoleWrapper.Debug(Entidade.Executor, String.Join('\n', linhas));
     return linhas;
   }
   private static IEnumerable<Process> GetChildProcesses(this Process process)
@@ -91,12 +94,5 @@ public static class Temporary
         }
         System.IO.File.WriteAllLines($"{cfg.CURRENT_PATH}/dados.csv", linha);
       }
-  }
-  public static void ConsoleWriteError(String output)
-  {
-    Console.BackgroundColor = ConsoleColor.Red;
-    Console.Beep();
-    Console.WriteLine(output);
-    Console.BackgroundColor = ConsoleColor.Black;
   }
 }

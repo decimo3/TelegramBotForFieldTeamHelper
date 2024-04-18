@@ -1,8 +1,9 @@
+using telbot.Helpers;
 namespace telbot.handle;
 public static class HandleAnnouncement
 {
   private static int CINCO_MINUTOS = 1_000 * 60 * 5;
-  public static async void Vencimento(HandleMessage msg, Configuration cfg)
+  public static async void Vencimento(HandleMessage msg, Configuration cfg, String aplicacao, Int32 prazo)
   {
     while(true)
     {
@@ -11,27 +12,27 @@ public static class HandleAnnouncement
       if(!System.IO.File.Exists(cfg.LOCKFILE)) break;
       else System.Threading.Thread.Sleep(1_000);
     }
-    Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - Vencimentos");
+    Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - {aplicacao}");
     System.IO.File.Create(cfg.LOCKFILE).Close();
-    var relatorio_resultado = Temporary.executar(cfg, "vencimento", 7);
+    var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any())
     {
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
     if(relatorio_resultado.First().StartsWith("ERRO:"))
     {
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
     if(!System.IO.File.Exists(relatorio_caminho))
     {
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
@@ -40,7 +41,7 @@ public static class HandleAnnouncement
     if(relatorio_arquivo.Length == 0)
     {
       relatorio_arquivo.Close();
-      Temporary.ConsoleWriteError("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
@@ -54,7 +55,7 @@ public static class HandleAnnouncement
     if(relatorio_identificador == String.Empty)
     {
       relatorio_arquivo.Close();
-      Temporary.ConsoleWriteError("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos");
+      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
@@ -63,10 +64,16 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
-      if(!usuario.pode_consultar()) continue;
+      if(aplicacao == "bandeirada" && !usuario.pode_relatorios()) continue;
+      if(aplicacao == "vencimento" && !usuario.pode_consultar()) continue;
       if(usuario.has_privilege == UsersModel.userLevel.eletricista)
       {
         DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+        if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
+      }
+      if(usuario.has_privilege == UsersModel.userLevel.supervisor)
+      {
+        DateTime expiracao = usuario.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3);
         if(System.DateTime.Compare(DateTime.Now, expiracao) > 0) continue;
       }
       tasks.Add(msg.sendTextMesssageWraper(usuario.id, relatorio_mensagem, true, false));

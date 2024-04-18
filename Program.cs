@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using telbot.handle;
 using telbot.models;
+using telbot.Helpers;
 
 namespace telbot;
 public class Program
@@ -21,34 +22,30 @@ public class Program
       Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
       var msg = new handle.HandleMessage(bot);
       HandleAnnouncement.Comunicado(msg, cfg);
-      if(cfg.VENCIMENTOS > 0)
+      while(true)
       {
-        while(true)
+        if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
         {
-          if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
+          var hora_agora = DateTime.Now.Hour;
+          if(hora_agora >= 8 && hora_agora <= 19)
           {
-            var hora_agora = DateTime.Now.Hour;
-            if(hora_agora >= 8 && hora_agora <= 19)
-              HandleAnnouncement.Vencimento(msg, cfg);
+            if(cfg.VENCIMENTOS)
+              HandleAnnouncement.Vencimento(msg, cfg, "vencimento", 7);
+            if(cfg.BANDEIRADAS)
+              HandleAnnouncement.Vencimento(msg, cfg, "bandeirada", 45);
           }
-          Thread.Sleep(cfg.VENCIMENTOS);
         }
+        Thread.Sleep(new TimeSpan(1, 0, 0));
       }
-      else
-      {
-        Console.ReadLine();
-        // Send cancellation request to stop the bot
-        cts.Cancel();
-      }
+      Console.ReadLine();
+      cts.Cancel();
     }
   }
   async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
     if(cfg.IS_DEVELOPMENT)
     {
-      var json_options = new System.Text.Json.JsonSerializerOptions();
-      json_options.WriteIndented = true;
-      Console.WriteLine(System.Text.Json.JsonSerializer.Serialize<Update>(update, json_options));
+      ConsoleWrapper.Debug(Entidade.Usuario, System.Text.Json.JsonSerializer.Serialize<Update>(update));
     }
     var msg = new HandleMessage(bot);
     await Recovery.ErrorSendMessageRecovery(msg);
@@ -78,7 +75,7 @@ public class Program
   #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
-    Temporary.ConsoleWriteError($"< {DateTime.Now} chatbot: {exception.Message}");
+    ConsoleWrapper.Error(Entidade.Manager, exception);
     return;
   }
   #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -96,14 +93,18 @@ public class Program
       await msg.sendTextMesssageWraper(message.From.Id, "Informe ao seu supervisor esse identificador para ter acesso");
       return;
     }
-    var has_txt = message.Text != null && message.Text.Length > 50;
     var has_jpg = message.Photo != null ? message.Photo.First().FileId : null;
     var has_mp4 = message.Video != null ? message.Video.FileId : null;
+    var has_txt = message.Text != null && message.Text.Length > 50;
     if(user.pode_transmitir() && (has_jpg != null || has_mp4 != null || has_txt))
     {
-      if(has_txt) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Text, null, null);
-      if(has_jpg != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Caption, has_jpg, null);
-      if(has_mp4 != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, message.Caption, null, has_mp4);
+      var has_media = has_jpg != null || has_mp4 != null;
+      var section = has_media ? message.Caption : message.Text;
+      var footer = $"*ENVIADO POR: {message.From.FirstName} {message.From.LastName}*";
+      var mensagem = $"{section}\n\n{footer}";
+      if(has_txt && !has_media) await HandleAnnouncement.Comunicado(msg, cfg, user.id, mensagem, null, null);
+      if(has_jpg != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, mensagem, has_jpg, null);
+      if(has_mp4 != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, mensagem, null, has_mp4);
       await msg.sendTextMesssageWraper(user.id, "Comunicado enviado com sucesso!");
       return;
     }
@@ -123,9 +124,11 @@ public class Program
     }
     if(!user.pode_promover())
     {
+    var prazo_expiracao = (user.has_privilege == UsersModel.userLevel.supervisor)
+      ? cfg.DIAS_EXPIRACAO * 3 : cfg.DIAS_EXPIRACAO;
     // verifica se o cadastro de eletricistas expirou
-    DateTime expiracao = user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
-    DateTime sinalizar = user.update_at.AddDays(cfg.DIAS_EXPIRACAO - 7);
+    DateTime expiracao = user.update_at.AddDays(prazo_expiracao);
+    DateTime sinalizar = user.update_at.AddDays(prazo_expiracao - 7);
     if(System.DateTime.Compare(DateTime.Now, expiracao) > 0)
     {
       await msg.sendTextMesssageWraper(message.From.Id, "Sua autorização expirou e não posso mais te passar informações");
@@ -155,7 +158,7 @@ public class Program
       return;
     }
     // Gets the installation of the request and since every request will be made by the installation
-    if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando)
+    if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando && request.tipo != TypeRequest.xlsInfo)
     {
       var knockout = DateTime.Now.AddMinutes(-5);
       if(System.DateTime.Compare(knockout, request.received_at) > 0)
@@ -164,27 +167,32 @@ public class Program
         return;
       }
       var resposta = telbot.Temporary.executar(cfg, "desperta", request.informacao!);
-      if(resposta.Any())
-      {
-        if(!resposta[0].StartsWith("ERRO")) request.informacao = Int64.Parse(resposta.First());
-        else 
-        {
-          await msg.ErrorReport(user.id, new Exception(), request, resposta[0]);
-          return;
-        }
-      }
-      else
+      if(resposta == null)
       {
         await msg.ErrorReport(user.id, new IndexOutOfRangeException("Não foi recebida nenhuma resposta do SAP"), request);
         return;
       }
-    }
-    if(cfg.IS_DEVELOPMENT == false)
-    {
-      if(Database.verificarRelatorio(request, user.id))
+      if(!resposta.Any())
       {
-        await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
+        await msg.ErrorReport(user.id, new IndexOutOfRangeException("Não foi recebida nenhuma resposta do SAP"), request);
         return;
+      }
+      if(!resposta.First().StartsWith("ERRO"))
+      {
+        request.informacao = Int64.Parse(resposta.First());
+      }
+      else 
+      {
+        await msg.ErrorReport(user.id, new Exception(), request, String.Join('\n', resposta));
+        return;
+      }
+      if(cfg.IS_DEVELOPMENT == false)
+      {
+        if(Database.verificarRelatorio(request, user.id))
+        {
+          await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
+          return;
+        }
       }
     }
     // When we get a command, we react accordingly
@@ -206,6 +214,9 @@ public class Program
       break;
       case TypeRequest.txtInfo:
         await Information.SendManuscripts(msg, cfg, user, request);
+      break;
+      case TypeRequest.xyzInfo:
+        await Information.SendCoordinates(msg, cfg, user, request);
       break;
       case TypeRequest.picInfo: 
         await Information.SendPicture(msg, cfg, user, request); 

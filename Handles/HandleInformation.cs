@@ -11,13 +11,7 @@ public static class Information
       await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
       return;
     }
-    string textoMensagem = String.Empty;
-    foreach (var resposta in respostas)
-    {
-      textoMensagem += resposta;
-      textoMensagem += "\n";
-    }
-    await bot.sendTextMesssageWraper(user.id, textoMensagem);
+    await bot.sendTextMesssageWraper(user.id, String.Join("\n", respostas));
     Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     return;
   }
@@ -106,10 +100,10 @@ public static class Information
     }
     try
     {
-      await using Stream stream = System.IO.File.OpenRead(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
-      await bot.SendDocumentAsyncWraper(user.id, stream, $"{agora.ToString("yyyyMMdd_HHmmss")}.XLSX");
+      await using Stream stream = System.IO.File.OpenRead(cfg.TEMP_FOLDER + "/temporario.csv");
+      await bot.SendDocumentAsyncWraper(user.id, stream, $"{agora.ToString("yyyyMMdd_HHmmss")}.csv");
       stream.Dispose();
-      System.IO.File.Delete(@"C:\Users\ruan.camello\SapWorkDir\export.XLSX");
+      System.IO.File.Delete(cfg.TEMP_FOLDER + "/temporario.csv");
       await bot.sendTextMesssageWraper(user.id, $"Enviado arquivo de {request.aplicacao}: {agora.ToString("yyyyMMdd_HHmmss")}.XLSX", false);
       Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     }
@@ -136,8 +130,8 @@ public static class Information
   }
   public static String? VerificarSAP(List<String> respostas)
   {
-    if(respostas.Count == 0) return "ERRO: Não foi recebida nenhuma resposta do SAP";
-    if(respostas[0].StartsWith("ERRO")) return respostas.First();
+    if(!respostas.Any()) return "ERRO: Não foi recebida nenhuma resposta do SAP";
+    if(respostas.First().StartsWith("ERRO")) return String.Join("\n", respostas);
     return null;
   }
 }
