@@ -1,5 +1,6 @@
 using System.Data.SqlClient;
 using System.Data.SQLite;
+using System.Linq.Expressions;
 namespace telbot;
 public static class Database
 {
@@ -162,7 +163,7 @@ public static class Database
       return false;
     }
   }
-  public static List<UsersModel> recuperarUsuario()
+  public static List<UsersModel> recuperarUsuario(Expression<Func<UsersModel, bool>> expression = null) 
   {
     var usuarios = new List<UsersModel>();
     using (var connection = new SQLiteConnection(connectionString))
@@ -185,7 +186,8 @@ public static class Database
               phone_number = dataReader.GetInt64(5)
             });
           }
-          return usuarios;
+          if (expression == null) return usuarios;
+          return usuarios.AsQueryable().Where(expression).ToList();
         }
       }
     }
