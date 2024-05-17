@@ -22,6 +22,7 @@ public class Program
       Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
       var msg = new handle.HandleMessage(bot);
       HandleAnnouncement.Comunicado(msg, cfg);
+      HandleAnnouncement.Monitorado(msg, cfg);
       while(true)
       {
         if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
@@ -95,16 +96,26 @@ public class Program
     }
     var has_jpg = message.Photo != null ? message.Photo.First().FileId : null;
     var has_mp4 = message.Video != null ? message.Video.FileId : null;
+    var has_doc = message.Document != null ? message.Document.FileId : null;
     var has_txt = message.Text != null && message.Text.Length > 50;
-    if(user.pode_transmitir() && (has_jpg != null || has_mp4 != null || has_txt))
+    if(user.pode_transmitir() && (has_txt || has_jpg != null || has_mp4 != null || has_doc != null))
     {
-      var has_media = has_jpg != null || has_mp4 != null;
+      var has_media = has_jpg != null || has_mp4 != null || has_doc != null;
       var section = has_media ? message.Caption : message.Text;
       var footer = $"*ENVIADO POR: {message.From.FirstName} {message.From.LastName}*";
       var mensagem = $"{section}\n\n{footer}";
-      if(has_txt && !has_media) await HandleAnnouncement.Comunicado(msg, cfg, user.id, mensagem, null, null);
-      if(has_jpg != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, mensagem, has_jpg, null);
-      if(has_mp4 != null) await HandleAnnouncement.Comunicado(msg, cfg, user.id, mensagem, null, has_mp4);
+      var usuarios = Database.recuperarUsuario(u =>
+        (
+          u.has_privilege == UsersModel.userLevel.proprietario ||
+          u.has_privilege == UsersModel.userLevel.administrador ||
+          u.has_privilege == UsersModel.userLevel.comunicador ||
+          (u.has_privilege == UsersModel.userLevel.eletricista && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) < DateTime.Now) ||
+          (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) < DateTime.Now) ||
+          (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) < DateTime.Now)
+        )
+      );
+      ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
+      await HandleAnnouncement.Comunicado(usuarios, msg, cfg, user.id, mensagem, has_jpg, has_mp4, has_doc);
       await msg.sendTextMesssageWraper(user.id, "Comunicado enviado com sucesso!");
       return;
     }
