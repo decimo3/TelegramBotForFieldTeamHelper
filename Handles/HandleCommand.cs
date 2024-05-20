@@ -35,8 +35,8 @@ public static class Command
         await bot.sendTextMesssageWraper(user.id, "*ATUALIZAR* para renovar o prazo de expiração um usuário com acesso de consulta do sistema");
         await bot.sendTextMesssageWraper(user.id, "*SUPERVISOR* para alterar para um usuário que pode autorizar outros usuários");
         await bot.sendTextMesssageWraper(user.id, "*DESAUTORIZAR* para remover o acesso de consulta de um usuário no sistema chatbot");
-        await bot.sendTextMesssageWraper(user.id, "*MONITORADOR* para alterar para um usuário que pode receber avisos sobre outros usuários (aplicação futura)");
-        await bot.sendTextMesssageWraper(user.id, "*COMUNICADOR* para alterar para um usuário capaz de enviar transmissões pelo sistema (aplicação futura)");
+        await bot.sendTextMesssageWraper(user.id, "*CONTROLADOR* para alterar para um usuário que pode receber avisos sobre outros usuário");
+        await bot.sendTextMesssageWraper(user.id, "*COMUNICADOR* para alterar para um usuário capaz de enviar transmissões pelo sistema");
         break;
       case "/ping":
         await bot.sendTextMesssageWraper(user.id, "Estou de prontidão aguardando as solicitações! (^.^)");
@@ -61,9 +61,9 @@ public static class Command
         info.Append($"*Identificador:* {user.id}\n");
         info.Append($"*Telefone:* {user.phone_number}\n");
         info.Append($"*Autorização:* {user.has_privilege.ToString()}\n");
-        if(user.has_privilege == UsersModel.userLevel.eletricista)
+        if(user.has_privilege == UsersModel.userLevel.eletricista || user.has_privilege == UsersModel.userLevel.supervisor || user.has_privilege == UsersModel.userLevel.controlador)
         {
-          var prazo = user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
+          var prazo = user.has_privilege == UsersModel.userLevel.supervisor ? user.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) : user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
           var dias = prazo - DateTime.Today;
           info.Append($"*Expiração:* {prazo.ToString("dd/MM/yyyy")} ({(int)dias.TotalDays} dias)\n");
         }
@@ -76,6 +76,8 @@ public static class Command
           await bot.sendTextMesssageWraper(user.id, "Somente o proprietario podem usar esse comando");
           break;
         }
+        try
+        {
         var current_version = Updater.CurrentVersion(cfg);
         await bot.sendTextMesssageWraper(user.id, $"Versão atual do sistema chatbot: {current_version.ToString("yyyyMMdd")}");
         await bot.sendTextMesssageWraper(user.id, "Verificando se há novas versões do sistema chatbot...");
@@ -89,6 +91,11 @@ public static class Command
         {
           await bot.sendTextMesssageWraper(user.id, $"Nova versão {update_version} do sistema chatbot encontrada!");
           Updater.Restart(cfg);
+        }
+        }
+        catch
+        {
+          await bot.sendTextMesssageWraper(user.id, $"Não foi possível atualizar o sistema remotamente!");
         }
         break;
       case "/hotfix":
