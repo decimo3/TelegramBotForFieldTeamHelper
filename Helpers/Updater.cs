@@ -85,7 +85,8 @@ public static class Updater
     var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER).Select(file => { return System.IO.Path.GetFileName(file); });
     foreach (var file in files)
     {
-      if(file == "sap.conf") continue;
+      if(file == "sap.conf" && System.IO.File.Exists("sap.conf")) continue;
+      if(file == "ofs.conf" && System.IO.File.Exists("ofs.conf")) continue;
       if(file == "telbot.exe") continue;
       if(file == "database.db") continue;
       var new_file = System.IO.Path.Combine(cfg.TEMP_FOLDER, file);
