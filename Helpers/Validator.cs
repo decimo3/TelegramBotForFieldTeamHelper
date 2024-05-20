@@ -43,7 +43,7 @@ public static class Validador
     if(aplicacao == "abertura") return TypeRequest.txtInfo;
     if(aplicacao == "ren360") return TypeRequest.picInfo;
     if(aplicacao == "desautorizar") return TypeRequest.gestao;
-    if(aplicacao == "monitorador") return TypeRequest.gestao;
+    if(aplicacao == "controlador") return TypeRequest.gestao;
     if(aplicacao == "comunicador") return TypeRequest.gestao;
     if(aplicacao == "administrador") return TypeRequest.gestao;
     if(aplicacao == "supervisor") return TypeRequest.gestao;
