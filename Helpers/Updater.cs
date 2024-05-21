@@ -24,6 +24,8 @@ public static class Updater
     Download(cfg, update);
     Console.WriteLine($"< {DateTime.Now} Manager: Download concluído! Descompactando arquivo de atualização...");
     Unzip(cfg);
+    Console.WriteLine($"< {DateTime.Now} Manager: Fechando programas aninhados ao sistema do chatbot...");
+    Terminate();
     Console.WriteLine($"< {DateTime.Now} Manager: Aplicando atualização do sistema chatbot, por favor aguarde...");
     Replace(cfg);
     Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
@@ -61,10 +63,14 @@ public static class Updater
   }
   public static void ClearTemp(Configuration cfg)
   {
-    var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
-    foreach (var file in files)
+    var path = new System.IO.DirectoryInfo(cfg.TEMP_FOLDER);
+    foreach (var file in path.GetFiles())
     {
-      System.IO.File.Delete(file);
+      file.Delete();
+    }
+    foreach (var dir in path.GetDirectories())
+    {
+      dir.Delete(true);
     }
   }
   public static void Download(Configuration cfg, String update)
@@ -104,5 +110,11 @@ public static class Updater
     var executable = System.IO.Path.Combine(cfg.CURRENT_PATH, "telbot.exe");
     System.Diagnostics.Process.Start(executable);
     System.Environment.Exit(0);
+  }
+  public static void Terminate()
+  {
+    Temporary.executar("taskkill", "/F /T /IM monitoring-fieldteam.exe");
+    Temporary.executar("taskkill", "/F /T /IM chromedriver.exe");
+    Temporary.executar("taskkill", "/F /T /IM chrome.exe");
   }
 }
