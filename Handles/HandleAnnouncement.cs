@@ -165,12 +165,24 @@ public static class HandleAnnouncement
   {
     while(true)
     {
-    System.Threading.Thread.Sleep(CINCO_MINUTOS);
+    System.Threading.Thread.Sleep(30_000);
+    ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
+    var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq monitoring-fieldteam.exe\"", true);
+    ConsoleWrapper.Debug(Entidade.Advertiser, String.Join(" ", result));
+    if(result.First().StartsWith("INFORMAÇÕES"))
+    {
+      ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
+      Temporary.executar("taskkill", "/F /IM chrome.exe");
+      Temporary.executar("taskkill", "/F /IM chromedriver.exe");
+      Temporary.executar("monitoring-fieldteam.exe", "faster");
+      continue;
+    }
     if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
       {
         var hora_agora = DateTime.Now.Hour;
         if(hora_agora >= 7 && hora_agora <= 22)
         {
+      ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
       var mensagem_caminho = cfg.CURRENT_PATH + "\\relatorio_ofs.txt";
       if(!System.IO.File.Exists(mensagem_caminho)) continue;
       var comunicado_mensagem = File.ReadAllText(mensagem_caminho);
