@@ -3,6 +3,29 @@ using telbot.Helpers;
 namespace telbot;
 public static class Temporary
 {
+  public static List<String> executar(String aplicacao, String argumentos, Boolean expect_return = false)
+  {
+    var linhas = new List<String>();
+    var processo = new System.Diagnostics.Process();
+    processo.StartInfo = new System.Diagnostics.ProcessStartInfo
+      {
+        FileName = aplicacao,
+        Arguments = argumentos,
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        CreateNoWindow = true
+      };
+    processo.Start();
+    if(expect_return)
+    {
+      while (!processo.StandardOutput.EndOfStream)
+      {
+        var linha = processo.StandardOutput.ReadLine();
+        if(!String.IsNullOrEmpty(linha)) linhas.Add(linha);
+      }
+    }
+    return linhas;
+  }
   public static List<string> executar(Configuration cfg, string aplicacao, long informacao)
   {
     var argumentos = $"{aplicacao} {informacao} {cfg.INSTANCIA}";
