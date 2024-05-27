@@ -163,6 +163,8 @@ public static class HandleAnnouncement
   }
   public static async void Monitorado(HandleMessage msg, Configuration cfg)
   {
+    var temporizador = DateTime.Now;
+    var usuarios = new List<UsersModel>();
     while(true)
     {
     System.Threading.Thread.Sleep(30_000);
@@ -177,7 +179,7 @@ public static class HandleAnnouncement
       Temporary.executar("monitoring-fieldteam.exe", "faster");
       continue;
     }
-    if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
+    if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday)
       {
         var hora_agora = DateTime.Now.Hour;
         if(hora_agora >= 7 && hora_agora <= 22)
@@ -188,12 +190,21 @@ public static class HandleAnnouncement
       var comunicado_mensagem = File.ReadAllText(mensagem_caminho);
       if(String.IsNullOrEmpty(comunicado_mensagem)) continue;
       Console.WriteLine($"< {DateTime.Now} Manager: Offensores do IDG");
-      var usuarios = Database.recuperarUsuario(u =>
-        u.has_privilege == UsersModel.userLevel.proprietario ||
-        u.has_privilege == UsersModel.userLevel.administrador ||
-        (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
-      );
+      if(temporizador.AddMinutes(5) > DateTime.Now)
+      {
+        usuarios = Database.recuperarUsuario(u =>
+          u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now
+        );
+      }
+      else
+      {
+        usuarios = Database.recuperarUsuario(u =>
+          u.has_privilege == UsersModel.userLevel.administrador ||
+          (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
+          (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
+        );
+        temporizador = DateTime.Now;
+      }
       ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
       await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, null, null, null);
       Console.WriteLine(comunicado_mensagem);
