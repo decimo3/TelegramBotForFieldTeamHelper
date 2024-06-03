@@ -23,6 +23,7 @@ public class Program
       var msg = new handle.HandleMessage(bot);
       HandleAnnouncement.Comunicado(msg, cfg);
       HandleAnnouncement.Monitorado(msg, cfg);
+      HandleAnnouncement.Finalizacao(msg, cfg);
       while(true)
       {
         if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)

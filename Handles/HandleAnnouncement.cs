@@ -181,9 +181,6 @@ public static class HandleAnnouncement
     }
     if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday)
       {
-        var hora_agora = DateTime.Now.Hour;
-        if(hora_agora >= 7 && hora_agora <= 22)
-        {
       ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
       var mensagem_caminho = cfg.CURRENT_PATH + "\\relatorio_ofs.txt";
       if(!System.IO.File.Exists(mensagem_caminho)) continue;
@@ -209,7 +206,40 @@ public static class HandleAnnouncement
       await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, null, null, null);
       Console.WriteLine(comunicado_mensagem);
       System.IO.File.Delete(mensagem_caminho);
+      }
+    }
+  }
+  public static async void Finalizacao(HandleMessage msg, Configuration cfg)
+  {
+    while(true)
+    {
+      try
+      {
+        // System.Threading.Thread.Sleep(new TimeSpan(1, 0, 0));
+        var diretorio_ofs = cfg.CURRENT_PATH + @"\.odl\";
+        var lista_de_relatorios = System.IO.Directory.GetFiles(diretorio_ofs).Where(f => f.EndsWith(".done.csv")).ToList();
+        foreach (var relatorio_filepath in lista_de_relatorios)
+        {
+          Stream relatorio_conteudo = System.IO.File.OpenRead(relatorio_filepath);
+          if(relatorio_conteudo.Length == 0) return;
+          var relatorio_filename = relatorio_filepath.Split('\\').Last();
+          var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_conteudo, relatorio_filename);
+          relatorio_conteudo.Close();
+          if(relatorio_identificador == String.Empty) return;
+          var usuarios = Database.recuperarUsuario(u =>
+            u.has_privilege == UsersModel.userLevel.administrador ||
+            (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
+            (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
+          );
+          ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
+          await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, null, null, null, relatorio_identificador);
+          ConsoleWrapper.Write(Entidade.Advertiser, $"Enviado relatorio final {relatorio_filename}!");
+          System.IO.File.Move(relatorio_filepath, relatorio_filepath.Replace("done", "send"));
         }
+      }
+      catch (System.Exception erro)
+      {
+        ConsoleWrapper.Error(Entidade.Advertiser, erro);
       }
     }
   }
