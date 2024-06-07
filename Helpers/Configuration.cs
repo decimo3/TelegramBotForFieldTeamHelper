@@ -17,8 +17,10 @@ public class Configuration
   public readonly bool SAP_RESTRITO = false;
   public readonly int ESPERA = 60_000;
   public readonly string LOCKFILE = "sap.lock";
-  public readonly bool VENCIMENTOS = false;
-  public readonly bool BANDEIRADAS = false;
+  public readonly bool SAP_VENCIMENTO = false;
+  public readonly bool SAP_BANDEIRADA = false;
+  public readonly bool OFS_MONITORAMENTO = false;
+  public readonly bool OFS_FINALIZACAO = false;
   public readonly bool CROSSOVER = false;
   public readonly string SERVER_NAME = "localhost";
   public readonly string UPDATE_PATH = String.Empty;
@@ -45,14 +47,15 @@ public class Configuration
         case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
         case "--sap-restrito": SAP_RESTRITO = true; break;
-        case "--vencimentos": VENCIMENTOS = true; break;
-        case "--bandeiradas": BANDEIRADAS = true; break;
-        case "--oeste-baixada": CROSSOVER = true; break;
+        case "--sap-vencimento": SAP_VENCIMENTO = true; break;
+        case "--sap-bandeirada": SAP_BANDEIRADA = true; break;
+        case "--ofs-monitoramento": OFS_MONITORAMENTO = true; break;
+        case "--ofs-finalizacao": OFS_FINALIZACAO = true; break;
         default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
     }
-    if(SAP_OFFLINE && (VENCIMENTOS || BANDEIRADAS))
-      throw new InvalidOperationException("Não é possível usar os argumentos '--sap-offline' e '--vencimentos' ou --bandeiradas ao mesmo tempo");
+    if(SAP_OFFLINE && (SAP_VENCIMENTO || SAP_BANDEIRADA))
+      throw new InvalidOperationException("Não é possível usar os argumentos '--sap-offline' e '--sap-vencimento' ou --sap-bandeirada ao mesmo tempo");
 
     if(IS_DEVELOPMENT == true) DotEnv.Load();
 
