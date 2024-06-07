@@ -25,6 +25,8 @@ public class Configuration
   public readonly string SERVER_NAME = "localhost";
   public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
+  public readonly Dictionary<String, Int64> BOT_CHANNELS = new();
+  public readonly Dictionary<String, String> CONFIGURACAO = new();
   public Configuration(string[] args)
   {
     foreach (var arg in args)
@@ -49,7 +51,7 @@ public class Configuration
         case "--sap-restrito": SAP_RESTRITO = true; break;
         case "--sap-vencimento": SAP_VENCIMENTO = true; break;
         case "--sap-bandeirada": SAP_BANDEIRADA = true; break;
-        case "--ofs-monitoramento": OFS_MONITORAMENTO = true; break;
+        case "--ofs-monitorador": OFS_MONITORAMENTO = true; break;
         case "--ofs-finalizacao": OFS_FINALIZACAO = true; break;
         default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
       }
@@ -78,8 +80,32 @@ public class Configuration
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
     CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
     TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
+    if(System.IO.Directory.Exists(TEMP_FOLDER))
+      System.IO.Directory.CreateDirectory(TEMP_FOLDER);
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
     UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
+
+    this.CONFIGURACAO = ArquivoConfiguracao("bot.conf");
+    foreach(var channel in this.CONFIGURACAO["BOT_CHANNEL"].Split(",").ToList())
+    {
+      var channel_args = channel.Split('|');
+      if(channel_args.Length != 2) continue;
+      this.BOT_CHANNELS.Add(channel_args.First(), Int64.Parse(channel_args.Last()));
+    }
+
+  }
+  public Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
+  {
+    var parametros = new Dictionary<string,string>();
+    var file = System.IO.File.ReadAllLines(filename);
+    foreach (var line in file)
+    {
+      if(String.IsNullOrEmpty(line)) continue;
+      var args = line.Split(delimiter);
+      if(args.Length != 2) continue;
+      parametros.Add(args[0], args[1]);
+    }
+    return parametros;
   }
 }
