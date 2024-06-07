@@ -185,8 +185,6 @@ public static class HandleAnnouncement
   }
   public static async void Monitorado(HandleMessage msg, Configuration cfg)
   {
-    var temporizador = DateTime.Now;
-    var usuarios = new List<UsersModel>();
     while(true)
     {
     try
@@ -205,27 +203,27 @@ public static class HandleAnnouncement
     }
       ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
       var mensagem_caminho = cfg.CURRENT_PATH + "\\relatorio_ofs.txt";
-      if(!System.IO.File.Exists(mensagem_caminho)) continue;
-      var comunicado_mensagem = File.ReadAllText(mensagem_caminho);
-      if(String.IsNullOrEmpty(comunicado_mensagem)) continue;
-      ConsoleWrapper.Write(Entidade.Advertiser, "Offensores do IDG");
-      if(temporizador.AddMinutes(5) > DateTime.Now)
+      if(!System.IO.File.Exists(mensagem_caminho)) 
       {
-        usuarios = Database.recuperarUsuario(u =>
-          u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now
-        );
+        ConsoleWrapper.Debug(Entidade.Advertiser, "Não foi encontrado relatórios do OFS.");
+        continue;
       }
-      else
+      var comunicado_linhas = File.ReadAllLines(mensagem_caminho);
+      if(!comunicado_linhas.Any() || comunicado_linhas.Length < 2) 
       {
-        usuarios = Database.recuperarUsuario(u =>
-          u.has_privilege == UsersModel.userLevel.administrador ||
-          (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-          (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
-        );
-        temporizador = DateTime.Now;
+        ConsoleWrapper.Debug(Entidade.Advertiser, "O relatório do OFS é inválido.");
+        System.IO.File.Delete(mensagem_caminho);
+        continue;
       }
-      ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
-      await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, null, null, null);
+      ConsoleWrapper.Write(Entidade.Advertiser, "Comunicado de offensores do IDG:");
+      var segunda_linha = comunicado_linhas[1];
+      var i1 = segunda_linha.IndexOf('*') + 1;
+      var i2 = segunda_linha.LastIndexOf('*');
+      var balde_nome = segunda_linha[i1..i2];
+      if(!cfg.BOT_CHANNELS.TryGetValue(balde_nome, out long channel))
+        throw new InvalidOperationException("O balde encontrado não tem canal configurado!");
+      var comunicado_mensagem = String.Join('\n', comunicado_linhas);
+      await Comunicado(channel, msg, cfg, comunicado_mensagem, null, null, null);
       ConsoleWrapper.Write(Entidade.Advertiser, comunicado_mensagem);
       System.IO.File.Delete(mensagem_caminho);
     }
@@ -247,18 +245,23 @@ public static class HandleAnnouncement
         foreach (var relatorio_filepath in lista_de_relatorios)
         {
           Stream relatorio_conteudo = System.IO.File.OpenRead(relatorio_filepath);
-          if(relatorio_conteudo.Length == 0) return;
+          if(relatorio_conteudo.Length == 0)
+          {
+            relatorio_conteudo.Close();
+            continue;
+          }
           var relatorio_filename = relatorio_filepath.Split('\\').Last();
           var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_conteudo, relatorio_filename);
           relatorio_conteudo.Close();
           if(relatorio_identificador == String.Empty) return;
-          var usuarios = Database.recuperarUsuario(u =>
-            u.has_privilege == UsersModel.userLevel.administrador ||
-            (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-            (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
-          );
-          ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
-          await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, null, null, null, relatorio_identificador);
+
+          var i1 = relatorio_filename.IndexOf('_') + 1;
+          var i2 = relatorio_filename.IndexOf('.');
+          var balde_nome = relatorio_filename[i1..i2];
+          if(!cfg.BOT_CHANNELS.TryGetValue(balde_nome, out long channel))
+            throw new InvalidOperationException("O balde encontrado não tem canal configurado!");
+
+          await Comunicado(channel, msg, cfg, null, null, null, relatorio_identificador);
           ConsoleWrapper.Write(Entidade.Advertiser, $"Enviado relatorio final {relatorio_filename}!");
           System.IO.File.Move(relatorio_filepath, relatorio_filepath.Replace("done", "send"));
         }
@@ -267,6 +270,22 @@ public static class HandleAnnouncement
       {
         ConsoleWrapper.Error(Entidade.Advertiser, erro);
       }
+    }
+  }
+  public static async Task Comunicado(Int64 canal, HandleMessage msg, Configuration cfg, string? text, string? image_id, string? video_id, string? doc_id)
+  {
+    try
+    {
+      var tasks = new List<Task>();
+      if(text != null) tasks.Add(msg.sendTextMesssageWraper(canal, text, true, false));
+      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(canal, image_id));
+      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(canal, video_id));
+      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(canal, doc_id));
+      await Task.WhenAll(tasks);
+    }
+    catch (System.Exception erro)
+    {
+      ConsoleWrapper.Error(Entidade.Advertiser, erro);
     }
   }
 }
