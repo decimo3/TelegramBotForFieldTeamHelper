@@ -8,8 +8,6 @@ public static class Updater
     ClearTemp(cfg);
     if(!System.IO.Directory.Exists(cfg.UPDATE_PATH))
       throw new DirectoryNotFoundException();
-    if(!System.IO.Directory.Exists(cfg.TEMP_FOLDER))
-      throw new DirectoryNotFoundException();
     var version = CurrentVersion(cfg);
     Console.WriteLine($"< {DateTime.Now} Manager: Versão atual do sistema chatbot: {version.ToString("yyyyMMdd")}");
     var updates = ListUpdates(cfg);
