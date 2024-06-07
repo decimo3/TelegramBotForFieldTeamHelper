@@ -8,12 +8,17 @@ public static class HandleAnnouncement
   {
     while(true)
     {
+    Thread.Sleep(new TimeSpan(1, 0, 0));
+    if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
+    if(DateTime.Now.Hour <= 7 && DateTime.Now.Hour >= 22) continue;
     while(true)
     {
       if(!System.IO.File.Exists(cfg.LOCKFILE)) break;
       else System.Threading.Thread.Sleep(1_000);
     }
-    Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - {aplicacao}");
+    try
+    {
+    ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
     System.IO.File.Create(cfg.LOCKFILE).Close();
     var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
@@ -69,18 +74,23 @@ public static class HandleAnnouncement
         (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
       )
     );
-    
     ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
     await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, relatorio_mensagem, null, null, relatorio_identificador);
-
     relatorio_arquivo.Close();
     System.IO.File.Delete(relatorio_caminho);
     System.IO.File.Delete(cfg.LOCKFILE);
     break;
     }
+    catch (System.Exception erro)
+    {
+      ConsoleWrapper.Error(Entidade.Advertiser, erro);
+    }
+    }
   }
   public static async void Comunicado(HandleMessage msg, Configuration cfg)
   {
+    try
+    {
     var mensagem_caminho = cfg.CURRENT_PATH + "\\comunicado.txt";
     var imagem_caminho = cfg.CURRENT_PATH + "\\comunicado.jpg";
     var videoclipe_caminho = cfg.CURRENT_PATH + "\\comunicado.mp4";
@@ -127,29 +137,36 @@ public static class HandleAnnouncement
     comunicado_documento.Close();
     if(has_txt)
     {
-      Console.WriteLine(comunicado_mensagem);
+      ConsoleWrapper.Write(Entidade.Advertiser, comunicado_mensagem);
       System.IO.File.Delete(mensagem_caminho);
     }
     if(has_jpg)
     {
-      Console.WriteLine("Enviada imagem do comunicado!");
+      ConsoleWrapper.Write(Entidade.Advertiser, "Enviada imagem do comunicado!");
       System.IO.File.Delete(imagem_caminho);
     }
     if(has_mp4)
     {
-      Console.WriteLine("Enviado video do comunicado!");
+      ConsoleWrapper.Write(Entidade.Advertiser, "Enviado video do comunicado!");
       System.IO.File.Delete(videoclipe_caminho);
     }
     if(has_doc)
     {
-      Console.WriteLine("Enviado documento do comunicado!");
+      ConsoleWrapper.Write(Entidade.Advertiser, "Enviado documento do comunicado!");
       System.IO.File.Delete(documento_caminho);
     }
     System.IO.File.Delete(cfg.LOCKFILE);
+    }
+    catch (System.Exception erro)
+    {
+      ConsoleWrapper.Error(Entidade.Advertiser, erro);
+    }
   }
   public static async Task Comunicado(List<UsersModel> usuarios, HandleMessage msg, Configuration cfg, long myself, string? text, string? image_id, string? video_id, string? doc_id)
   {
-    Console.WriteLine($"< {DateTime.Now} Manager: Comunicado para todos - Comunicado");
+    try
+    {
+    ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado para todos - Comunicado");
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
@@ -160,6 +177,11 @@ public static class HandleAnnouncement
       if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, doc_id));
     }
     await Task.WhenAll(tasks);
+    }
+    catch (System.Exception erro)
+    {
+      ConsoleWrapper.Error(Entidade.Advertiser, erro);
+    }
   }
   public static async void Monitorado(HandleMessage msg, Configuration cfg)
   {
@@ -167,26 +189,26 @@ public static class HandleAnnouncement
     var usuarios = new List<UsersModel>();
     while(true)
     {
+    try
+    {
     System.Threading.Thread.Sleep(30_000);
-    ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
+    if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
+    ConsoleWrapper.Write(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
     var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq monitoring-fieldteam.exe\"", true);
     ConsoleWrapper.Debug(Entidade.Advertiser, String.Join(" ", result));
     if(result.First().StartsWith("INFORMAÇÕES"))
     {
-      ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
-      Temporary.executar("taskkill", "/F /IM chrome.exe");
-      Temporary.executar("taskkill", "/F /IM chromedriver.exe");
-      Temporary.executar("monitoring-fieldteam.exe", "faster");
+      ConsoleWrapper.Write(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
+      Updater.Terminate("ofs");
+      Temporary.executar("monitoring-fieldteam.exe", String.Empty);
       continue;
     }
-    if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday)
-      {
       ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
       var mensagem_caminho = cfg.CURRENT_PATH + "\\relatorio_ofs.txt";
       if(!System.IO.File.Exists(mensagem_caminho)) continue;
       var comunicado_mensagem = File.ReadAllText(mensagem_caminho);
       if(String.IsNullOrEmpty(comunicado_mensagem)) continue;
-      Console.WriteLine($"< {DateTime.Now} Manager: Offensores do IDG");
+      ConsoleWrapper.Write(Entidade.Advertiser, "Offensores do IDG");
       if(temporizador.AddMinutes(5) > DateTime.Now)
       {
         usuarios = Database.recuperarUsuario(u =>
@@ -204,9 +226,13 @@ public static class HandleAnnouncement
       }
       ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
       await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, null, null, null);
-      Console.WriteLine(comunicado_mensagem);
+      ConsoleWrapper.Write(Entidade.Advertiser, comunicado_mensagem);
       System.IO.File.Delete(mensagem_caminho);
-      }
+    }
+    catch (System.Exception erro)
+    {
+      ConsoleWrapper.Error(Entidade.Advertiser, erro);
+    }
     }
   }
   public static async void Finalizacao(HandleMessage msg, Configuration cfg)
@@ -215,8 +241,8 @@ public static class HandleAnnouncement
     {
       try
       {
-        // System.Threading.Thread.Sleep(new TimeSpan(1, 0, 0));
-        var diretorio_ofs = cfg.CURRENT_PATH + @"\.odl\";
+        System.Threading.Thread.Sleep(new TimeSpan(1, 0, 0));
+        var diretorio_ofs = cfg.CURRENT_PATH + @"\odl\";
         var lista_de_relatorios = System.IO.Directory.GetFiles(diretorio_ofs).Where(f => f.EndsWith(".done.csv")).ToList();
         foreach (var relatorio_filepath in lista_de_relatorios)
         {
