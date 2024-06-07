@@ -104,16 +104,30 @@ public static class Command
           await bot.sendTextMesssageWraper(user.id, "Somente o proprietario podem usar esse comando");
           break;
         }
-        var version_filepath = System.IO.Path.Combine(cfg.CURRENT_PATH, "version");
-        var version_fileinfo = new System.IO.FileInfo(version_filepath);
-        var version_filediff = DateTime.Now - version_fileinfo.LastWriteTime;
-        if(version_filediff.TotalMinutes > 5)
+        if(!Updater.IsChangedVersionFile(cfg))
         {
-          System.IO.File.WriteAllText(version_filepath, DateTime.MinValue.ToString("yyyyMMdd"));
+          Updater.UpdateVersionFile(cfg, DateTime.MinValue);
           Updater.Restart(cfg);
           break;
         }
         await bot.sendTextMesssageWraper(user.id, "Sistema atualizado com sucesso!");
+        break;
+      case "/restart":
+        if(user.has_privilege != UsersModel.userLevel.proprietario)
+        {
+          await bot.sendTextMesssageWraper(user.id, "Somente o proprietario podem usar esse comando");
+          break;
+        }
+        if(Updater.IsChangedVersionFile(cfg))
+        {
+          await bot.sendTextMesssageWraper(user.id, "Sistema reiniciado com sucesso!");
+          break;
+        }
+        Updater.Terminate("sap");
+        Updater.Terminate("ofs");
+        await bot.sendTextMesssageWraper(user.id, "Processos finalizados, reiniciando o sistema...");
+        Updater.UpdateVersionFile(cfg, Updater.CurrentVersion(cfg));
+        Updater.Restart(cfg);
         break;
     }
     return;
