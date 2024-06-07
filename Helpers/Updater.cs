@@ -25,7 +25,8 @@ public static class Updater
     Console.WriteLine($"< {DateTime.Now} Manager: Download concluído! Descompactando arquivo de atualização...");
     Unzip(cfg);
     Console.WriteLine($"< {DateTime.Now} Manager: Fechando programas aninhados ao sistema do chatbot...");
-    Terminate();
+    Terminate("sap");
+    Terminate("ofs");
     Console.WriteLine($"< {DateTime.Now} Manager: Aplicando atualização do sistema chatbot, por favor aguarde...");
     Replace(cfg);
     Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
@@ -91,8 +92,8 @@ public static class Updater
     var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER).Select(file => { return System.IO.Path.GetFileName(file); });
     foreach (var file in files)
     {
-      if(file == "sap.conf" && System.IO.File.Exists("sap.conf")) continue;
-      if(file == "ofs.conf" && System.IO.File.Exists("ofs.conf")) continue;
+      if(file == "sap.conf") continue;
+      if(file == "ofs.conf") continue;
       if(file == "telbot.exe") continue;
       if(file == "database.db") continue;
       var new_file = System.IO.Path.Combine(cfg.TEMP_FOLDER, file);
@@ -111,10 +112,29 @@ public static class Updater
     System.Diagnostics.Process.Start(executable);
     System.Environment.Exit(0);
   }
-  public static void Terminate()
+  public static void Terminate(String sistema)
   {
-    Temporary.executar("taskkill", "/F /T /IM monitoring-fieldteam.exe");
-    Temporary.executar("taskkill", "/F /T /IM chromedriver.exe");
-    Temporary.executar("taskkill", "/F /T /IM chrome.exe");
+    var processos = new String[5];
+    if(sistema == "sap")
+      processos = new String[] {"sap.exe", "saplpd.exe", "saplogon.exe"};
+    if(sistema == "ofs")
+      processos = new String[] {"chrome.exe", "chromedriver.exe", "monitoring-fieldteam.exe"};
+    foreach (var process_name in processos)
+    {
+      if(String.IsNullOrEmpty(process_name)) continue;
+      Temporary.executar("taskkill", $"/F /T /IM {process_name}");
+    }
+  }
+  public static Boolean IsChangedVersionFile(Configuration configuration)
+  {
+    var version_filepath = System.IO.Path.Combine(configuration.CURRENT_PATH, "version");
+    var version_fileinfo = new System.IO.FileInfo(version_filepath);
+    var version_filediff = DateTime.Now - version_fileinfo.LastWriteTime;
+    return version_filediff.TotalMinutes < 5;
+  }
+  public static void UpdateVersionFile(Configuration configuration, DateTime datetime)
+  {
+    var version_filepath = System.IO.Path.Combine(configuration.CURRENT_PATH, "version");
+    System.IO.File.WriteAllText(version_filepath, datetime.ToString("yyyyMMdd"));
   }
 }
