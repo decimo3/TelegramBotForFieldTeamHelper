@@ -19,6 +19,7 @@
     <PackageReference Include="System.Management" Version="7.0.2" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0" />
     <SupportedPlatform Include="Windows" />
+    <None Include="bot.conf" CopyToOutputDirectory="PreserveNewest" />
     <None Include="version" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
