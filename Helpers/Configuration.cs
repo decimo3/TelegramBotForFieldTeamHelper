@@ -21,10 +21,10 @@ public class Configuration
   public readonly bool SAP_BANDEIRADA = false;
   public readonly bool OFS_MONITORAMENTO = false;
   public readonly bool OFS_FINALIZACAO = false;
-  public readonly bool CROSSOVER = false;
   public readonly string SERVER_NAME = "localhost";
   public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
+  public readonly String[] REGIONAIS = {};
   public Configuration(string[] args)
   {
     foreach (var arg in args)
@@ -39,6 +39,12 @@ public class Configuration
       { 
         if(Int32.TryParse(arg.Split("=")[1], out int espera)) ESPERA = espera * 1000;
         else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
+        continue;
+      }
+      if(arg.StartsWith("--sap-crossover"))
+      {
+        var regionais_arg = arg.Split('=')[1];
+        this.REGIONAIS = regionais_arg.Split(',');
         continue;
       }
       switch (arg)
@@ -78,6 +84,8 @@ public class Configuration
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
     CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
     TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
+    if(!System.IO.Directory.Exists(TEMP_FOLDER))
+      System.IO.Directory.CreateDirectory(TEMP_FOLDER);
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
     UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
