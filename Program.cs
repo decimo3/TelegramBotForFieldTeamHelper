@@ -21,24 +21,11 @@ public class Program
       bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
       Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
       var msg = new handle.HandleMessage(bot);
-      HandleAnnouncement.Comunicado(msg, cfg);
-      HandleAnnouncement.Monitorado(msg, cfg);
-      HandleAnnouncement.Finalizacao(msg, cfg);
-      while(true)
-      {
-        if(DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
-        {
-          var hora_agora = DateTime.Now.Hour;
-          if(hora_agora >= 8 && hora_agora <= 19)
-          {
-            if(cfg.VENCIMENTOS)
-              HandleAnnouncement.Vencimento(msg, cfg, "vencimento", 7);
-            if(cfg.BANDEIRADAS)
-              HandleAnnouncement.Vencimento(msg, cfg, "bandeirada", 45);
-          }
-        }
-        Thread.Sleep(new TimeSpan(1, 0, 0));
-      }
+      if(cfg.IS_DEVELOPMENT == false) HandleAnnouncement.Comunicado(msg, cfg);
+      if(cfg.SAP_VENCIMENTO) HandleAnnouncement.Vencimento(msg, cfg, "vencimento", 7);
+      if(cfg.SAP_BANDEIRADA) HandleAnnouncement.Vencimento(msg, cfg, "bandeirada", 7);
+      if(cfg.OFS_MONITORAMENTO) HandleAnnouncement.Monitorado(msg, cfg);
+      if(cfg.OFS_FINALIZACAO) HandleAnnouncement.Finalizacao(msg, cfg);
       Console.ReadLine();
       cts.Cancel();
     }
