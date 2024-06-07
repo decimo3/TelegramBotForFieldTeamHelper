@@ -298,4 +298,33 @@ public static class Database
       }
     }
   }
+  public static List<logsModel> RecuperarLogs()
+  {
+    var logs = new List<logsModel>();
+    using (var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using (var command = connection.CreateCommand())
+      {
+        command.CommandText = $"SELECT id, aplicacao, informacao, create_at, received_at, is_sucess FROM logsmodel";
+        using (var reader = command.ExecuteReader())
+        {
+          if(!reader.HasRows) return logs;
+          while(reader.Read())
+          {
+            var identificador = reader.GetInt64(0);
+            var aplicacao = reader.GetString(1);
+            var informacao = reader.GetInt64(2);
+            var create_at = reader.GetDateTime(3);
+            var received_at = reader.GetDateTime(4);
+            var is_sucess = reader.GetBoolean(5);
+            var log = new logsModel(identificador, aplicacao, informacao, is_sucess, received_at);
+            log.create_at = create_at;
+            logs.Add(log);
+          }
+        }
+      }
+    }
+    return logs;
+  }
 }
