@@ -6,9 +6,17 @@ public static class HandleAnnouncement
   private static int CINCO_MINUTOS = 1_000 * 60 * 5;
   public static async void Vencimento(HandleMessage msg, Configuration cfg, String aplicacao, Int32 prazo)
   {
+    String? regional = null;
+    var contador_de_regionais = 0;
     while(true)
     {
-    Thread.Sleep(new TimeSpan(1, 0, 0));
+    var tempo = cfg.IS_DEVELOPMENT ?  new TimeSpan(0, 5, 0) : new TimeSpan(1, 0, 0);
+    if(cfg.REGIONAIS.Any())
+    {
+      tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 2, 30) : new TimeSpan(0, 30, 0);
+      regional = cfg.REGIONAIS[contador_de_regionais];
+    }
+    Thread.Sleep(tempo);
     if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
     if(DateTime.Now.Hour <= 7 && DateTime.Now.Hour >= 22) continue;
     while(true)
@@ -20,7 +28,7 @@ public static class HandleAnnouncement
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
     System.IO.File.Create(cfg.LOCKFILE).Close();
-    var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo);
+    var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo, regional);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any())
     {
@@ -79,6 +87,7 @@ public static class HandleAnnouncement
     relatorio_arquivo.Close();
     System.IO.File.Delete(relatorio_caminho);
     System.IO.File.Delete(cfg.LOCKFILE);
+    contador_de_regionais = (contador_de_regionais + 1) % cfg.REGIONAIS.Count;
     break;
     }
     catch (System.Exception erro)
