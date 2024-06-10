@@ -24,7 +24,7 @@ public class Configuration
   public readonly string SERVER_NAME = "localhost";
   public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
-  public readonly String[] REGIONAIS = {};
+  public readonly List<String> REGIONAIS = new();
   public readonly Dictionary<String, Int64> BOT_CHANNELS = new();
   public readonly Dictionary<String, String> CONFIGURACAO = new();
   public Configuration(string[] args)
@@ -46,7 +46,10 @@ public class Configuration
       if(arg.StartsWith("--sap-crossover"))
       {
         var regionais_arg = arg.Split('=')[1];
-        this.REGIONAIS = regionais_arg.Split(',');
+        foreach (var regional in regionais_arg.Split(',').ToList())
+        {
+          this.REGIONAIS.Add(regional);
+        }
         continue;
       }
       switch (arg)
@@ -58,12 +61,15 @@ public class Configuration
         case "--sap-vencimento": SAP_VENCIMENTO = true; break;
         case "--sap-bandeirada": SAP_BANDEIRADA = true; break;
         case "--ofs-monitorador": OFS_MONITORAMENTO = true; break;
-        case "--ofs-finalizacao": OFS_FINALIZACAO = true; break;
-        default: throw new InvalidOperationException($"O argumento {arg} é inválido!");
+        case "--ofs-finalizador": OFS_FINALIZACAO = true; break;
+        default: Ajuda(arg); break;
       }
     }
     if(SAP_OFFLINE && (SAP_VENCIMENTO || SAP_BANDEIRADA))
       throw new InvalidOperationException("Não é possível usar os argumentos '--sap-offline' e '--sap-vencimento' ou --sap-bandeirada ao mesmo tempo");
+    if(OFS_FINALIZACAO && !OFS_MONITORAMENTO)
+      throw new InvalidOperationException("Não é possível usar o argumento '--ofs-finalizacao' sem usar o argumento '--ofs-monitorador'.");
+
 
     if(IS_DEVELOPMENT == true) DotEnv.Load();
 
