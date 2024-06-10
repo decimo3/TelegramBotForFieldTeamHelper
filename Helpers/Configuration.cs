@@ -120,4 +120,24 @@ public class Configuration
     }
     return parametros;
   }
+  public void Ajuda(String arg)
+  {
+    var ajuda = @$"
+    O argumento {arg} é inválido!
+
+    Instruções de uso: telbot.exe [options]
+    --em-desenvolvimento   Usado para testes na aplicação;
+    --sap-offline          Sinaliza ao usuários se o sistema SAP estiver fora do ar;
+    --sap-restrito         Substituí o uso do ZARC140 pelo FPL09 no sistema SAP;
+    --sem-faturas          Sinalizar ao usuários se o sistema SAP não estiver enviando faturas;
+    --sap-instancia=60     Altera a instancia SAP a ser usada pelo chatbot;
+    --sap-vencimento       Iniciar o subsistema de monitoramento de notas de vencimentos pelo SAP;
+    --sap-bandeirada       Iniciar o subsistema de monitoramento de notas pendentes de bandeiradas pelo SAP;
+    --ofs-monitorador      Iniciar o subsistema de monitoramento dos ofensores do IDG pelo OFS;
+    --ofs-finalizador      Iniciar o subsistema de envio do relatório de análise do IDG pelo OFS;
+    --sap-crossover=oeste  Permite o sistema SAP trabalhar com mais de uma regional;
+    ";
+    telbot.Helpers.ConsoleWrapper.Write(telbot.Helpers.Entidade.Chatbot, ajuda);
+    System.Environment.Exit(1);
+  }
 }
