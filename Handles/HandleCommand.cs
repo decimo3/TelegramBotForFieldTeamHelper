@@ -129,6 +129,18 @@ public static class Command
         Updater.UpdateVersionFile(cfg, Updater.CurrentVersion(cfg));
         Updater.Restart(cfg);
         break;
+      case "/database":
+        if(user.has_privilege != UsersModel.userLevel.proprietario)
+        {
+          await bot.sendTextMesssageWraper(user.id, "Somente o proprietario podem usar esse comando");
+          break;
+        }
+        var solicitacoes = Database.RecuperarLogs();
+        var tabela_texto = TableMaker<logsModel>.Serialize(solicitacoes, ';');
+        Stream tabela_stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(tabela_texto));
+        await bot.SendDocumentAsyncWraper(user.id, tabela_stream, $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.csv");
+        tabela_stream.Close();
+      break;
     }
     return;
   }
