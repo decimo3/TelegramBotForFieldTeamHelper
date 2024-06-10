@@ -26,10 +26,11 @@ public static class Temporary
     }
     return linhas;
   }
-  public static List<string> executar(Configuration cfg, string aplicacao, long informacao)
+  public static List<string> executar(Configuration cfg, string aplicacao, long informacao, String? regional = null)
   {
     var argumentos = $"{aplicacao} {informacao} {cfg.INSTANCIA}";
     if(cfg.SAP_RESTRITO) argumentos += " --sap-restrito";
+    if(!String.IsNullOrEmpty(regional)) argumentos += $" --{regional}";
     ConsoleWrapper.Debug(Entidade.Executor, $"{cfg.SAP_SCRIPT} {argumentos}");
     var proc = new System.Diagnostics.Process();
     var startInfo = new System.Diagnostics.ProcessStartInfo
