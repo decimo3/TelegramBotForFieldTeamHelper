@@ -203,7 +203,7 @@ public static class HandleAnnouncement
     ConsoleWrapper.Write(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
     var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq monitoring-fieldteam.exe\"", true);
     ConsoleWrapper.Debug(Entidade.Advertiser, String.Join(" ", result));
-    if(result.First().StartsWith("INFORMAÇÕES"))
+    if(result.First().StartsWith("INFORMA"))
     {
       ConsoleWrapper.Write(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
       Updater.Terminate("ofs");
