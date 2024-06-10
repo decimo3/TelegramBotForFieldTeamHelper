@@ -48,21 +48,37 @@ Esse argumento é utilizado para definir o tempo de espera de uma solicitação 
 
 > O tempo padrão de espera para uma solicitação é de 60 segundos. Esse parâmetro deve ser usado quando houver lentidão no sistema SAP e as solicitações estiverem demorando um pouco mais que o normal.
 
+#### --sap-vencimento
+
+Esse argumento é utilizado para iniciar o subsistema de monitoramento de notas de vencimento.
+
+Um relatório CSV com as notas de vencimento no dia corrente será enviado para todos os usuários com cargo de `controlador` a cada hora.
+
+#### --sap-bandeirada
+
+Esse argumento é utilizado para iniciar o subsistema de monitoramento de notas pendentes de bandeirada.
+
+Um relatório CSV com todas as notas pendentes de bandeirada será enviado para todos os usuários com cargo de `controlador` a cada hora.
+
+#### --sap-monitorador
+
+Esse argumento é ultilizado para iniciar o subsistema de monitoramento de ofensores do IDG pelo OFS.
+
+Um relatório com as lista de ofensas ao IDG será enviado com recurso ofensor e a descrição da ofensa e o tempo em ofensa em intervalos regulares de tempo, dependendo do tempo de processamento de cada análise dos baldes configurados.
+
+#### --sap-finalizacao
+
+Esse argumento é ultilizado para iniciar o subsistema de envio do relatório final do IDG pelo OFS.
+
+Um relatório CSV com a lista de recursos do balde, com os seus devidos horários registrados, e com a análise da porcentagem de seu IDG calculado conforme a `fórmula Indica de qualificação do IDG`, para todos os usuários com cargo de `controlador` após o final de jornada de todos os recursos do balde.
+
+> É necessário o subsistema monitorador estar ativo para que o relatório de finalização seja gerado.
+
 ## Solução de problemas
-
-#### SAP encerra a conexão (SAP caiu)
-
-Quando o cliente do SAP fica inativo por muito tempo, o mesmo é desconectado por inatividade, o chatbot ficará parado, até a janela de confirmação ser clicada.
-
-Para solucionar esse problema, antes de interagir com o SAP, pare a execução do chatbot, e logue novamente no SAP, depois execute o chatbot novamente.
-
-Se a janela de erro ser dispensada, imediatamente o chatbot irá rejeitar as solicitações devido à falta de comunicação com a sessão do SAP.
 
 #### SAP demora demais ou parou de gerar faturas:
 
-Se o SAP estiver parado por muito tempo em uma solicitação de FATURA, pode ser que o sistema da Light de geração de faturas esteja fora do ar.
-
-Para solucionar esse problema, pare a execução do chatbot, e inicie ele novamente com o argumento `--sem-faturas` na linha de comando.
+Pode ser que o sistema da Light de geração de faturas esteja fora do ar.
 
 #### SAP está fora do ar (Light toda, geral):
 
@@ -76,7 +92,7 @@ Caso a janela do SAP do chatbot trave, feche o chatbot, feche todas as janelas d
 
 No caso de a janela não fechar pelo 'X', force o encerramento pelo gerenciador de tarefas.
 
-Caso o SAP não esteja encerrando de forma alguma, você pode usar outra janela, iniciando o chatbot com o argumento `--sap-instancia=1` (no caso para usar a segunda janela).
+Caso o SAP não esteja encerrando de forma alguma, você pode usar outra janela, iniciando o chatbot com o argumento `--sap-instancia=1` (no caso para usar a segunda janela), ou via `cmd` use o comando `taskkill /f /im saplogon.exe`. Em último caso reinicie o computador.
 
 #### SAP trava numa solicitação específica:
 
