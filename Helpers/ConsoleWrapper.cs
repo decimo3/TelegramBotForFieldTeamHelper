@@ -4,12 +4,10 @@ namespace telbot.Helpers
   {
     public static void Read(DateTime horario, String mensagem)
     {
-      if(Print()) return;
       Console.WriteLine($"> {horario.ToLocalTime()} {Entidade.Usuario} - {mensagem}");
     }
     public static void Write(Entidade entidade, String mensagem)
     {
-      if(Print()) return;
       Console.WriteLine($"< {DateTime.Now.ToLocalTime()} {entidade} - {mensagem}");
     }
     public static void Error(Entidade entidade, Exception erro)
