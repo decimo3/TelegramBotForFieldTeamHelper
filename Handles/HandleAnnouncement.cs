@@ -88,7 +88,6 @@ public static class HandleAnnouncement
     System.IO.File.Delete(relatorio_caminho);
     System.IO.File.Delete(cfg.LOCKFILE);
     contador_de_regionais = (contador_de_regionais + 1) % cfg.REGIONAIS.Count;
-    break;
     }
     catch (System.Exception erro)
     {
