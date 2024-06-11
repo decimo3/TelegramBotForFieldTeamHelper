@@ -106,8 +106,9 @@ public static class Updater
   }
   public static void Restart(Configuration cfg)
   {
+    var arguments = System.Environment.GetCommandLineArgs();
     var executable = System.IO.Path.Combine(cfg.CURRENT_PATH, "telbot.exe");
-    System.Diagnostics.Process.Start(executable);
+    System.Diagnostics.Process.Start(executable, String.Join(' ', arguments.Skip(1).ToArray()));
     System.Environment.Exit(0);
   }
   public static void Terminate(String sistema)
@@ -120,7 +121,7 @@ public static class Updater
     foreach (var process_name in processos)
     {
       if(String.IsNullOrEmpty(process_name)) continue;
-      Temporary.executar("taskkill", $"/F /T /IM {process_name}");
+      Temporary.executar("taskkill", $"/F /T /IM {process_name}", true);
     }
   }
   public static Boolean IsChangedVersionFile(Configuration configuration)
