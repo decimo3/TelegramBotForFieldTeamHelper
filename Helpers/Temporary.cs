@@ -3,7 +3,7 @@ using telbot.Helpers;
 namespace telbot;
 public static class Temporary
 {
-  public static List<String> executar(String aplicacao, String argumentos, Boolean expect_return = false)
+  public static List<String> executar(String aplicacao, String argumentos, Boolean expect_return)
   {
     var linhas = new List<String>();
     var processo = new System.Diagnostics.Process();
@@ -11,10 +11,11 @@ public static class Temporary
       {
         FileName = aplicacao,
         Arguments = argumentos,
-        UseShellExecute = false,
-        RedirectStandardOutput = true,
+        UseShellExecute = !expect_return,
+        RedirectStandardOutput = expect_return,
         CreateNoWindow = true
       };
+    ConsoleWrapper.Debug(Entidade.Executor, $"{aplicacao} {argumentos} {expect_return}");
     processo.Start();
     if(expect_return)
     {
@@ -24,6 +25,7 @@ public static class Temporary
         if(!String.IsNullOrEmpty(linha)) linhas.Add(linha);
       }
     }
+    ConsoleWrapper.Debug(Entidade.Executor, String.Join('\n', linhas));
     return linhas;
   }
   public static List<string> executar(Configuration cfg, string aplicacao, long informacao, String? regional = null)
