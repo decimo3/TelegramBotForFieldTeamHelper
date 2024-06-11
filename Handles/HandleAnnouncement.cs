@@ -198,16 +198,17 @@ public static class HandleAnnouncement
     {
     try
     {
-    System.Threading.Thread.Sleep(30_000);
+    var tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 0, 30) : new TimeSpan(0, 1, 0);
+    System.Threading.Thread.Sleep(tempo);
     if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
-    ConsoleWrapper.Write(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
+    ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
     var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq monitoring-fieldteam.exe\"", true);
     ConsoleWrapper.Debug(Entidade.Advertiser, String.Join(" ", result));
     if(result.First().StartsWith("INFORMA"))
     {
-      ConsoleWrapper.Write(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
+      ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
       Updater.Terminate("ofs");
-      Temporary.executar("monitoring-fieldteam.exe", String.Empty);
+      Temporary.executar("monitoring-fieldteam.exe", "slower", false);
       continue;
     }
       ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
@@ -224,7 +225,6 @@ public static class HandleAnnouncement
         System.IO.File.Delete(mensagem_caminho);
         continue;
       }
-      ConsoleWrapper.Write(Entidade.Advertiser, "Comunicado de offensores do IDG:");
       var segunda_linha = comunicado_linhas[1];
       var i1 = segunda_linha.IndexOf('*') + 1;
       var i2 = segunda_linha.LastIndexOf('*');
@@ -232,6 +232,7 @@ public static class HandleAnnouncement
       if(!cfg.BOT_CHANNELS.TryGetValue(balde_nome, out long channel))
         throw new InvalidOperationException("O balde encontrado não tem canal configurado!");
       var comunicado_mensagem = String.Join('\n', comunicado_linhas);
+      ConsoleWrapper.Write(Entidade.Advertiser, "Comunicado de offensores do IDG:");
       await Comunicado(channel, msg, cfg, comunicado_mensagem, null, null, null);
       ConsoleWrapper.Write(Entidade.Advertiser, comunicado_mensagem);
       System.IO.File.Delete(mensagem_caminho);
