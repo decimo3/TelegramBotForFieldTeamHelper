@@ -18,7 +18,7 @@ public static class HandleAnnouncement
     }
     Thread.Sleep(tempo);
     if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
-    if(DateTime.Now.Hour <= 7 && DateTime.Now.Hour >= 22) continue;
+    if(DateTime.Now.Hour <= 7 || DateTime.Now.Hour >= 22) continue;
     while(true)
     {
       if(!System.IO.File.Exists(cfg.LOCKFILE)) break;
