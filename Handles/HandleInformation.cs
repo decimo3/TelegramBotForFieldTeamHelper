@@ -1,4 +1,5 @@
 namespace telbot.handle;
+using telbot.Helpers;
 using telbot.models;
 public static class Information
 {
@@ -125,6 +126,49 @@ public static class Information
         request.aplicacao = "cruzamento";
         await SendPicture(bot, cfg, user, request);
       break;
+      case "evidencia":
+        if(!cfg.OFS_MONITORAMENTO)
+        {
+          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: O sistema monitor do OFS está desativado!");
+          return;
+        }
+        var antes = DateTime.Now;
+        var result = String.Empty;
+        Updater.ClearTemp(cfg);
+        System.IO.File.WriteAllText(cfg.OFS_LOCKFILE, $"{request.aplicacao} {request.informacao}", System.Text.Encoding.UTF8);
+        while(true)
+        {
+          result = VerificarOFS(cfg);
+          if(!String.IsNullOrEmpty(result)) break;
+          if((DateTime.Now - antes) >= TimeSpan.FromSeconds(cfg.ESPERA)) break;
+          System.Threading.Thread.Sleep(10_000);
+        }
+        if(String.IsNullOrEmpty(result))
+        {
+          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: Não foi recebida nenhuma resposta do OFS!");
+          return;
+        }
+        await bot.sendTextMesssageWraper(user.id, result);
+        var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
+        var fluxos = new Stream[files.Length];
+        var tasks = new List<Task>();
+        for(var i = 0; i < files.Length; i++)
+        {
+          var filename = System.IO.Path.GetFileName(files[i]);
+          var fileext = System.IO.Path.GetExtension(files[i]);
+          fluxos[i] = System.IO.File.OpenRead(files[i]);
+          if(fileext == ".jpg")
+            tasks.Add(bot.SendPhotoAsyncWraper(user.id, fluxos[i]));
+          else if(fileext == ".jpeg")
+            tasks.Add(bot.SendPhotoAsyncWraper(user.id, fluxos[i]));
+          else
+            tasks.Add(bot.SendDocumentAsyncWraper(user.id, fluxos[i], filename));
+        }
+        await Task.WhenAll(tasks);
+        foreach(var fluxo in fluxos) fluxo.Close();
+        foreach(var file in files) File.Delete(file);
+        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+      break;
     }
     return;
   }
@@ -133,5 +177,10 @@ public static class Information
     if(!respostas.Any()) return "ERRO: Não foi recebida nenhuma resposta do SAP";
     if(respostas.First().StartsWith("ERRO")) return String.Join("\n", respostas);
     return null;
+  }
+  public static String? VerificarOFS(Configuration cfg)
+  {
+    var texto = System.IO.File.ReadAllText(cfg.OFS_LOCKFILE, System.Text.Encoding.UTF8);
+    return (texto.Length < 50) ? null : texto;
   }
 }
