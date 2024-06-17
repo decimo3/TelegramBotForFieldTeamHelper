@@ -150,14 +150,14 @@ public class Program
       await msg.sendTextMesssageWraper(user.id, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
-    if(cfg.SAP_OFFLINE && request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando)
+    if(cfg.SAP_OFFLINE && request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando && request.tipo != TypeRequest.ofsInfo)
     {
       var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
       await msg.sendTextMesssageWraper(message.From.Id, messagem);
       return;
     }
     // Gets the installation of the request and since every request will be made by the installation
-    if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando && request.tipo != TypeRequest.xlsInfo)
+    if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando && request.tipo != TypeRequest.xlsInfo && request.tipo != TypeRequest.ofsInfo)
     {
       var knockout = DateTime.Now.AddMinutes(-5);
       if(System.DateTime.Compare(knockout, request.received_at) > 0)
