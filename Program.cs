@@ -1,4 +1,4 @@
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using telbot.handle;
@@ -241,6 +241,14 @@ public class Program
         }
         await Information.SendDocument(msg, cfg, user, request);
         break;
+      case TypeRequest.ofsInfo:
+        if(!user.pode_relatorios())
+        {
+          await msg.sendTextMesssageWraper(user.id, "Você não tem permissão para receber evidências!");
+          break;
+        }
+        await Information.SendMultiples(msg, cfg, user, request);
+      break;
     }
     return;
   }
