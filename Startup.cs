@@ -14,8 +14,8 @@ class Startup
       File.Delete($"{config.CURRENT_PATH}\\telbot.exe.old");
     telbot.Helpers.Updater.Update(config);
     Database.configurarBanco(config);
-    if(File.Exists($"{config.CURRENT_PATH}\\{config.LOCKFILE}"))
-      File.Delete($"{config.CURRENT_PATH}\\{config.LOCKFILE}");
+    if(File.Exists($"{config.CURRENT_PATH}\\{config.SAP_LOCKFILE}"))
+      File.Delete($"{config.CURRENT_PATH}\\{config.SAP_LOCKFILE}");
     var program = new Program(config);
   }
 }

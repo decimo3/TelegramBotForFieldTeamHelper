@@ -16,7 +16,8 @@ public class Configuration
   public readonly string? LICENCE;
   public readonly bool SAP_RESTRITO = false;
   public readonly int ESPERA = 60_000;
-  public readonly string LOCKFILE = "sap.lock";
+  public readonly string SAP_LOCKFILE = "sap.lock";
+  public readonly string OFS_LOCKFILE = "ofs.lock";
   public readonly bool SAP_VENCIMENTO = false;
   public readonly bool SAP_BANDEIRADA = false;
   public readonly bool OFS_MONITORAMENTO = false;
@@ -97,6 +98,8 @@ public class Configuration
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
     UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
+    if(!System.IO.Directory.Exists(OFS_LOCKFILE))
+      System.IO.File.Create(OFS_LOCKFILE).Close();
 
     this.CONFIGURACAO = ArquivoConfiguracao("bot.conf");
     foreach(var channel in this.CONFIGURACAO["BOT_CHANNEL"].Split(",").ToList())

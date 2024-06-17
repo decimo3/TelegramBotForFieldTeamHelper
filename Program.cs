@@ -1,4 +1,4 @@
-﻿using Telegram.Bot;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using telbot.handle;
@@ -50,12 +50,12 @@ public class Program
       {
         while(true)
         {
-          if(!System.IO.File.Exists(cfg.LOCKFILE)) break;
+          if(!System.IO.File.Exists(cfg.SAP_LOCKFILE)) break;
           else System.Threading.Thread.Sleep(1_000);
         }
-        System.IO.File.Create(cfg.LOCKFILE).Close();
+        System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
         await HandleMessage(msg, update.Message!);
-        System.IO.File.Delete(cfg.LOCKFILE);
+        System.IO.File.Delete(cfg.SAP_LOCKFILE);
       }
     }
     else await msg.ErrorReport(id: cfg.ID_ADM_BOT, error: new InvalidOperationException(update.ToString()));
