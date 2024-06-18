@@ -16,4 +16,13 @@ public class logsModel
     this.is_sucess = is_sucess;
     this.received_at = received_at;
   }
+  public logsModel(long id, string solicitacao, long informacao, bool is_sucess, DateTime received_at, DateTime create_at)
+  {
+    this.id = id;
+    this.solicitacao = solicitacao;
+    this.informacao = informacao;
+    this.is_sucess = is_sucess;
+    this.received_at = received_at;
+    this.create_at = create_at;
+  }
 }
