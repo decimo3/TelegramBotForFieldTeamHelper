@@ -312,15 +312,20 @@ public static class Database
           if(!reader.HasRows) return logs;
           while(reader.Read())
           {
-            var identificador = reader.GetInt64(0);
-            var aplicacao = reader.GetString(1);
-            var informacao = reader.GetInt64(2);
-            var create_at = reader.GetDateTime(3);
-            var received_at = reader.GetDateTime(4);
-            var is_sucess = reader.GetBoolean(5);
-            var log = new logsModel(identificador, aplicacao, informacao, is_sucess, received_at);
-            log.create_at = create_at;
-            logs.Add(log);
+            var identificador = (reader["id"] == DBNull.Value) ? 0 : reader["id"];
+            var aplicacao = (reader["aplicacao"] == DBNull.Value) ? String.Empty : reader["aplicacao"];
+            var informacao = (reader["informacao"] == DBNull.Value) ? 0 : reader["informacao"];
+            var create_at = (reader["create_at"] == DBNull.Value) ? DateTime.MinValue : reader["create_at"];
+            var received_at = (reader["received_at"] == DBNull.Value) ? DateTime.MinValue : reader["received_at"];
+            var is_sucess = (reader["is_sucess"] == DBNull.Value) ? false : reader["is_sucess"];
+            logs.Add(new logsModel(
+              Convert.ToInt64(identificador),
+              Convert.ToString(aplicacao),
+              Convert.ToInt64(informacao),
+              Convert.ToBoolean(is_sucess),
+              Convert.ToDateTime(received_at),
+              Convert.ToDateTime(create_at)
+            ));
           }
         }
       }
