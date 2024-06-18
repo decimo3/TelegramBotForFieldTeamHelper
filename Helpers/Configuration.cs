@@ -22,7 +22,7 @@ public class Configuration
   public readonly bool SAP_BANDEIRADA = false;
   public readonly bool OFS_MONITORAMENTO = false;
   public readonly bool OFS_FINALIZACAO = false;
-  public readonly string SERVER_NAME = "localhost";
+  public readonly string SERVER_NAME = "192.168.10.213";
   public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
   public readonly List<String> REGIONAIS = new();
