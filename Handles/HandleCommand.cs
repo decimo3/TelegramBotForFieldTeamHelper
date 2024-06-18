@@ -5,6 +5,8 @@ public static class Command
 {
   public async static Task HandleCommand(HandleMessage bot, UsersModel user, Request request, Configuration cfg)
   {
+    try
+    {
     switch (request.aplicacao)
     {
       case "/start":
@@ -141,6 +143,11 @@ public static class Command
         await bot.SendDocumentAsyncWraper(user.id, tabela_stream, $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.csv");
         tabela_stream.Close();
       break;
+    }
+    }
+    catch (System.Exception)
+    {
+      await bot.ErrorReport(user.id, new Exception(), request, "Houve um erro ao processar o seu comando!");
     }
     return;
   }
