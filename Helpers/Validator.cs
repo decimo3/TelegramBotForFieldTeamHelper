@@ -50,6 +50,7 @@ public static class Validador
     if(aplicacao == "leitura") return TypeRequest.picInfo;
     if(aplicacao == "vencimento") return TypeRequest.xlsInfo;
     if(aplicacao == "evidencia") return TypeRequest.ofsInfo;
+    if(aplicacao == "codbarra") return TypeRequest.txtInfo;
     return null;
   }
   public static bool? orderOperandos (string info1, string info2)
