@@ -28,9 +28,10 @@ public static class Temporary
     ConsoleWrapper.Debug(Entidade.Executor, String.Join('\n', linhas));
     return linhas;
   }
-  public static List<string> executar(Configuration cfg, string aplicacao, long informacao, String? regional = null)
+  public static List<string> executar(Configuration cfg, string aplicacao, long informacao, long telefone = 0, String? regional = null)
   {
     var argumentos = $"{aplicacao} {informacao} {cfg.INSTANCIA}";
+    if(telefone != 0) argumentos += $" --telefone={telefone}";
     if(cfg.SAP_RESTRITO) argumentos += " --sap-restrito";
     if(!String.IsNullOrEmpty(regional)) argumentos += $" --{regional}";
     ConsoleWrapper.Debug(Entidade.Executor, $"{cfg.SAP_SCRIPT} {argumentos}");
