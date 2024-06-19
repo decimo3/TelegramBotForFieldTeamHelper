@@ -29,14 +29,14 @@ public static class Information
     Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
     return;
   }
-  async public static Task SendDocument(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task<Boolean> SendDocument(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
     var respostas = telbot.Temporary.executar(cfg, request.aplicacao, request.informacao);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
       await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
-      return;
+      return false;
     }
     try
     {
@@ -44,7 +44,8 @@ public static class Information
       {
         if (fatura == "None" || fatura == null || fatura == "") continue;
         if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao))
-          throw new InvalidOperationException("ERRO: A fatura recuperada não corresponde com a solicitada!");
+          await bot.ErrorReport(user.id, new Exception(verificacao), request, "ERRO: A fatura recuperada não corresponde com a solicitada!");
+          return false;
       }
       foreach (string fatura in respostas)
       {
@@ -55,12 +56,13 @@ public static class Information
         await bot.sendTextMesssageWraper(user.id, fatura, false);
       }
       Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+      return true;
     }
     catch (System.Exception error)
     {
       await bot.ErrorReport(id: user.id, request: request, error: error);
+      return false;
     }
-    return;
   }
   async public static Task SendPicture(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
