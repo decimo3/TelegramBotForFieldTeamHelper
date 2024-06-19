@@ -28,7 +28,7 @@ public static class HandleAnnouncement
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
     System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
-    var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo, regional);
+    var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo, regional: regional);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any())
     {
