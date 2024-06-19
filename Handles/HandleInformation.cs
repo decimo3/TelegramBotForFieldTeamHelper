@@ -5,7 +5,7 @@ public static class Information
 {
   async public static Task SendManuscripts(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
   {
-    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!, telefone: user.phone_number);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
