@@ -44,8 +44,10 @@ public static class Information
       {
         if (fatura == "None" || fatura == null || fatura == "") continue;
         if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao))
+        {
           await bot.ErrorReport(user.id, new Exception(verificacao), request, "ERRO: A fatura recuperada não corresponde com a solicitada!");
           return false;
+        }
       }
       foreach (string fatura in respostas)
       {
