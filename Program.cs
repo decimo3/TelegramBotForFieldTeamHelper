@@ -241,7 +241,7 @@ public class Program
           await msg.ErrorReport(user.id, new Exception(), request, "Essa aplicação não deve ser usada na sexta e no sábado!");
           break;
         }
-        if(await Information.SendDocument(msg, cfg, user, request))
+        if(!await Information.SendDocument(msg, cfg, user, request))
         {
           await msg.sendTextMesssageWraper(user.id, "Solicitando o envio do código de barras por SMS...");
           request.aplicacao = "codbarra";
