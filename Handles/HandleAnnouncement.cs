@@ -297,4 +297,27 @@ public static class HandleAnnouncement
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
     }
   }
+  public static void Faturamento(HandleMessage msg, Configuration cfg)
+  {
+    while(true)
+    {
+      try
+      {
+        System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
+        ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o subsistema do PRL está rodando...");
+        var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq prl.exe\"", true);
+        if(result.First().StartsWith("INFORMA"))
+        {
+          ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
+          Updater.Terminate("prl");
+          Temporary.executar(cfg.PRL_SCRIPT, "slower", false);
+          continue;
+        }
+      }
+      catch (System.Exception erro)
+      {
+        ConsoleWrapper.Error(Entidade.Advertiser, erro);
+      }
+    }
+  }
 }
