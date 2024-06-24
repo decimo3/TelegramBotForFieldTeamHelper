@@ -131,6 +131,7 @@ public static class Information
         await SendPicture(bot, cfg, user, request);
       break;
       case "evidencia":
+      {
         if(!cfg.OFS_MONITORAMENTO)
         {
           await bot.ErrorReport(user.id, new Exception(), request, "ERRO: O sistema monitor do OFS está desativado!");
@@ -172,6 +173,55 @@ public static class Information
         foreach(var fluxo in fluxos) fluxo.Close();
         foreach(var file in files) File.Delete(file);
         Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+      }
+      break;
+      case "fatura":
+      case "debito":
+      {
+        if(!cfg.PRL_SUBSISTEMA)
+        {
+          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: O sistema monitor do PRL está desativado!");
+          return;
+        }
+        var antes = DateTime.Now;
+        var result = String.Empty;
+        Updater.ClearTemp(cfg);
+        System.IO.File.WriteAllText(cfg.PRL_LOCKFILE, $"{request.aplicacao} {request.informacao}", System.Text.Encoding.UTF8);
+        while(true)
+        {
+          result = VerificarOFS(cfg);
+          if(!String.IsNullOrEmpty(result)) break;
+          if((DateTime.Now - antes) >= TimeSpan.FromSeconds(cfg.ESPERA)) break;
+          System.Threading.Thread.Sleep(10_000);
+        }
+        if(String.IsNullOrEmpty(result))
+        {
+          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: Não foi recebida nenhuma resposta do OFS!");
+          return;
+        }
+        var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
+        foreach (var file in files)
+        {
+          if(!PdfChecker.PdfCheck(file, request.informacao))
+          {
+            await bot.ErrorReport(user.id, new Exception(), request, "ERRO: A fatura recuperada não corresponde com a solicitada!");
+            return;
+          }
+        }
+        var fluxos = new Stream[files.Length];
+        var tasks = new List<Task>();
+        for(var i = 0; i < files.Length; i++)
+        {
+          var filename = System.IO.Path.GetFileName(files[i]);
+          fluxos[i] = System.IO.File.OpenRead(files[i]);
+          tasks.Add(bot.SendDocumentAsyncWraper(user.id, fluxos[i], filename));
+        }
+        await Task.WhenAll(tasks);
+        foreach(var fluxo in fluxos) fluxo.Close();
+        foreach(var file in files) File.Delete(file);
+        await bot.sendTextMesssageWraper(user.id, result);
+        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+      }
       break;
     }
     return;
