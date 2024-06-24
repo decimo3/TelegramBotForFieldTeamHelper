@@ -117,7 +117,9 @@ public static class Updater
     if(sistema == "sap")
       processos = new String[] {"sap.exe", "saplpd.exe", "saplogon.exe"};
     if(sistema == "ofs")
-      processos = new String[] {"chrome.exe", "chromedriver.exe", "monitoring-fieldteam.exe"};
+      processos = new String[] {"chrome.exe", "chromedriver.exe", "ofs.exe"};
+    if(sistema == "prl")
+      processos = new String[] {"chrome.exe", "chromedriver.exe", "prl.exe"};
     foreach (var process_name in processos)
     {
       if(String.IsNullOrEmpty(process_name)) continue;
