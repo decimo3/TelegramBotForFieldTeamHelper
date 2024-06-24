@@ -201,13 +201,13 @@ public static class HandleAnnouncement
     System.Threading.Thread.Sleep(tempo);
     if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
     ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
-    var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq monitoring-fieldteam.exe\"", true);
+    var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq ofs.exe\"", true);
     ConsoleWrapper.Debug(Entidade.Advertiser, String.Join(" ", result));
     if(result.First().StartsWith("INFORMA"))
     {
       ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
       Updater.Terminate("ofs");
-      Temporary.executar("monitoring-fieldteam.exe", "slower", false);
+      Temporary.executar("ofs.exe", "slower", false);
       continue;
     }
       ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
