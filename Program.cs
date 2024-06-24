@@ -26,6 +26,7 @@ public class Program
       if(cfg.SAP_BANDEIRADA) HandleAnnouncement.Vencimento(msg, cfg, "bandeirada", 7);
       if(cfg.OFS_MONITORAMENTO) HandleAnnouncement.Monitorado(msg, cfg);
       if(cfg.OFS_FINALIZACAO) HandleAnnouncement.Finalizacao(msg, cfg);
+      if(cfg.PRL_SUBSISTEMA) HandleAnnouncement.Faturamento(msg, cfg);
       Console.ReadLine();
       cts.Cancel();
     }
@@ -165,7 +166,7 @@ public class Program
         await msg.ErrorReport(user.id, new Exception(), request, "Sua solicitação expirou! Solicite novamente!");
         return;
       }
-      var resposta = telbot.Temporary.executar(cfg, "desperta", request.informacao!);
+      var resposta = telbot.Temporary.executar(cfg, "instalacao", request.informacao!);
       if(resposta == null)
       {
         await msg.ErrorReport(user.id, new IndexOutOfRangeException("Não foi recebida nenhuma resposta do SAP"), request);
