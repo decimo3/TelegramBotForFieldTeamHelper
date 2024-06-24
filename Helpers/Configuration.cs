@@ -8,6 +8,8 @@ public class Configuration
   public readonly string CURRENT_PATH = String.Empty;
   public readonly string SAP_SCRIPT = String.Empty;
   public readonly string IMG_SCRIPT = String.Empty;
+  public readonly string OFS_SCRIPT = String.Empty;
+  public readonly string PRL_SCRIPT = String.Empty;
   public readonly int DIAS_EXPIRACAO = 30;
   public readonly bool GERAR_FATURAS = true;
   public readonly bool SAP_OFFLINE = false;
@@ -18,6 +20,8 @@ public class Configuration
   public readonly int ESPERA = 60_000;
   public readonly string SAP_LOCKFILE = "sap.lock";
   public readonly string OFS_LOCKFILE = "ofs.lock";
+  public readonly string PRL_LOCKFILE = "prl.lock";
+  public readonly bool PRL_SUBSISTEMA = false;
   public readonly bool SAP_VENCIMENTO = false;
   public readonly bool SAP_BANDEIRADA = false;
   public readonly bool OFS_MONITORAMENTO = false;
@@ -63,6 +67,7 @@ public class Configuration
         case "--sap-bandeirada": SAP_BANDEIRADA = true; break;
         case "--ofs-monitorador": OFS_MONITORAMENTO = true; break;
         case "--ofs-finalizador": OFS_FINALIZACAO = true; break;
+        case "--prl-subsistema": PRL_SUBSISTEMA = true; break;
         default: Ajuda(arg); break;
       }
     }
@@ -97,6 +102,8 @@ public class Configuration
       System.IO.Directory.CreateDirectory(TEMP_FOLDER);
     SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
     IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
+    OFS_SCRIPT = "ofs.exe";
+    PRL_SCRIPT = "prl.exe";
     UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
     if(!System.IO.Directory.Exists(OFS_LOCKFILE))
       System.IO.File.Create(OFS_LOCKFILE).Close();
@@ -139,6 +146,7 @@ public class Configuration
     --ofs-monitorador      Iniciar o subsistema de monitoramento dos ofensores do IDG pelo OFS;
     --ofs-finalizador      Iniciar o subsistema de envio do relatório de análise do IDG pelo OFS;
     --sap-crossover=oeste  Permite o sistema SAP trabalhar com mais de uma regional;
+    --prl-subsistema       Permite o gerenciamento automático das janelas do subsistema do PRL;
     ";
     telbot.Helpers.ConsoleWrapper.Write(telbot.Helpers.Entidade.Chatbot, ajuda);
     System.Environment.Exit(1);
