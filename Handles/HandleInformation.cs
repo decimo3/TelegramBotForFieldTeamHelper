@@ -143,7 +143,7 @@ public static class Information
         System.IO.File.WriteAllText(cfg.OFS_LOCKFILE, $"{request.aplicacao} {request.informacao}", System.Text.Encoding.UTF8);
         while(true)
         {
-          result = VerificarOFS(cfg);
+          result = VerificarLockfile(cfg.OFS_LOCKFILE);
           if(!String.IsNullOrEmpty(result)) break;
           if((DateTime.Now - antes) >= TimeSpan.FromSeconds(cfg.ESPERA)) break;
           System.Threading.Thread.Sleep(10_000);
@@ -189,7 +189,7 @@ public static class Information
         System.IO.File.WriteAllText(cfg.PRL_LOCKFILE, $"{request.aplicacao} {request.informacao}", System.Text.Encoding.UTF8);
         while(true)
         {
-          result = VerificarOFS(cfg);
+          result = VerificarLockfile(cfg.PRL_LOCKFILE);
           if(!String.IsNullOrEmpty(result)) break;
           if((DateTime.Now - antes) >= TimeSpan.FromSeconds(cfg.ESPERA)) break;
           System.Threading.Thread.Sleep(10_000);
@@ -232,9 +232,9 @@ public static class Information
     if(respostas.First().StartsWith("ERRO")) return String.Join("\n", respostas);
     return null;
   }
-  public static String? VerificarOFS(Configuration cfg)
+  public static String? VerificarLockfile(String lockfile)
   {
-    var texto = System.IO.File.ReadAllText(cfg.OFS_LOCKFILE, System.Text.Encoding.UTF8);
+    var texto = System.IO.File.ReadAllText(lockfile, System.Text.Encoding.UTF8);
     return (texto.Length < 50) ? null : texto;
   }
 }
