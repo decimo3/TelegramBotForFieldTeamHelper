@@ -196,7 +196,7 @@ public static class Information
         }
         if(String.IsNullOrEmpty(result))
         {
-          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: Não foi recebida nenhuma resposta do OFS!");
+          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: Não foi recebida nenhuma resposta do PRL!");
           return;
         }
         var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
