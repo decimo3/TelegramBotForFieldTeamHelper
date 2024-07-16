@@ -38,20 +38,28 @@ public static class Information
       await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
       return false;
     }
+    if(!Int32.TryParse(respostas.First(), out Int32 qnt))
+    {
+      await bot.ErrorReport(user.id, new Exception(verificacao), request, "A informação da quantidade de faturas não foi recebida!");
+      return false;
+    }
+    respostas.Remove(respostas.First());
+    List<String> faturas_validas = new();
     try
     {
       foreach (string fatura in respostas)
       {
         if (fatura == "None" || fatura == null || fatura == "") continue;
-        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao))
-        {
-          await bot.ErrorReport(user.id, new Exception(verificacao), request, "ERRO: A fatura recuperada não corresponde com a solicitada!");
-          return false;
-        }
+        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao)) continue;
+        faturas_validas.Add(fatura);
       }
-      foreach (string fatura in respostas)
+      if(faturas_validas.Count != qnt)
       {
-        if (fatura == "None" || fatura == null || fatura == "") continue;
+        await bot.ErrorReport(user.id, new Exception(verificacao), request, "ERRO: A fatura recuperada não corresponde com a solicitada!");
+        return false;
+      }
+      foreach (string fatura in faturas_validas)
+      {
         await using Stream stream = System.IO.File.OpenRead($"./tmp/{fatura}");
         await bot.SendDocumentAsyncWraper(user.id, stream, fatura);
         stream.Dispose();
