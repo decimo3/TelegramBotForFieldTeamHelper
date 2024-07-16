@@ -233,8 +233,6 @@ public class Program
         if(!cfg.GERAR_FATURAS)
         {
           await msg.ErrorReport(user.id, new Exception(), request, "O sistema SAP não está gerando faturas!");
-          await msg.sendTextMesssageWraper(user.id, "Solicitando o envio do código de barras por SMS...");
-          await Information.SendManuscripts(msg, cfg, user, request);
           break;
         }
         if(request.aplicacao == "passivo" && (DateTime.Today.DayOfWeek == DayOfWeek.Friday || DateTime.Today.DayOfWeek == DayOfWeek.Saturday))
@@ -245,13 +243,10 @@ public class Program
         if(cfg.PRL_SUBSISTEMA)
         {
           await Information.SendMultiples(msg, cfg, user, request);
-          break;
         }
-        if(!await Information.SendDocument(msg, cfg, user, request))
+        else
         {
-          await msg.sendTextMesssageWraper(user.id, "Solicitando o envio do código de barras por SMS...");
-          request.aplicacao = "codbarra";
-          await Information.SendManuscripts(msg, cfg, user, request);
+          await Information.SendDocument(msg, cfg, user, request);
         }
         break;
       case TypeRequest.ofsInfo:
