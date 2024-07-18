@@ -9,6 +9,7 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <NoWarn>IDE0049</NoWarn>
+    <ApplicationIcon>appicon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +22,7 @@
     <SupportedPlatform Include="Windows" />
     <None Include="bot.conf" CopyToOutputDirectory="PreserveNewest" />
     <None Include="version" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="appicon.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
