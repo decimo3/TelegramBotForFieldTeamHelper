@@ -244,11 +244,8 @@ public static class HandleAnnouncement
   }
   public static async void Finalizacao(HandleMessage msg, Configuration cfg)
   {
-    while(true)
-    {
       try
       {
-        System.Threading.Thread.Sleep(new TimeSpan(1, 0, 0));
         var diretorio_ofs = cfg.CURRENT_PATH + @"\odl\";
         var lista_de_relatorios = System.IO.Directory.GetFiles(diretorio_ofs).Where(f => f.EndsWith(".done.csv")).ToList();
         foreach (var relatorio_filepath in lista_de_relatorios)
@@ -279,7 +276,6 @@ public static class HandleAnnouncement
       {
         ConsoleWrapper.Error(Entidade.Advertiser, erro);
       }
-    }
   }
   public static async Task Comunicado(Int64 canal, HandleMessage msg, Configuration cfg, string? text, string? image_id, string? video_id, string? doc_id)
   {
