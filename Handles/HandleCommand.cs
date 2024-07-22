@@ -145,6 +145,27 @@ public static class Command
         await bot.SendDocumentAsyncWraper(user.id, tabela_stream, $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.csv");
         tabela_stream.Close();
       break;
+      case "/cmdargs":
+      {
+        var argumentos = System.Environment.GetCommandLineArgs();
+        await bot.sendTextMesssageWraper(user.id, String.Join('\n', argumentos));
+      }
+      break;
+      case "/configs":
+      {
+        var properties = typeof(telbot.Configuration).GetFields();
+        var stringbuilder = new System.Text.StringBuilder();
+        foreach (var property in properties)
+        {
+          stringbuilder.Append(property.Name);
+          stringbuilder.Append(": ");
+          stringbuilder.Append(property.GetValue(cfg));
+          stringbuilder.Append('\n');
+            
+        }
+        await bot.sendTextMesssageWraper(user.id, stringbuilder.ToString(), markdown: false);
+      }
+      break;
     }
     }
     catch (System.Exception)
