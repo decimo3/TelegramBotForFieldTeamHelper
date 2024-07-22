@@ -193,12 +193,14 @@ public static class HandleAnnouncement
   }
   public static async void Monitorado(HandleMessage msg, Configuration cfg)
   {
+    var contador = 0;
     while(true)
     {
     try
     {
-    var tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 0, 30) : new TimeSpan(0, 1, 0);
-    System.Threading.Thread.Sleep(tempo);
+    if(contador == 0) Finalizacao(msg, cfg);
+    System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
+    contador = contador < 30 ? contador++ : contador = 0; 
     if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
     ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
     var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq ofs.exe\"", true);
