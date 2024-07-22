@@ -12,12 +12,13 @@ public class HandleMessage
   {
     this.bot = bot;
   }
-  public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true, bool exibir=true)
+  public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true, bool exibir=true, bool markdown=true)
   {
     ConsoleWrapper.Debug(Entidade.Chatbot, message);
     try
     {
-      if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: ParseMode.Markdown);
+      ParseMode? parsemode = markdown ? ParseMode.Markdown : null;
+      if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: parsemode);
       if(exibir) Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
     }
     catch (Exception erro)
