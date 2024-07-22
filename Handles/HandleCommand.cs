@@ -117,9 +117,9 @@ public static class Command
         await bot.sendTextMesssageWraper(user.id, "Sistema atualizado com sucesso!");
         break;
       case "/restart":
-        if(user.has_privilege != UsersModel.userLevel.proprietario)
+        if(user.has_privilege == UsersModel.userLevel.proprietario || user.has_privilege == UsersModel.userLevel.administrador)
         {
-          await bot.sendTextMesssageWraper(user.id, "Somente o proprietario podem usar esse comando");
+          await bot.sendTextMesssageWraper(user.id, "Somente o proprietario ou administrador podem usar esse comando!");
           break;
         }
         if(Updater.IsChangedVersionFile(cfg))
