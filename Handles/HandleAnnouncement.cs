@@ -13,7 +13,7 @@ public static class HandleAnnouncement
     var tempo = cfg.IS_DEVELOPMENT ?  new TimeSpan(0, 5, 0) : new TimeSpan(1, 0, 0);
     if(cfg.REGIONAIS.Any())
     {
-      tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 2, 30) : new TimeSpan(0, 30, 0);
+      tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 5, 0) : new TimeSpan(0, 30, 0);
       regional = cfg.REGIONAIS[contador_de_regionais];
     }
     Thread.Sleep(tempo);
