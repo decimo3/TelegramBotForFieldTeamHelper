@@ -1,4 +1,4 @@
-﻿using Telegram.Bot;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using telbot.handle;
@@ -10,11 +10,13 @@ public class Program
 {
   private TelegramBotClient bot;
   private Configuration cfg;
+  private HandleMessage msg;
   public Program(Configuration cfg)
   {
     this.cfg = cfg;
     // instantiates a new telegram bot api client with the specified token
-    bot = new TelegramBotClient(cfg.BOT_TOKEN);
+    this.bot = new TelegramBotClient(cfg.BOT_TOKEN);
+    this.msg = new HandleMessage(this.bot);
     // 
     using (var cts = new CancellationTokenSource())
     {
@@ -37,7 +39,6 @@ public class Program
     {
       ConsoleWrapper.Debug(Entidade.Usuario, System.Text.Json.JsonSerializer.Serialize<Update>(update));
     }
-    var msg = new HandleMessage(bot);
     await Recovery.ErrorSendMessageRecovery(msg);
     if (update.Type == UpdateType.Message)
     {
