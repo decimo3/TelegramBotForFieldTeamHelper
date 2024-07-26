@@ -1,4 +1,4 @@
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using telbot.handle;
@@ -29,6 +29,12 @@ public class Program
       if(cfg.OFS_MONITORAMENTO) HandleAnnouncement.Monitorado(msg, cfg);
       if(cfg.OFS_FINALIZACAO) HandleAnnouncement.Finalizacao(msg, cfg);
       if(cfg.PRL_SUBSISTEMA) HandleAnnouncement.Faturamento(msg, cfg);
+      if(cfg.BOT_ASSINCRONO)
+      {
+        HandleAsynchronous.Soiree(msg, cfg);
+        HandleAsynchronous.Cooker(msg, cfg);
+        HandleAsynchronous.Waiter(msg, cfg);
+      }
       Console.ReadLine();
       cts.Cancel();
     }
