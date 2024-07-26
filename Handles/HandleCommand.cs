@@ -32,6 +32,7 @@ public static class Command
         await bot.sendTextMesssageWraper(user.id, "*REN360* para receber a lista dos consumos dos clientes próximos e passividade para abertura de nota de recuperação;");
         await bot.sendTextMesssageWraper(user.id, "*EVIDENCIA* para receber as informações de finalização de notas no OFS");
         await bot.sendTextMesssageWraper(user.id, "*CODBARRA* para receber o código de barra das faturas por SMS");
+        await bot.sendTextMesssageWraper(user.id, "*FUGA* para receber a lista de instalações para o mesmo número de rua com seus devidos débitos");
         await bot.sendTextMesssageWraper(user.id, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
         if(!user.pode_autorizar()) break;
         await bot.sendTextMesssageWraper(user.id, "Para os comandos de gestão, digite o cargo e depois insira o número do identificador");
