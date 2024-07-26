@@ -26,6 +26,7 @@ public static class Updater
     Terminate("sap");
     Terminate("ofs");
     Console.WriteLine($"< {DateTime.Now} Manager: Aplicando atualização do sistema chatbot, por favor aguarde...");
+    DbUpdater(cfg);
     Replace(cfg);
     Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
     Restart(cfg);
@@ -84,6 +85,16 @@ public static class Updater
     var update_filepath = System.IO.Path.Combine(cfg.TEMP_FOLDER, "update.zip");
     System.IO.Compression.ZipFile.ExtractToDirectory(update_filepath, cfg.TEMP_FOLDER);
     System.IO.File.Delete(update_filepath);
+  }
+  public static void DbUpdater(Configuration cfg)
+  {
+    // TODO - avoid to execute same sql script twice
+    var filepath = System.IO.Path.Combine(cfg.TEMP_FOLDER, "update.sql");
+    if(System.IO.File.Exists(filepath))
+    {
+      Database.UpdateDatabase(File.ReadAllText(filepath));
+      System.IO.File.Delete(filepath);
+    }
   }
   public static void Replace(Configuration cfg)
   {
