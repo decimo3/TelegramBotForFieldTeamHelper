@@ -4,6 +4,7 @@ public class Configuration
 {
   public readonly string BOT_TOKEN = String.Empty;
   public readonly long ID_ADM_BOT = 0;
+  public readonly bool BOT_ASSINCRONO = false;
   public readonly bool IS_DEVELOPMENT = false;
   public readonly string CURRENT_PATH = String.Empty;
   public readonly string SAP_SCRIPT = String.Empty;
@@ -68,6 +69,7 @@ public class Configuration
         case "--ofs-monitorador": OFS_MONITORAMENTO = true; break;
         case "--ofs-finalizador": OFS_FINALIZACAO = true; break;
         case "--prl-subsistema": PRL_SUBSISTEMA = true; break;
+        case "--bot-assincrono": BOT_ASSINCRONO = true; break;
         default: Ajuda(arg); break;
       }
     }
@@ -137,10 +139,11 @@ public class Configuration
 
     Instruções de uso: telbot.exe [options]
     --em-desenvolvimento   Usado para testes na aplicação;
+    --bot-assincrono       Altera o comportamento do chatbot para solicitações assíncronas;
     --sap-offline          Sinaliza ao usuários se o sistema SAP estiver fora do ar;
     --sap-restrito         Substituí o uso do ZARC140 pelo FPL09 no sistema SAP;
     --sem-faturas          Sinalizar ao usuários se o sistema SAP não estiver enviando faturas;
-    --sap-instancia=60     Altera a instancia SAP a ser usada pelo chatbot;
+    --sap-instancia=0      Altera a instancia SAP a ser usada pelo chatbot;
     --sap-vencimento       Iniciar o subsistema de monitoramento de notas de vencimentos pelo SAP;
     --sap-bandeirada       Iniciar o subsistema de monitoramento de notas pendentes de bandeiradas pelo SAP;
     --ofs-monitorador      Iniciar o subsistema de monitoramento dos ofensores do IDG pelo OFS;
