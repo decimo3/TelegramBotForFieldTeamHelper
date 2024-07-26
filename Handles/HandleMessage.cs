@@ -8,7 +8,7 @@ public class HandleMessage
 {
   private readonly string errorMensagem = "Não foi possível responder a sua solicitação. Tente novamente!";
   private ITelegramBotClient bot;
-  public HandleMessage(ITelegramBotClient bot)
+  public HandleMessage(TelegramBotClient bot)
   {
     this.bot = bot;
   }
