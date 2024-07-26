@@ -10,7 +10,7 @@ public static class Validador
   }
   public static bool isValidAplicacao (string aplicacao)
   {
-    var regex = new Regex("^[a-z0-9]{6,16}$");
+    var regex = new Regex("^[a-z0-9]{4,16}$");
     return regex.IsMatch(aplicacao);
   }
   public static bool isValidInformacao (string informacao)
