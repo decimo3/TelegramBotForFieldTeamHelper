@@ -1,51 +1,26 @@
-﻿using Telegram.Bot;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using telbot.handle;
 using telbot.models;
 using telbot.Helpers;
-
-namespace telbot;
-public class Program
+namespace telbot.handle;
+public class HandleTelegram
 {
-  private TelegramBotClient bot;
-  private Configuration cfg;
-  private HandleMessage msg;
-  public Program(Configuration cfg)
+  private readonly TelegramBotClient bot;
+  private readonly Configuration cfg;
+  private readonly HandleMessage msg;
+  public HandleTelegram(Configuration cfg, TelegramBotClient bot, HandleMessage msg)
   {
+    this.bot = bot;
     this.cfg = cfg;
-    // instantiates a new telegram bot api client with the specified token
-    this.bot = new TelegramBotClient(cfg.BOT_TOKEN);
-    this.msg = new HandleMessage(this.bot);
-    // 
-    using (var cts = new CancellationTokenSource())
-    {
-      bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
-      Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
-      var msg = new handle.HandleMessage(bot);
-      if(cfg.IS_DEVELOPMENT == false) HandleAnnouncement.Comunicado(msg, cfg);
-      if(cfg.SAP_VENCIMENTO) HandleAnnouncement.Vencimento(msg, cfg, "vencimento", 7);
-      if(cfg.SAP_BANDEIRADA) HandleAnnouncement.Vencimento(msg, cfg, "bandeirada", 7);
-      if(cfg.OFS_MONITORAMENTO) HandleAnnouncement.Monitorado(msg, cfg);
-      if(cfg.OFS_FINALIZACAO) HandleAnnouncement.Finalizacao(msg, cfg);
-      if(cfg.PRL_SUBSISTEMA) HandleAnnouncement.Faturamento(msg, cfg);
-      if(cfg.BOT_ASSINCRONO)
-      {
-        HandleAsynchronous.Soiree(msg, cfg);
-        HandleAsynchronous.Cooker(msg, cfg);
-        HandleAsynchronous.Waiter(msg, cfg);
-      }
-      Console.ReadLine();
-      cts.Cancel();
-    }
+    this.msg = msg;
   }
-  async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
+  public async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
     if(cfg.IS_DEVELOPMENT)
     {
       ConsoleWrapper.Debug(Entidade.Usuario, System.Text.Json.JsonSerializer.Serialize<Update>(update));
     }
-    await Recovery.ErrorSendMessageRecovery(msg);
     if (update.Type == UpdateType.Message)
     {
       if (update.Message!.Type == MessageType.Contact && update.Message.Contact != null)
@@ -70,7 +45,7 @@ public class Program
     return;
   }
   #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-  async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
+  public async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
     ConsoleWrapper.Error(Entidade.Manager, exception);
     return;
