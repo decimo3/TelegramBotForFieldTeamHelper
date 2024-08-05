@@ -7,11 +7,21 @@ public static class Recovery
     Database.InserirPerdido(report);
     ConsoleWrapper.Error(Entidade.Recovery, new Exception($"Não foi possível enviar a mensagem {report.mensagem} ao usuario"));
   }
-  public async static Task ErrorSendMessageRecovery(HandleMessage msg)
+  public async static void ErrorSendMessageRecovery(HandleMessage msg)
   {
-    var tasks = new List<Task>();
+    while (true)
+    {
+    try
+    {
+    System.Threading.Thread.Sleep(60_000);
+    ConsoleWrapper.Debug(Entidade.Recovery, "Verificando se há mensagens perdidas...");
     var perdidos = Database.RecuperarPerdido();
-    if(!perdidos.Any()) return;
+    if(!perdidos.Any())
+    {
+      ConsoleWrapper.Debug(Entidade.Recovery, "Não foram encontradas mensagens perdidas!");
+      return;
+    }
+    var tasks = new List<Task>();
     foreach (var perdido in perdidos)
     {
       if(perdido.binario.Length == 0)
@@ -47,5 +57,11 @@ public static class Recovery
     }
     await Task.WhenAll(tasks);
     Database.ExcluirPerdidos();
+    }
+    catch (System.Exception erro)
+    {
+      ConsoleWrapper.Error(Entidade.Recovery, erro);
+    }
+    }
   }
 }
