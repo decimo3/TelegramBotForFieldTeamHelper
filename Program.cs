@@ -100,11 +100,6 @@ public class Program
     //       Verifica se o usuário possui telefone      //
     //     cadastrado, se não, ele solicita o cadastro  //
     //##################################################//
-    if(user.phone_number == 0)
-    {
-      await msg.RequestContact(update.Message.From.Id);
-      return;
-    }
     if (update.Message.Type == MessageType.Contact)
     {
       if(update.Message.Contact == null)
@@ -114,6 +109,11 @@ public class Program
       }
       Database.inserirTelefone(update.Message.From!.Id, Int64.Parse(update.Message.Contact.PhoneNumber));
       await msg.RemoveRequest(update.Message.From.Id, update.Message.Contact.PhoneNumber);
+      return;
+    }
+    if(user.phone_number == 0)
+    {
+      await msg.RequestContact(update.Message.From.Id);
       return;
     }
     //##################################################//
