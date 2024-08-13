@@ -31,7 +31,6 @@ class Startup
     Database.configurarBanco(config);
     if(System.IO.File.Exists($"{config.CURRENT_PATH}\\{config.SAP_LOCKFILE}"))
       System.IO.File.Delete($"{config.CURRENT_PATH}\\{config.SAP_LOCKFILE}");
-    var program = new Program(config);
     var bot = new TelegramBotClient(config.BOT_TOKEN);
     var msg = new HandleMessage(bot);
     var tel = new HandleTelegram(config, bot, msg);
