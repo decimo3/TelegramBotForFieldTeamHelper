@@ -10,7 +10,7 @@ public static class Validador
   }
   public static bool isValidAplicacao (string aplicacao)
   {
-    var regex = new Regex("^[a-z0-9]{6,16}$");
+    var regex = new Regex("^[a-z0-9]{4,16}$");
     return regex.IsMatch(aplicacao);
   }
   public static bool isValidInformacao (string informacao)
@@ -51,6 +51,8 @@ public static class Validador
     if(aplicacao == "vencimento") return TypeRequest.xlsInfo;
     if(aplicacao == "evidencia") return TypeRequest.ofsInfo;
     if(aplicacao == "codbarra") return TypeRequest.txtInfo;
+    if(aplicacao == "fuga") return TypeRequest.picInfo;
+    if(aplicacao == "zona") return TypeRequest.picInfo;
     return null;
   }
   public static bool? orderOperandos (string info1, string info2)

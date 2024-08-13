@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using telbot.handle;
 using telbot.models;
+using dotenv.net;
 using telbot.Helpers;
 namespace telbot;
 class Startup
@@ -14,6 +15,15 @@ class Startup
     Console.WriteLine("# Author: decimo3 (github.com/decimo3)      #");
     Console.WriteLine("# Repository: TelegramBotForFieldTeamHelper #");
     Console.WriteLine("#############################################");
+    var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq telbot.exe\"", true);
+    if(result.Where(r => r.Contains("telbot.exe")).ToList().Count > 1)
+    {
+      var twice = "Já tem uma instância do chatbot rodando!";
+      ConsoleWrapper.Error(Entidade.Manager, new Exception(twice));
+      ConsoleWrapper.Write(Entidade.Manager, "Aperte qualquer tecla para sair.");
+      Console.ReadKey();
+      System.Environment.Exit(1);
+    }
     var config = new Configuration(args);
     if(System.IO.File.Exists($"{config.CURRENT_PATH}\\telbot.exe.old"))
       System.IO.File.Delete($"{config.CURRENT_PATH}\\telbot.exe.old");
