@@ -89,12 +89,12 @@ public static class Updater
   public static void DbUpdater(Configuration cfg)
   {
     // TODO - avoid to execute same sql script twice
-    var filepath = System.IO.Path.Combine(cfg.TEMP_FOLDER, "update.sql");
-    if(System.IO.File.Exists(filepath))
-    {
-      Database.UpdateDatabase(File.ReadAllText(filepath));
-      System.IO.File.Delete(filepath);
-    }
+    // var filepath = System.IO.Path.Combine(cfg.TEMP_FOLDER, "update.sql");
+    // if(System.IO.File.Exists(filepath))
+    // {
+    //   Database.UpdateDatabase(File.ReadAllText(filepath));
+    //   System.IO.File.Delete(filepath);
+    // }
   }
   public static void Replace(Configuration cfg)
   {
