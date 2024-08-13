@@ -245,4 +245,18 @@ public static class Information
     var texto = System.IO.File.ReadAllText(lockfile, System.Text.Encoding.UTF8);
     return (texto.Length < 50) ? null : texto;
   }
+  async public static Task GetZoneInfo(HandleMessage bot, Int64 id, Double latitude, Double longitude, DateTime received_at)
+  {
+    var argumento = $"{latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)} {longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+    var respostas = telbot.Temporary.executar("gps.exe", argumento, true);
+    var verificacao = VerificarSAP(respostas);
+    if(verificacao != null)
+    {
+      await bot.ErrorReport(id, new Exception(verificacao), null, verificacao);
+      return;
+    }
+    await bot.sendTextMesssageWraper(id, String.Join("\n", respostas));
+    Database.inserirRelatorio(new logsModel(id, "zona", 0, true, received_at));
+    return;
+  }
 }
