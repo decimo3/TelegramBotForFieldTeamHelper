@@ -153,9 +153,9 @@ public class Program
         (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
         (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
       ));
-      var has_jpg = message.Photo != null ? message.Photo.First().FileId : null;
-      var has_mp4 = message.Video != null ? message.Video.FileId : null;
-      var has_doc = message.Document != null ? message.Document.FileId : null;
+      var has_jpg = update.Message.Photo != null ? update.Message.Photo.First().FileId : null;
+      var has_mp4 = update.Message.Video != null ? update.Message.Video.FileId : null;
+      var has_doc = update.Message.Document != null ? update.Message.Document.FileId : null;
       await HandleAnnouncement.Comunicado(usuarios, msg, cfg, user.id, mensagem, has_jpg, has_mp4, has_doc);
       await msg.sendTextMesssageWraper(user.id, "Comunicado enviado com sucesso!");
       return;
@@ -215,7 +215,7 @@ public class Program
     }
     if(cfg.SAP_OFFLINE)
     {
-      if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando && request.tipo != TypeRequest.ofsInfo && request.tipo != TypeRequest.znaInfo)
+      if(request.tipo != TypeRequest.gestao && request.tipo != TypeRequest.comando && request.tipo != TypeRequest.ofsInfo)
       {
         var messagem = "O ChatBOT não está funcionando no momento devido ao sistema SAP estar fora do ar.\n\nO BOT não tem como funcionar sem o SAP.";
         await msg.sendTextMesssageWraper(update.Message.From.Id, messagem);
@@ -242,33 +242,33 @@ public class Program
         if(System.DateTime.Compare(knockout, request.received_at) > 0)
         {
           await msg.ErrorReport(user.id, new Exception(), request, "Sua solicitação expirou! Solicite novamente!");
-          System.IO.File.Remove(cfg.SAP_LOCKFILE);
+          System.IO.File.Delete(cfg.SAP_LOCKFILE);
           return;
         }
         var resposta = telbot.Temporary.executar(cfg, "instalacao", request.informacao!);
         if(resposta == null)
         {
           await msg.ErrorReport(user.id, new IndexOutOfRangeException("Não foi recebida nenhuma resposta do SAP"), request);
-          System.IO.File.Remove(cfg.SAP_LOCKFILE);
+          System.IO.File.Delete(cfg.SAP_LOCKFILE);
           return;
         }
         if(!resposta.Any())
         {
           await msg.ErrorReport(user.id, new IndexOutOfRangeException("Não foi recebida nenhuma resposta do SAP"), request);
-          System.IO.File.Remove(cfg.SAP_LOCKFILE);
+          System.IO.File.Delete(cfg.SAP_LOCKFILE);
           return;
         }
         if(resposta.First().StartsWith("ERRO"))
         {
           await msg.ErrorReport(user.id, new Exception(), request, String.Join('\n', resposta));
-          System.IO.File.Remove(cfg.SAP_LOCKFILE);
+          System.IO.File.Delete(cfg.SAP_LOCKFILE);
           return;
         }
         request.informacao = Int64.Parse(resposta.First());
         if(Database.verificarRelatorio(request, user.id))
         {
           await msg.sendTextMesssageWraper(user.id, "Essa solicitação já foi respondida! Verifique a resposta enviada e se necessário solicite esclarecimentos para a monitora.");
-          System.IO.File.Remove(cfg.SAP_LOCKFILE);
+          System.IO.File.Delete(cfg.SAP_LOCKFILE);
           return;
         }
       }
@@ -336,14 +336,14 @@ public class Program
         await Information.SendMultiples(msg, cfg, user, request);
       break;
     }
-    System.IO.File.Remove(cfg.SAP_LOCKFILE);
+    System.IO.File.Delete(cfg.SAP_LOCKFILE);
     return;
   }
   #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
   async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
     ConsoleWrapper.Error(Entidade.Manager, exception);
-    if(System.IO.File.Exists(cfg.SAP_LOCKFILE)) System.IO.File.Remove(cfg.SAP_LOCKFILE);
+    if(System.IO.File.Exists(cfg.SAP_LOCKFILE)) System.IO.File.Delete(cfg.SAP_LOCKFILE);
     return;
   }
   #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
