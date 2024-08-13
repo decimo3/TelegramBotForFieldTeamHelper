@@ -155,11 +155,11 @@ public class HandleMessage
       return String.Empty;
     }
   }
-  public async Task SendVideoAsyncWraper(long id, string media_id)
+  public async Task SendVideoAsyncWraper(long id, string media_id, string? legenda = null)
   {
     try
     {
-      await bot.SendVideoAsync(id, video: media_id);
+      await bot.SendVideoAsync(id, video: media_id, caption: legenda);
     }
     catch (Exception erro)
     {
@@ -170,11 +170,11 @@ public class HandleMessage
       });
     }
   }
-  public async Task SendPhotoAsyncWraper(long id, string media_id)
+  public async Task SendPhotoAsyncWraper(long id, string media_id, string? legenda = null)
   {
     try
     {
-      await bot.SendPhotoAsync(id, photo: media_id);
+      await bot.SendPhotoAsync(id, photo: media_id, caption: legenda);
     }
     catch (Exception erro)
     {
@@ -185,11 +185,11 @@ public class HandleMessage
       });
     }
   }
-  public async Task SendDocumentAsyncWraper(long id, string media_id)
+  public async Task SendDocumentAsyncWraper(long id, string media_id, string? legenda = null)
   {
     try
     {
-      await bot.SendDocumentAsync(id, document: media_id);
+      await bot.SendDocumentAsync(id, document: media_id, caption: legenda);
     }
     catch (Exception erro)
     {
