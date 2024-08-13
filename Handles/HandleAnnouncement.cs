@@ -175,14 +175,15 @@ public static class HandleAnnouncement
     try
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado para todos - Comunicado");
+    var has_media = String.IsNullOrEmpty(image_id) || String.IsNullOrEmpty(video_id) || String.IsNullOrEmpty(doc_id);
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
       if(usuario.id == myself) continue;
-      if(text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.id, text, true, false));
-      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, image_id));
-      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id));
-      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, doc_id));
+      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, image_id, text));
+      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id, text));
+      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, doc_id, text));
+      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.id, text, true, false));
     }
     await Task.WhenAll(tasks);
     }
@@ -281,10 +282,11 @@ public static class HandleAnnouncement
     try
     {
       var tasks = new List<Task>();
-      if(text != null) tasks.Add(msg.sendTextMesssageWraper(canal, text, true, false));
-      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(canal, image_id));
-      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(canal, video_id));
-      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(canal, doc_id));
+      var has_media = String.IsNullOrEmpty(image_id) || String.IsNullOrEmpty(video_id) || String.IsNullOrEmpty(doc_id);
+      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(canal, image_id, text));
+      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(canal, video_id, text));
+      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(canal, doc_id, text));
+      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(canal, text, true, false));
       await Task.WhenAll(tasks);
     }
     catch (System.Exception erro)
