@@ -18,7 +18,6 @@ public class HandleTelegram
   public async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
     var msg = new HandleMessage(bot);
-    await Recovery.ErrorSendMessageRecovery(msg);
     var msg2json = System.Text.Json.JsonSerializer.Serialize<Update>(update);
     if(cfg.IS_DEVELOPMENT)
     {
@@ -324,7 +323,7 @@ public class HandleTelegram
     return;
   }
   #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-  async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
+  public async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
     ConsoleWrapper.Error(Entidade.Manager, exception);
     if(System.IO.File.Exists(cfg.SAP_LOCKFILE)) System.IO.File.Delete(cfg.SAP_LOCKFILE);
