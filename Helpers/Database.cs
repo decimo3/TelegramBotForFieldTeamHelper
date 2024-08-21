@@ -70,96 +70,27 @@ public class Database : IDatabase
     }
   }
 
-  public static void inserirUsuario(UsersModel user_model)
+  public void InserirUsuario(UsersModel user_model)
   {
     using(var connection = new SQLiteConnection(connectionString))
     {
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = @$"INSERT INTO usersModel(id, create_at, update_at, has_privilege, inserted_by)
-        VALUES ({user_model.id}, '{user_model.create_at.ToString("u")}', '{user_model.update_at.ToString("u")}', {(int)user_model.has_privilege}, {user_model.inserted_by})";
+        command.CommandText = "INSERT INTO usuarios" + 
+          "(identifier, create_at, update_at, privilege, inserted_by, phone_number)" +
+          "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6)";
+        command.Parameters.Add(new SQLiteParameter("@valor1", user_model.identifier));
+        command.Parameters.Add(new SQLiteParameter("@valor2", user_model.create_at.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor4", (int)user_model.privilege));
+        command.Parameters.Add(new SQLiteParameter("@valor5", user_model.inserted_by));
+        command.Parameters.Add(new SQLiteParameter("@valor6", user_model.phone_number));
         command.ExecuteNonQuery();
       }
     }
   }
-  public static void inserirRelatorio(logsModel log)
-  {
-    using(var connection = new SQLiteConnection(connectionString))
-    {
-      connection.Open();
-      using(var command = connection.CreateCommand())
-      {
-        command.CommandText = @$"INSERT INTO logsModel(id, aplicacao, informacao, create_at, is_sucess, received_at)
-        VALUES ({log.id}, '{log.solicitacao}', {log.informacao}, '{log.create_at.ToString("u")}', {log.is_sucess}, '{log.received_at.ToString("u")}')";
-        command.ExecuteNonQuery();
-      }
-    }
-  }
-  public static bool promoverUsuario(long id, long inserted_by, UsersModel.userLevel has_privilege)
-  {
-    try
-    {
-      recuperarUsuario(id);
-      using(var connection = new SQLiteConnection(connectionString))
-      {
-        connection.Open();
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = @$"UPDATE usersModel SET has_privilege = {(int)has_privilege}, inserted_by = {inserted_by}, update_at = '{DateTime.Now.ToString("u")}' WHERE id = {id}";
-          command.ExecuteNonQuery();
-        }
-      }
-      return true;
-    }
-    catch
-    {
-      return false;
-    }
-  }
-  public static bool inserirTelefone(long id, long phone)
-  {
-    try
-    {
-      if(recuperarUsuario(id) is null) return false;
-      using(var connection = new SQLiteConnection(connectionString))
-      {
-        connection.Open();
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = @$"UPDATE usersModel SET phone_number = {phone}, update_at = '{DateTime.Now.ToString("u")}' WHERE id = {id}";
-          command.ExecuteNonQuery();
-        }
-      }
-      return true;
-    }
-    catch
-    {
-      return false;
-    }
-  }
-  public static bool atualizarUsuario(long id, long inserted_by)
-  {
-    try
-    {
-      if(recuperarUsuario(id) is null) return false;
-      using(var connection = new SQLiteConnection(connectionString))
-      {
-        connection.Open();
-        using(var command = connection.CreateCommand())
-        {
-          command.CommandText = @$"UPDATE usersModel SET inserted_by = {inserted_by}, update_at = '{DateTime.Now.ToString("u")}' WHERE id = {id}";
-          command.ExecuteNonQuery();
-        }
-      }
-      return true;
-    }
-    catch
-    {
-      return false;
-    }
-  }
-  public static List<UsersModel> recuperarUsuario(Expression<Func<UsersModel, bool>> expression = null) 
+  public List<UsersModel> RecuperarUsuario(Expression<Func<UsersModel, bool>>? expression = null) 
   {
     var usuarios = new List<UsersModel>();
     using (var connection = new SQLiteConnection(connectionString))
@@ -167,165 +98,143 @@ public class Database : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = @$"SELECT id, create_at, update_at, has_privilege, inserted_by, phone_number FROM usersModel";
+        command.CommandText = "SELECT rowid, identifier, create_at, update_at, privilege, inserted_by, phone_number FROM usuarios";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return usuarios;
           while(dataReader.Read())
           {
-            usuarios.Add(new UsersModel() {
-              id = dataReader.GetInt64(0),
-              create_at = dataReader.GetDateTime(1),
-              update_at = dataReader.GetDateTime(2),
-              has_privilege = (UsersModel.userLevel)dataReader.GetInt32(3),
-              inserted_by = dataReader.GetInt64(4),
-              phone_number = dataReader.GetInt64(5)
-            });
+            var usuario = new UsersModel();
+            usuario.rowid = Convert.ToInt64(dataReader["rowid"]);
+            usuario.identifier = Convert.ToInt64(dataReader["identifier"]);
+            usuario.create_at = (DateTime)dataReader["create_at"];
+            usuario.update_at = (DateTime)dataReader["update_at"];
+            usuario.privilege = (UsersModel.userLevel)dataReader["privilege"];
+            usuario.inserted_by = Convert.ToInt64(dataReader["inserted_by"]);
+            usuario.phone_number = Convert.ToInt64(dataReader["phone_number"]);
+            usuarios.Add(usuario);
           }
-          if (expression == null) return usuarios;
-          return usuarios.AsQueryable().Where(expression).ToList();
+          return (expression == null) ? usuarios : usuarios.AsQueryable().Where(expression).ToList();
         }
       }
     }
   }
-  public static bool verificarRelatorio(models.Request request, long id)
+  public UsersModel? RecuperarUsuario(Int64 identifier)
   {
-    using var connection = new SQLiteConnection(connectionString);
-    connection.Open();
-    using var command = connection.CreateCommand();
-    command.CommandText = @$"SELECT COUNT(*) FROM logsmodel WHERE aplicacao = '{request.aplicacao}' AND informacao = '{request.informacao}' AND id = '{id}' AND DATE(create_at) = '{DateTime.Now.ToString("yyyy-MM-dd")}' AND is_sucess = 1;";
-    using var dataReader = command.ExecuteReader();
-    if (!dataReader.HasRows) return false;
-    else dataReader.Read();
-    return dataReader.GetInt32(0) > 0;
+    return RecuperarUsuario(u => u.identifier == identifier).SingleOrDefault();
   }
-  public static void InserirPerdido(long id, string mensagem)
+  public void AlterarUsuario(UsersModel user_model)
   {
     using(var connection = new SQLiteConnection(connectionString))
     {
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = @$"INSERT INTO errorReport (identificador, mensagem) VALUES ('{id}', '{mensagem}');";
+        command.CommandText = "UPDATE usuarios SET " + 
+          "phone_number = @valor1, privilege = @valor2, update_at = @valor3, " +
+          "inserted_by = @valor4 WHERE rowid = @valor5";
+        command.Parameters.Add(new SQLiteParameter("@valor1", user_model.phone_number));
+        command.Parameters.Add(new SQLiteParameter("@valor2", (int)user_model.privilege));
+        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor4", user_model.inserted_by));
+        command.Parameters.Add(new SQLiteParameter("@valor5", user_model.rowid));
         command.ExecuteNonQuery();
       }
     }
   }
-  public static void InserirPerdido(errorReport report)
-  {
-    byte[] bytes = Array.Empty<byte>();
-    if(report.binario != null) 
-    {
-      var memoryStream = new MemoryStream();
-      report.binario.CopyTo(memoryStream);
-      bytes = memoryStream.ToArray();
-    }
-    using (var connection = new SQLiteConnection(connectionString))
-    {
-      connection.Open();
-      using (var command = connection.CreateCommand())
-      {
-        command.CommandText = $"INSERT INTO errorReport (identificador, mensagem, binario) VALUES (@id, @message, @data);";
-        command.Parameters.AddWithValue("@id", report.identificador);
-        command.Parameters.AddWithValue("@message", report.mensagem);
-        command.Parameters.AddWithValue("@data", bytes);
-        command.ExecuteNonQuery();
-      }
-    }
-  }
-  public static List<errorReport> RecuperarPerdido()
-  {
-    var errorReportList = new List<errorReport>();
-    using (var connection = new SQLiteConnection(connectionString))
-    {
-      connection.Open();
-      using (var command = connection.CreateCommand())
-      {
-        command.CommandText = $"SELECT identificador, mensagem, binario FROM errorReport;";
-        using (var reader = command.ExecuteReader())
-        {
-          if(!reader.HasRows) return errorReportList;
-          while(reader.Read())
-          {
-            var report = new errorReport();
-            report.identificador = reader.GetInt64(0);
-            report.mensagem = (reader["mensagem"] is DBNull) ? String.Empty : reader.GetString(1);
-            if(reader["binario"] is DBNull) report.binario = Stream.Null;
-            else
-            {
-              byte[] bytes = (byte[])reader["binario"];
-              using (MemoryStream memstream = new MemoryStream(bytes))
-              {
-                memstream.CopyTo(report.binario);
-              }
-            }
-            errorReportList.Add(report);
-          }
-        }
-      }
-    }
-    return errorReportList;
-  }
-  public static void ExcluirPerdidos()
-  {
-    using (var connection = new SQLiteConnection(connectionString))
-    {
-      connection.Open();
-      using (var command = connection.CreateCommand())
-      {
-        command.CommandText = $"DELETE FROM errorReport;";
-        command.ExecuteNonQuery();
-      }
-    }
-  }
-  public static void alterarUsuario(UsersModel user, long inserted_by)
+
+  public void InserirSolicitacao(logsModel request)
   {
     using(var connection = new SQLiteConnection(connectionString))
     {
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = @$"UPDATE usersModel SET
-        update_at = '{DateTime.Now.ToString("u")}',
-        has_privilege = '{(int)user.has_privilege}',
-        inserted_by = '{inserted_by}'
-        WHERE id = '{user.id}'";
+        command.CommandText = "INSERT INTO solicitacoes " +
+        "(identifier, application, information, received_at) " +
+        "VALUES (@valor1, @valor2, @valor3, @valor4)";
+        command.Parameters.Add(new SQLiteParameter("@valor1", request.identifier));
+        command.Parameters.Add(new SQLiteParameter("@valor2", request.application));
+        command.Parameters.Add(new SQLiteParameter("@valor3", request.information));
+        command.Parameters.Add(new SQLiteParameter("@valor4", request.received_at.ToLocalTime().ToString("u")));
         command.ExecuteNonQuery();
       }
     }
   }
-  public static List<logsModel> RecuperarLogs()
+  public List<logsModel> RecuperarSolicitacao(Expression<Func<logsModel, bool>>? expression = null)
   {
-    var logs = new List<logsModel>();
+    var solicitacoes = new List<logsModel>();
     using (var connection = new SQLiteConnection(connectionString))
     {
       connection.Open();
-      using (var command = connection.CreateCommand())
+      using(var command = connection.CreateCommand())
       {
-        command.CommandText = $"SELECT id, aplicacao, informacao, create_at, received_at, is_sucess FROM logsmodel";
-        using (var reader = command.ExecuteReader())
+        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status FROM usuarios";
+        using(var dataReader = command.ExecuteReader())
         {
-          if(!reader.HasRows) return logs;
-          while(reader.Read())
+          if(!dataReader.HasRows) return solicitacoes;
+          while(dataReader.Read())
           {
-            var identificador = (reader["id"] == DBNull.Value) ? 0 : reader["id"];
-            var aplicacao = (reader["aplicacao"] == DBNull.Value) ? String.Empty : reader["aplicacao"];
-            var informacao = (reader["informacao"] == DBNull.Value) ? 0 : reader["informacao"];
-            var create_at = (reader["create_at"] == DBNull.Value) ? DateTime.MinValue : reader["create_at"];
-            var received_at = (reader["received_at"] == DBNull.Value) ? DateTime.MinValue : reader["received_at"];
-            var is_sucess = (reader["is_sucess"] == DBNull.Value) ? false : reader["is_sucess"];
-            logs.Add(new logsModel(
-              Convert.ToInt64(identificador),
-              Convert.ToString(aplicacao),
-              Convert.ToInt64(informacao),
-              Convert.ToBoolean(is_sucess),
-              Convert.ToDateTime(received_at),
-              Convert.ToDateTime(create_at)
-            ));
+            var solicitacao = new logsModel();
+            solicitacao.rowid = Convert.ToInt64(dataReader["rowid"]);
+            solicitacao.identifier = Convert.ToInt64(dataReader["id"]);
+            solicitacao.application = (String)dataReader["application"];
+            solicitacao.information = Convert.ToInt64(dataReader["informacao"]);
+            solicitacao.received_at = (DateTime)dataReader["received_at"];
+            solicitacao.response_at = (DateTime)dataReader["response_at"];
+            solicitacao.instance = (Int32)dataReader["instance"];
+            solicitacao.status = (Int32)dataReader["status"];
+            solicitacoes.Add(solicitacao);
           }
+          return (expression == null) ? solicitacoes : solicitacoes.AsQueryable().Where(expression).ToList();
         }
       }
     }
-    return logs;
+  }
+  public logsModel? RecuperarSolicitacao(Int64 identifier)
+  {
+    return RecuperarSolicitacao(s => s.rowid == identifier).SingleOrDefault();
+  }
+  public void AlterarSolicitacao(logsModel request)
+  {
+    using(var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = "UPDATE solicitacoes SET " + 
+          "response_at = @valor1, instance = @valor2, status = @valor3 " +
+          "WHERE rowid = @valor4";
+        command.Parameters.Add(new SQLiteParameter("@valor1", request.response_at.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor2", request.instance));
+        command.Parameters.Add(new SQLiteParameter("@valor3", request.status));
+        command.Parameters.Add(new SQLiteParameter("@valor4", request.rowid));
+        command.ExecuteNonQuery();
+      }
+    }
+  }
+
+  public void Dispose()
+  {
+    Dispose(true);
+    GC.SuppressFinalize(this);
+  }
+  protected virtual void Dispose(bool disposing)
+  {
+    if (!_disposed)
+    {
+      if (disposing)
+      {
+        // Dispose managed resources here.
+      }
+      // Dispose unmanaged resources here.
+      _disposed = true;
+      _instance = null; // Clear the singleton instance
+    }
+  }
+  ~Database()
+  {
+    // Finalizer (optional)
+    Dispose(false);
   }
 }
