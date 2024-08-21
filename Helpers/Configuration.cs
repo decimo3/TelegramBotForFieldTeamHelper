@@ -31,7 +31,6 @@ public class Configuration
   public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
   public readonly List<String> REGIONAIS = new();
-  public readonly Dictionary<String, Int64> BOT_CHANNELS = new();
   public readonly Dictionary<String, String> CONFIGURACAO = new();
   private static Configuration _instance;
   private static readonly Object _lock = new object();
@@ -127,14 +126,6 @@ public class Configuration
     UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
     if(!System.IO.Directory.Exists(OFS_LOCKFILE))
       System.IO.File.Create(OFS_LOCKFILE).Close();
-
-    this.CONFIGURACAO = ArquivoConfiguracao("bot.conf");
-    foreach(var channel in this.CONFIGURACAO["BOT_CHANNEL"].Split(",").ToList())
-    {
-      var channel_args = channel.Split('|');
-      if(channel_args.Length != 2) continue;
-      this.BOT_CHANNELS.Add(channel_args.First(), Int64.Parse(channel_args.Last()));
-    }
 
   }
   public Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
