@@ -24,10 +24,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = userId,
-        mensagem = message
-      });
     }
   }
   public async Task<string> SendDocumentAsyncWraper(long id, Stream stream, string filename)
@@ -42,10 +38,6 @@ public class HandleMessage
     {
       stream.Position = 0;
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = errorMensagem
-      });
       return String.Empty;
     }
   }
@@ -62,10 +54,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = errorMensagem
-      });
     }
   }
   public async Task ErrorReport(long id, Exception error, telbot.models.Request? request=null, string? SAPerrorMessage=null)
@@ -88,11 +76,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      stream.Position = 0;
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = errorMensagem
-      });
       return String.Empty;
     }
   }
@@ -110,9 +93,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id
-      });
     }
     return;
   }
@@ -128,11 +108,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      if(!tel.StartsWith('+')) tel = '+' + tel;
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = tel
-      });
     }
     return;
   }
@@ -148,10 +123,6 @@ public class HandleMessage
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
       stream.Position = 0;
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = errorMensagem
-      });
       return String.Empty;
     }
   }
@@ -164,10 +135,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = errorMensagem
-      });
     }
   }
   public async Task SendPhotoAsyncWraper(long id, string media_id, string? legenda = null)
@@ -179,10 +146,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = errorMensagem
-      });
     }
   }
   public async Task SendDocumentAsyncWraper(long id, string media_id, string? legenda = null)
@@ -194,10 +157,6 @@ public class HandleMessage
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Messenger, erro);
-      Recovery.ErrorSendMessageReport(new errorReport(){
-        identificador = id,
-        mensagem = errorMensagem
-      });
     }
   }
 }
