@@ -33,10 +33,28 @@ public class Configuration
   public readonly List<String> REGIONAIS = new();
   public readonly Dictionary<String, Int64> BOT_CHANNELS = new();
   public readonly Dictionary<String, String> CONFIGURACAO = new();
-  public Configuration(string[] args)
+  private static Configuration _instance;
+  private static readonly Object _lock = new object();
+  public static Configuration GetInstance(string[]? args = null)
+  {
+    lock (_lock)
+    {
+      if (_instance == null)
+      {
+        if (args == null)
+        {
+          throw new InvalidOperationException("Configuration must be instantiated with a valid string array.");
+        }
+        _instance = new Configuration(args);
+      }
+      return _instance;
+    }
+  }
+  private Configuration(string[] args)
   {
     foreach (var arg in args)
     {
+      if(System.IO.File.Exists(arg)) continue;
       if(arg.StartsWith("--sap-instancia"))
       {
         if(Int32.TryParse(arg.Split("=")[1], out int instancia)) INSTANCIA = instancia;
