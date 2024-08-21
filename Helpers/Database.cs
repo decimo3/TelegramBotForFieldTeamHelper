@@ -35,64 +35,41 @@ public class Database : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = @$"CREATE TABLE IF NOT EXISTS usersModel(
-            id INT PRIMARY KEY,
+        command.CommandText = @$"CREATE TABLE IF NOT EXISTS usuarios(
+            identifier INT PRIMARY KEY,
             create_at DATETIME NOT NULL,
             update_at DATETIME NOT NULL,
-            has_privilege INT NOT NULL DEFAULT 0,
-            inserted_by INT NOT NULL,
+            privilege INT DEFAULT 0,
+            inserted_by INT DEFAULT 0,
             phone_number INT DEFAULT 0
             )";
         command.ExecuteNonQuery();
-        command.CommandText = @$"CREATE TABLE IF NOT EXISTS logsModel(
-            id INT NOT NULL,
-            aplicacao VARCHAR(16) NOT NULL,
-            informacao INT NOT NULL,
-            create_at DATETIME NOT NULL,
+        command.CommandText = @$"CREATE TABLE IF NOT EXISTS solicitacoes(
+            identifier INT NOT NULL,
+            application VARCHAR(16) NOT NULL,
+            information INT NOT NULL,
             received_at DATETIME NOT NULL,
-            is_sucess BOOLEAN NOT NULL DEFAULT TRUE
-            )";
-        command.ExecuteNonQuery();
-        if(recuperarUsuario(cfg.ID_ADM_BOT) is null)
-        {
-          command.CommandText = @$"INSERT INTO usersModel(id, create_at, update_at, has_privilege, inserted_by, phone_number)
-          VALUES ({cfg.ID_ADM_BOT}, '{DateTime.Now.ToString("u")}', '{DateTime.Now.ToString("u")}', '{(int)UsersModel.userLevel.proprietario}', {cfg.ID_ADM_BOT}, 0);";
-          command.ExecuteNonQuery();
-        }
-        command.CommandText = @$"CREATE TABLE IF NOT EXISTS errorReport(
-            identificador INT NOT NULL,
-            mensagem TEXT,
-            binario BLOB
+            response_at DATETIME DEFAULT NULL,
+            status INT DEFAULT NULL,
+            instance INT DEFAULT NULL
             )";
         command.ExecuteNonQuery();
       }
-      connection.Close();
     }
-  }
-  public static UsersModel? recuperarUsuario(long id)
-  {
-    using(var connection = new SQLiteConnection(connectionString))
+    if(RecuperarUsuario(cfg.ID_ADM_BOT) is null)
     {
-      connection.Open();
-      using(var command = connection.CreateCommand())
-      {
-        command.CommandText = @$"SELECT id, create_at, update_at, has_privilege, inserted_by, phone_number FROM usersModel WHERE id = {id}";
-        using(var dataReader = command.ExecuteReader())
-        {
-          if(!dataReader.HasRows) return null;
-          dataReader.Read();
-          return new UsersModel() {
-            id = dataReader.GetInt64(0),
-            create_at = dataReader.GetDateTime(1),
-            update_at = dataReader.GetDateTime(2),
-            has_privilege = (UsersModel.userLevel)dataReader.GetInt32(3),
-            inserted_by = dataReader.GetInt64(4),
-            phone_number = dataReader.GetInt64(5)
-          };
-        }
-      }
+      var proprietario = new UsersModel() {
+        identifier = cfg.ID_ADM_BOT,
+        create_at = DateTime.Now,
+        update_at = DateTime.Now,
+        privilege = UsersModel.userLevel.proprietario,
+        inserted_by = cfg.ID_ADM_BOT,
+        phone_number = 0
+      };
+      InserirUsuario(proprietario);
     }
   }
+
   public static void inserirUsuario(UsersModel user_model)
   {
     using(var connection = new SQLiteConnection(connectionString))
