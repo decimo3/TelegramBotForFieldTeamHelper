@@ -178,90 +178,30 @@ public static class HandleAnnouncement
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
     }
   }
-  public static async void Monitorado(HandleMessage msg, Configuration cfg)
+  public static async void Executador(String imagename, String[] arguments, String[] children)
   {
     while(true)
     {
-    try
-    {
-    System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
-    if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
-    ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
-    var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq ofs.exe\"", true);
-    ConsoleWrapper.Debug(Entidade.Advertiser, String.Join(" ", result));
-    if(result.First().StartsWith("INFORMA"))
-    {
-      ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
-      Updater.Terminate("ofs");
-      Temporary.executar("ofs.exe", "slower", false);
-      continue;
-    }
-      ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
-      var mensagem_caminho = cfg.CURRENT_PATH + "\\relatorio_ofs.txt";
-      if(!System.IO.File.Exists(mensagem_caminho)) 
-      {
-        ConsoleWrapper.Debug(Entidade.Advertiser, "Não foi encontrado relatórios do OFS.");
-        continue;
-      }
-      var comunicado_linhas = File.ReadAllLines(mensagem_caminho);
-      if(!comunicado_linhas.Any() || comunicado_linhas.Length < 2) 
-      {
-        ConsoleWrapper.Debug(Entidade.Advertiser, "O relatório do OFS é inválido.");
-        System.IO.File.Delete(mensagem_caminho);
-        continue;
-      }
-      var segunda_linha = comunicado_linhas[1];
-      var i1 = segunda_linha.IndexOf('*') + 1;
-      var i2 = segunda_linha.LastIndexOf('*');
-      var balde_nome = segunda_linha[i1..i2];
-      if(!cfg.BOT_CHANNELS.TryGetValue(balde_nome, out long channel))
-        throw new InvalidOperationException("O balde encontrado não tem canal configurado!");
-      var comunicado_mensagem = String.Join('\n', comunicado_linhas);
-      ConsoleWrapper.Write(Entidade.Advertiser, "Comunicado de offensores do IDG:");
-      await Comunicado(channel, msg, cfg, comunicado_mensagem, null, null, null);
-      ConsoleWrapper.Write(Entidade.Advertiser, comunicado_mensagem);
-      System.IO.File.Delete(mensagem_caminho);
-    }
-    catch (System.Exception erro)
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
-    }
-  }
-  public static async void Finalizacao(HandleMessage msg, Configuration cfg)
-  {
       try
       {
-        var diretorio_ofs = cfg.CURRENT_PATH + @"\odl\";
-        var lista_de_relatorios = System.IO.Directory.GetFiles(diretorio_ofs).Where(f => f.EndsWith(".done.csv")).ToList();
-        foreach (var relatorio_filepath in lista_de_relatorios)
+        await Task.Delay(new TimeSpan(0, 1, 0));
+        System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
+        if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
+        ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
+        var result = Temporary.executar("tasklist", $"/NH /FI \"IMAGENAME eq {imagename}\"", true);
+        ConsoleWrapper.Debug(Entidade.Advertiser, String.Join('\n', result));
+        if(result.First().StartsWith("INFORMA"))
         {
-          Stream relatorio_conteudo = System.IO.File.OpenRead(relatorio_filepath);
-          if(relatorio_conteudo.Length == 0)
-          {
-            relatorio_conteudo.Close();
-            continue;
-          }
-          var relatorio_filename = relatorio_filepath.Split('\\').Last();
-          var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_conteudo, relatorio_filename);
-          relatorio_conteudo.Close();
-          if(relatorio_identificador == String.Empty) return;
-
-          var i1 = relatorio_filename.IndexOf('_') + 1;
-          var i2 = relatorio_filename.IndexOf('.');
-          var balde_nome = relatorio_filename[i1..i2];
-          if(!cfg.BOT_CHANNELS.TryGetValue(balde_nome, out long channel))
-            throw new InvalidOperationException("O balde encontrado não tem canal configurado!");
-
-          await Comunicado(channel, msg, cfg, null, null, null, relatorio_identificador);
-          ConsoleWrapper.Write(Entidade.Advertiser, $"Enviado relatorio final {relatorio_filename}!");
-          System.IO.File.Move(relatorio_filepath, relatorio_filepath.Replace("done", "send"));
+          ConsoleWrapper.Debug(Entidade.Advertiser, $"Sistema {imagename} não está em execução. Iniciando...");
+          Updater.Terminate(children);
+          Temporary.executar(imagename, String.Join(' ', arguments), false);
         }
       }
       catch (System.Exception erro)
       {
         ConsoleWrapper.Error(Entidade.Advertiser, erro);
       }
+    }
   }
   public static async Task Comunicado(Int64 canal, HandleMessage msg, Configuration cfg, string? text, string? image_id, string? video_id, string? doc_id)
   {
@@ -278,29 +218,6 @@ public static class HandleAnnouncement
     catch (System.Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
-  }
-  public static void Faturamento(HandleMessage msg, Configuration cfg)
-  {
-    while(true)
-    {
-      try
-      {
-        System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
-        ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o subsistema do PRL está rodando...");
-        var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq prl.exe\"", true);
-        if(result.First().StartsWith("INFORMA"))
-        {
-          ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
-          Updater.Terminate("prl");
-          Temporary.executar(cfg.PRL_SCRIPT, "slower", false);
-          continue;
-        }
-      }
-      catch (System.Exception erro)
-      {
-        ConsoleWrapper.Error(Entidade.Advertiser, erro);
-      }
     }
   }
 }
