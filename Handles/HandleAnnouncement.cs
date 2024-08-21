@@ -3,9 +3,11 @@ using telbot.Helpers;
 namespace telbot.handle;
 public static class HandleAnnouncement
 {
-  private static int CINCO_MINUTOS = 1_000 * 60 * 5;
-  public static async void Vencimento(HandleMessage msg, Configuration cfg, String aplicacao, Int32 prazo)
+  public static async void Vencimento(String aplicacao, Int32 prazo)
   {
+    var CINCO_MINUTOS = new TimeSpan(0, 5, 0);
+    var cfg = Configuration.GetInstance();
+    var msg = HandleMessage.GetInstance();
     String? regional = null;
     var contador_de_regionais = 0;
     while(true)
@@ -28,7 +30,7 @@ public static class HandleAnnouncement
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
     System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
-    var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo, regional: regional);
+    var relatorio_resultado = Temporary.executar(aplicacao, prazo, regional: regional);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any() || relatorio_resultado.First().StartsWith("ERRO:") || !System.IO.File.Exists(relatorio_caminho))
     {
@@ -60,16 +62,16 @@ public static class HandleAnnouncement
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
-    var usuarios = Database.recuperarUsuario(u =>
+    var usuarios = Database.GetInstance().RecuperarUsuario(u =>
       (
-        u.has_privilege == UsersModel.userLevel.proprietario ||
-        u.has_privilege == UsersModel.userLevel.administrador ||
-        (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
+        u.privilege == UsersModel.userLevel.proprietario ||
+        u.privilege == UsersModel.userLevel.administrador ||
+        (u.privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
+        (u.privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
       )
     );
     ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
-    await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, relatorio_mensagem, null, null, relatorio_identificador);
+    await Comunicado(usuarios, cfg.ID_ADM_BOT, relatorio_mensagem, null, null, relatorio_identificador);
     relatorio_arquivo.Close();
     System.IO.File.Delete(relatorio_caminho);
     System.IO.File.Delete(cfg.SAP_LOCKFILE);
@@ -81,14 +83,16 @@ public static class HandleAnnouncement
     }
     }
   }
-  public static async void Comunicado(HandleMessage msg, Configuration cfg)
+  public static async void Comunicado()
   {
-    try
-    {
+    var cfg = Configuration.GetInstance();
+    var msg = HandleMessage.GetInstance();
     var mensagem_caminho = cfg.CURRENT_PATH + "\\comunicado.txt";
     var imagem_caminho = cfg.CURRENT_PATH + "\\comunicado.jpg";
     var videoclipe_caminho = cfg.CURRENT_PATH + "\\comunicado.mp4";
     var documento_caminho = cfg.CURRENT_PATH + "\\comunicado.pdf";
+    try
+    {
 
     var has_txt = System.IO.File.Exists(mensagem_caminho);
     var has_jpg = System.IO.File.Exists(imagem_caminho);
@@ -112,19 +116,19 @@ public static class HandleAnnouncement
     var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : null;
     var doc_id = has_doc ? await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, comunicado_documento, $"comunicado_{DateTime.Now.ToString("yyyyMMdd")}.pdf") : null;
 
-    var usuarios = Database.recuperarUsuario(u =>
+    var usuarios = Database.GetInstance().RecuperarUsuario(u =>
       (
-        u.has_privilege == UsersModel.userLevel.proprietario ||
-        u.has_privilege == UsersModel.userLevel.administrador ||
-        u.has_privilege == UsersModel.userLevel.comunicador ||
-        (u.has_privilege == UsersModel.userLevel.eletricista && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
+        u.privilege == UsersModel.userLevel.proprietario ||
+        u.privilege == UsersModel.userLevel.administrador ||
+        u.privilege == UsersModel.userLevel.comunicador ||
+        (u.privilege == UsersModel.userLevel.eletricista && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
+        (u.privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
+        (u.privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
       )
     );
 
     ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
-    await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id, doc_id);
+    await Comunicado(usuarios, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id, doc_id);
 
     comunicado_imagem.Close();
     comunicado_video.Close();
@@ -156,8 +160,9 @@ public static class HandleAnnouncement
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
     }
   }
-  public static async Task Comunicado(List<UsersModel> usuarios, HandleMessage msg, Configuration cfg, long myself, string? text, string? image_id, string? video_id, string? doc_id)
+  public static async Task Comunicado(List<UsersModel> usuarios, long myself, string? text, string? image_id, string? video_id, string? doc_id)
   {
+    var msg = HandleMessage.GetInstance();
     try
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado para todos - Comunicado");
@@ -165,11 +170,11 @@ public static class HandleAnnouncement
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
-      if(usuario.id == myself) continue;
-      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, image_id, text));
-      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id, text));
-      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, doc_id, text));
-      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.id, text, true, false));
+      if(usuario.identifier == myself) continue;
+      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.identifier, image_id, text));
+      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.identifier, video_id, text));
+      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.identifier, doc_id, text));
+      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.identifier, text, true, false));
     }
     await Task.WhenAll(tasks);
     }
@@ -203,8 +208,9 @@ public static class HandleAnnouncement
       }
     }
   }
-  public static async Task Comunicado(Int64 canal, HandleMessage msg, Configuration cfg, string? text, string? image_id, string? video_id, string? doc_id)
+  public static async Task Comunicado(Int64 canal, string? text, string? image_id, string? video_id, string? doc_id)
   {
+    var msg = HandleMessage.GetInstance();
     try
     {
       var tasks = new List<Task>();
