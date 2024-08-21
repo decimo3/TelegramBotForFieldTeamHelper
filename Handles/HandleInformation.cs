@@ -3,45 +3,49 @@ using telbot.Helpers;
 using telbot.models;
 public static class Information
 {
-  async public static Task SendManuscripts(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task SendManuscripts(logsModel request)
   {
-    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!, telefone: user.phone_number);
+    var bot = HandleMessage.GetInstance();
+    var respostas = Temporary.executar(request.application, request.information);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
-      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      await bot.ErrorReport(request.identifier, new Exception(verificacao), request);
       return;
     }
-    await bot.sendTextMesssageWraper(user.id, String.Join("\n", respostas));
-    Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+    await bot.sendTextMesssageWraper(request.identifier, String.Join("\n", respostas));
+    bot.SucessReport(request);
     return;
   }
-  async public static Task SendCoordinates(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task SendCoordinates(logsModel request)
   {
-    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var bot = HandleMessage.GetInstance();
+    var respostas = Temporary.executar(request.application, request.information);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
-      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      await bot.ErrorReport(request.identifier, new Exception(verificacao), request);
       return;
     }
-    await bot.SendCoordinateAsyncWraper(user.id, respostas[0]);
-    Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+    await bot.SendCoordinateAsyncWraper(request.identifier, respostas[0]);
+    bot.SucessReport(request);
     return;
   }
-  async public static Task<Boolean> SendDocument(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task SendDocument(logsModel request)
   {
-    var respostas = telbot.Temporary.executar(cfg, request.aplicacao, request.informacao);
+    var bot = HandleMessage.GetInstance();
+    var respostas = Temporary.executar(request.application, request.information);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
-      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
-      return false;
+      await bot.ErrorReport(request.identifier, new Exception(verificacao), request);
+      return;
     }
     if(!Int32.TryParse(respostas.First(), out Int32 qnt))
     {
-      await bot.ErrorReport(user.id, new Exception(verificacao), request, "A informação da quantidade de faturas não foi recebida!");
-      return false;
+      var erro = new Exception("A informação da quantidade de faturas não foi recebida!");
+      await bot.ErrorReport(request.identifier, erro, request);
+      return;
     }
     respostas.Remove(respostas.First());
     List<String> faturas_validas = new();
@@ -50,105 +54,114 @@ public static class Information
       foreach (string fatura in respostas)
       {
         if (fatura == "None" || fatura == null || fatura == "") continue;
-        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.informacao)) continue;
+        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.information)) continue;
         faturas_validas.Add(fatura);
       }
       if(faturas_validas.Count != qnt)
       {
-        await bot.ErrorReport(user.id, new Exception(verificacao), request, "ERRO: A fatura recuperada não corresponde com a solicitada!");
-        return false;
+        var erro = new Exception("ERRO: A fatura recuperada não corresponde com a solicitada!");
+        await bot.ErrorReport(request.identifier, erro, request);
+        return;
       }
       foreach (string fatura in faturas_validas)
       {
         await using Stream stream = System.IO.File.OpenRead($"./tmp/{fatura}");
-        await bot.SendDocumentAsyncWraper(user.id, stream, fatura);
+        await bot.SendDocumentAsyncWraper(request.identifier, stream, fatura);
         stream.Dispose();
-        await bot.sendTextMesssageWraper(user.id, fatura, false);
+        await bot.sendTextMesssageWraper(request.identifier, fatura, false);
       }
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
-      return true;
+      bot.SucessReport(request);
+      return;
     }
     catch (System.Exception error)
     {
-      await bot.ErrorReport(id: user.id, request: request, error: error);
-      return false;
+      await bot.ErrorReport(id: request.identifier, request: request, error: error);
+      return;
     }
   }
-  async public static Task SendPicture(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task SendPicture(logsModel request)
   {
-    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var bot = HandleMessage.GetInstance();
+    var cfg = Configuration.GetInstance();
+    var respostas = telbot.Temporary.executar(request.application, request.information);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
-      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      var erro = new Exception(verificacao);
+      await bot.ErrorReport(request.identifier, erro, request);
       return;
     }
     try
     {
-      telbot.Temporary.executar(cfg, respostas);
+      telbot.Temporary.executar(respostas);
       await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\tmp\temporario.png");
-      await bot.SendPhotoAsyncWraper(user.id, stream);
+      await bot.SendPhotoAsyncWraper(request.identifier, stream);
       stream.Dispose();
       System.IO.File.Delete(@$"{cfg.CURRENT_PATH}\tmp\temporario.png");
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
-      if((request.aplicacao == "agrupamento") && (DateTime.Today.DayOfWeek == DayOfWeek.Friday))
-      await bot.sendTextMesssageWraper(user.id, "*ATENÇÃO:* Não pode cortar agrupamento por nota de recorte!");
-      await bot.sendTextMesssageWraper(user.id, $"Enviado relatorio de {request.aplicacao}!", false);
+      if((request.application == "agrupamento") && (DateTime.Today.DayOfWeek == DayOfWeek.Friday))
+        await bot.sendTextMesssageWraper(request.identifier, "*ATENÇÃO:* Não pode cortar agrupamento por nota de recorte!");
+      await bot.sendTextMesssageWraper(request.identifier, $"Enviado relatorio de {request.application}!", false);
+      bot.SucessReport(request);
     }
     catch (System.Exception error)
     {
-      await bot.ErrorReport(id: user.id, request: request, error: error);
+      await bot.ErrorReport(id: request.identifier, request: request, error: error);
     }
     return;
   }
-  async public static Task SendWorksheet(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task SendWorksheet(logsModel request)
   {
     var agora = DateTime.Now;
-    var respostas = telbot.Temporary.executar(cfg, request.aplicacao!, request.informacao!);
+    var bot = HandleMessage.GetInstance();
+    var cfg = Configuration.GetInstance();
+    var respostas = telbot.Temporary.executar(request.application, request.information);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
-      await bot.ErrorReport(user.id, new Exception(verificacao), request, verificacao);
+      await bot.ErrorReport(request.identifier, new Exception(verificacao), request);
       return;
     }
     try
     {
       await using Stream stream = System.IO.File.OpenRead(cfg.TEMP_FOLDER + "/temporario.csv");
-      await bot.SendDocumentAsyncWraper(user.id, stream, $"{agora.ToString("yyyyMMdd_HHmmss")}.csv");
+      await bot.SendDocumentAsyncWraper(request.identifier, stream, $"{agora.ToString("yyyyMMdd_HHmmss")}.csv");
       stream.Dispose();
       System.IO.File.Delete(cfg.TEMP_FOLDER + "/temporario.csv");
-      await bot.sendTextMesssageWraper(user.id, $"Enviado arquivo de {request.aplicacao}: {agora.ToString("yyyyMMdd_HHmmss")}.XLSX", false);
-      Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+      await bot.sendTextMesssageWraper(request.identifier, $"Enviado arquivo de {request.application}: {agora.ToString("yyyyMMdd_HHmmss")}.XLSX", false);
+      bot.SucessReport(request);
     }
     catch (System.Exception error)
     {
-      await bot.ErrorReport(id: user.id, request: request, error: error);
+      await bot.ErrorReport(id: request.identifier, request: request, error: error);
     }
     return;
   }
-  async public static Task SendMultiples(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  async public static Task SendMultiples(logsModel request)
   {
-    switch(request.aplicacao)
+    var bot = HandleMessage.GetInstance();
+    var cfg = Configuration.GetInstance();
+    switch(request.application)
     {
       case "acesso":
-        request.aplicacao = "coordenada";
-        await SendCoordinates(bot, cfg, user, request);
-        request.aplicacao = "leiturista";
-        await SendPicture(bot, cfg, user, request);
-        request.aplicacao = "cruzamento";
-        await SendPicture(bot, cfg, user, request);
+        request.application = "coordenada";
+        await SendCoordinates(request);
+        request.application = "leiturista";
+        await SendPicture(request);
+        request.application = "cruzamento";
+        await SendPicture(request);
       break;
       case "evidencia":
       {
         if(!cfg.OFS_MONITORAMENTO)
         {
-          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: O sistema monitor do OFS está desativado!");
+          var erro = new Exception("ERRO: O sistema monitor do OFS está desativado!");
+          await bot.ErrorReport(request.identifier, erro, request);
           return;
         }
         var antes = DateTime.Now;
         var result = String.Empty;
         Updater.ClearTemp(cfg);
-        System.IO.File.WriteAllText(cfg.OFS_LOCKFILE, $"{request.aplicacao} {request.informacao}", System.Text.Encoding.UTF8);
+        System.IO.File.WriteAllText(cfg.OFS_LOCKFILE, $"{request.application} {request.information}", System.Text.Encoding.UTF8);
         while(true)
         {
           result = VerificarLockfile(cfg.OFS_LOCKFILE);
@@ -158,10 +171,11 @@ public static class Information
         }
         if(String.IsNullOrEmpty(result))
         {
-          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: Não foi recebida nenhuma resposta do OFS!");
+          var erro = new Exception("ERRO: Não foi recebida nenhuma resposta do OFS!");
+          await bot.ErrorReport(request.identifier, erro, request);
           return;
         }
-        await bot.sendTextMesssageWraper(user.id, result);
+        await bot.sendTextMesssageWraper(request.identifier, result);
         var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
         var fluxos = new Stream[files.Length];
         var tasks = new List<Task>();
@@ -171,16 +185,16 @@ public static class Information
           var fileext = System.IO.Path.GetExtension(files[i]);
           fluxos[i] = System.IO.File.OpenRead(files[i]);
           if(fileext == ".jpg")
-            tasks.Add(bot.SendPhotoAsyncWraper(user.id, fluxos[i]));
+            tasks.Add(bot.SendPhotoAsyncWraper(request.identifier, fluxos[i]));
           else if(fileext == ".jpeg")
-            tasks.Add(bot.SendPhotoAsyncWraper(user.id, fluxos[i]));
+            tasks.Add(bot.SendPhotoAsyncWraper(request.identifier, fluxos[i]));
           else
-            tasks.Add(bot.SendDocumentAsyncWraper(user.id, fluxos[i], filename));
+            tasks.Add(bot.SendDocumentAsyncWraper(request.identifier, fluxos[i], filename));
         }
         await Task.WhenAll(tasks);
         foreach(var fluxo in fluxos) fluxo.Close();
         foreach(var file in files) File.Delete(file);
-        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+        bot.SucessReport(request);
       }
       break;
       case "fatura":
@@ -188,13 +202,13 @@ public static class Information
       {
         if(!cfg.PRL_SUBSISTEMA)
         {
-          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: O sistema monitor do PRL está desativado!");
+          await bot.ErrorReport(request.identifier, new Exception("ERRO: O sistema monitor do PRL está desativado!"), request);
           return;
         }
         var antes = DateTime.Now;
         var result = String.Empty;
         Updater.ClearTemp(cfg);
-        System.IO.File.WriteAllText(cfg.PRL_LOCKFILE, $"{request.aplicacao} {request.informacao}", System.Text.Encoding.UTF8);
+        System.IO.File.WriteAllText(cfg.PRL_LOCKFILE, $"{request.application} {request.information}", System.Text.Encoding.UTF8);
         while(true)
         {
           result = VerificarLockfile(cfg.PRL_LOCKFILE);
@@ -204,15 +218,17 @@ public static class Information
         }
         if(String.IsNullOrEmpty(result))
         {
-          await bot.ErrorReport(user.id, new Exception(), request, "ERRO: Não foi recebida nenhuma resposta do PRL!");
+          var erro = new Exception("ERRO: Não foi recebida nenhuma resposta do PRL!");
+          await bot.ErrorReport(request.identifier, erro, request);
           return;
         }
         var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
         foreach (var file in files)
         {
-          if(!PdfChecker.PdfCheck(file, request.informacao))
+          if(!PdfChecker.PdfCheck(file, request.information))
           {
-            await bot.ErrorReport(user.id, new Exception(), request, "ERRO: A fatura recuperada não corresponde com a solicitada!");
+            var erro = new Exception("ERRO: A fatura recuperada não corresponde com a solicitada!");
+            await bot.ErrorReport(request.identifier, erro, request);
             return;
           }
         }
@@ -222,13 +238,13 @@ public static class Information
         {
           var filename = System.IO.Path.GetFileName(files[i]);
           fluxos[i] = System.IO.File.OpenRead(files[i]);
-          tasks.Add(bot.SendDocumentAsyncWraper(user.id, fluxos[i], filename));
+          tasks.Add(bot.SendDocumentAsyncWraper(request.identifier, fluxos[i], filename));
         }
         await Task.WhenAll(tasks);
         foreach(var fluxo in fluxos) fluxo.Close();
         foreach(var file in files) File.Delete(file);
-        await bot.sendTextMesssageWraper(user.id, result);
-        Database.inserirRelatorio(new logsModel(user.id, request.aplicacao, request.informacao, true, request.received_at));
+        await bot.sendTextMesssageWraper(request.identifier, result);
+        bot.SucessReport(request);
       }
       break;
     }
@@ -245,18 +261,24 @@ public static class Information
     var texto = System.IO.File.ReadAllText(lockfile, System.Text.Encoding.UTF8);
     return (texto.Length < 50) ? null : texto;
   }
-  async public static Task GetZoneInfo(HandleMessage bot, Int64 id, Double latitude, Double longitude, DateTime received_at)
+  async public static Task GetZoneInfo(Int64 id, Double latitude, Double longitude, DateTime received_at)
   {
+    var bot = HandleMessage.GetInstance();
+      var request = new logsModel() {
+        identifier = id,
+        application = "zona",
+        received_at = received_at,
+      };
     var argumento = $"{latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)} {longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
     var respostas = telbot.Temporary.executar("gps.exe", argumento, true);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
-      await bot.ErrorReport(id, new Exception(verificacao), null, verificacao);
+      await bot.ErrorReport(id, new Exception(verificacao), request);
       return;
     }
     await bot.sendTextMesssageWraper(id, String.Join("\n", respostas));
-    Database.inserirRelatorio(new logsModel(id, "zona", 0, true, received_at));
+    bot.SucessReport(request);
     return;
   }
 }
