@@ -6,11 +6,29 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 public class HandleMessage
 {
-  private readonly string errorMensagem = "Não foi possível responder a sua solicitação. Tente novamente!";
+  private static HandleMessage _instance;
+  private static readonly Object _lock = new();
+  private HandleMessage(ITelegramBotClient bot)
   private ITelegramBotClient bot;
   public HandleMessage(TelegramBotClient bot)
   {
     this.bot = bot;
+  }
+  // Public static method to get the singleton instance
+  public static HandleMessage GetInstance(ITelegramBotClient? bot = null)
+  {
+    lock (_lock)
+    {
+      if (_instance == null)
+      {
+        if (bot == null)
+        {
+          throw new InvalidOperationException("HandleMessage must be instantiated with a valid ITelegramBotClient.");
+        }
+        _instance = new HandleMessage(bot);
+      }
+      return _instance;
+    }
   }
   public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true, bool exibir=true, bool markdown=true)
   {
