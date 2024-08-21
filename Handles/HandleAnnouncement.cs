@@ -30,21 +30,7 @@ public static class HandleAnnouncement
     System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
     var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo, regional: regional);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
-    if(!relatorio_resultado.Any())
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
-      continue;
-    }
-    if(relatorio_resultado.First().StartsWith("ERRO:"))
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
-      continue;
-    }
-    if(!System.IO.File.Exists(relatorio_caminho))
+    if(!relatorio_resultado.Any() || relatorio_resultado.First().StartsWith("ERRO:") || !System.IO.File.Exists(relatorio_caminho))
     {
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.SAP_LOCKFILE);
