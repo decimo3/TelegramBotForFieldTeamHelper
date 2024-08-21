@@ -74,14 +74,21 @@ public class HandleMessage
       ConsoleWrapper.Error(Entidade.Messenger, erro);
     }
   }
-  public async Task ErrorReport(long id, Exception error, telbot.models.Request? request=null, string? SAPerrorMessage=null)
+  public async Task ErrorReport(long id, Exception error, logsModel? request)
   {
-    if(SAPerrorMessage is not null) await sendTextMesssageWraper(id, SAPerrorMessage);
+    await sendTextMesssageWraper(id, error.Message);
     await sendTextMesssageWraper(id, "Não foi possível processar a sua solicitação!");
     await sendTextMesssageWraper(id, "Solicite a informação para o monitor(a)");
-    if(request is null) Database.inserirRelatorio(new logsModel(id, string.Empty, 0, false, DateTime.Now));
-    else Database.inserirRelatorio(new logsModel(id, request.aplicacao, request.informacao, false, request.received_at));
-    return;
+    if(request == null) return;
+    request.status = 500;
+    request.response_at = DateTime.Now;
+    Database.GetInstance().AlterarSolicitacao(request);
+  }
+  public void SucessReport(logsModel request)
+  {
+    request.response_at = DateTime.Now;
+    request.status = 200;
+    Database.GetInstance().AlterarSolicitacao(request);
   }
   public async Task<string> SendPhotoAsyncWraper(long id, Stream stream)
   {
