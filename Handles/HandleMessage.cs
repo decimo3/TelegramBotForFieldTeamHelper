@@ -1,6 +1,7 @@
 namespace telbot.handle;
 
 using telbot.Helpers;
+using telbot.models;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -8,9 +9,9 @@ public class HandleMessage
 {
   private static HandleMessage _instance;
   private static readonly Object _lock = new();
-  private HandleMessage(ITelegramBotClient bot)
+  private readonly string errorMensagem = "Não foi possível responder a sua solicitação. Tente novamente!";
   private ITelegramBotClient bot;
-  public HandleMessage(TelegramBotClient bot)
+  private HandleMessage(ITelegramBotClient bot)
   {
     this.bot = bot;
   }
@@ -37,7 +38,7 @@ public class HandleMessage
     {
       ParseMode? parsemode = markdown ? ParseMode.Markdown : null;
       if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: parsemode);
-      if(exibir) Console.WriteLine($"< {DateTime.Now} chatbot: {message}");
+      if(exibir) ConsoleWrapper.Write(Entidade.Messenger, message);
     }
     catch (Exception erro)
     {
@@ -48,7 +49,8 @@ public class HandleMessage
   {
     try
     {
-      var documento = await bot.SendDocumentAsync(id, document: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename));
+      var document = new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename);
+      var documento = await bot.SendDocumentAsync(id, document: document);
       if(documento.Document == null) throw new Exception(errorMensagem);
       return documento.Document.FileId;
     }
@@ -66,8 +68,10 @@ public class HandleMessage
     {
       var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
       var loc = re.Matches(mapLink);
-      await bot.SendLocationAsync(id, Double.Parse(loc[0].Value.Replace('.', ',')), Double.Parse(loc[1].Value.Replace('.', ',')));
-      Console.WriteLine($"< {DateTime.Now} chatbot: Enviada coordenadas da instalação: {loc[0].Value},{loc[1].Value}");
+      var lat = Double.Parse(loc[0].Value.Replace('.', ','));
+      var lon = Double.Parse(loc[1].Value.Replace('.', ','));
+      await bot.SendLocationAsync(id, lat, lon);
+      ConsoleWrapper.Write(Entidade.Messenger, $"Enviada coordenadas da instalação: {lat},{lon}");
     }
     catch (Exception erro)
     {
@@ -94,12 +98,14 @@ public class HandleMessage
   {
     try
     {
-      var photo = await bot.SendPhotoAsync(id, photo: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+      var photograph = new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream);
+      var photo = await bot.SendPhotoAsync(id, photo: photograph);
       if(photo.Photo is null) throw new Exception(errorMensagem);
       return photo.Photo.First().FileId;
     }
     catch (Exception erro)
     {
+      stream.Position = 0;
       ConsoleWrapper.Error(Entidade.Messenger, erro);
       return String.Empty;
     }
@@ -111,7 +117,8 @@ public class HandleMessage
       await sendTextMesssageWraper(id, "É necessário informar o seu telefone para continuar!");
       await sendTextMesssageWraper(id, "Não será mais autorizado sem cadastrar o número de telefone");
       var msg = "Clique no botão abaixo para enviar o seu número!";
-      var requestReplyKeyboard = new ReplyKeyboardMarkup( new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") });
+      var keys = new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") };
+      var requestReplyKeyboard = new ReplyKeyboardMarkup(keys);
       await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
       Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
     }
@@ -121,7 +128,7 @@ public class HandleMessage
     }
     return;
   }
-  public async Task RemoveRequest(long id, string tel)
+  public async Task RemoveRequest(long id, Int64 tel)
   {
     try
     {
@@ -140,7 +147,8 @@ public class HandleMessage
   {
     try
     {
-      var video = await bot.SendVideoAsync(id, video: new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream));
+      var videoclip = new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream);
+      var video = await bot.SendVideoAsync(id, video: videoclip);
       if(video.Video is null) throw new Exception(errorMensagem);
       return video.Video.FileId;
     }
