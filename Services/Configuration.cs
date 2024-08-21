@@ -1,5 +1,5 @@
 using dotenv.net;
-namespace telbot;
+namespace telbot.Services;
 public class Configuration
 {
   public readonly string BOT_TOKEN = String.Empty;

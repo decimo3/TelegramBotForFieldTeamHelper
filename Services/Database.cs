@@ -2,7 +2,7 @@ using System.Data.SQLite;
 using System.Linq.Expressions;
 using telbot.Interfaces;
 using telbot.models;
-namespace telbot;
+namespace telbot.Services;
 public class Database : IDatabase
 {
   private static Database _instance;
