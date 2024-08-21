@@ -2,89 +2,88 @@ namespace telbot.handle;
 using telbot.models;
 public static class Manager
 {
-  public async static Task HandleManager(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  public async static Task HandleManager(UsersModel user, logsModel request)
   {
+    var database = Database.GetInstance();
+    var bot = HandleMessage.GetInstance();
     if(!user.pode_autorizar())
     {
-      await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
+      await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para alterar usuários!");
       return;
     }
-    var usuario = Database.recuperarUsuario(request.informacao);
+    var usuario = database.RecuperarUsuario(request.information);
     if(usuario == null)
     {
-      await bot.sendTextMesssageWraper(user.id, "Não há registro que esse usuário entrou em contato com o chatbot!");
+      await bot.sendTextMesssageWraper(user.identifier, "Não há registro que esse usuário entrou em contato com o chatbot!");
       return;
     }
-    if(usuario.has_privilege == UsersModel.userLevel.proprietario)
+    if(usuario.privilege == UsersModel.userLevel.proprietario)
     {
-      await bot.sendTextMesssageWraper(user.id, "Nenhum usuário tem permissão suficiente para alterar o proprietário!");
+      await bot.sendTextMesssageWraper(user.identifier, "Nenhum usuário tem permissão suficiente para alterar o proprietário!");
       return;
     }
-    if(usuario.has_privilege == UsersModel.userLevel.administrador)
+    if(usuario.privilege == UsersModel.userLevel.administrador)
     {
       if(!user.pode_promover())
       {
-        await bot.sendTextMesssageWraper(user.id, "Você não tem permissão suficiente para alterar o administrador!");
+        await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão suficiente para alterar o administrador!");
         return;
       }
     }
     usuario.update_at = request.received_at;
-    switch (request.aplicacao)
+    switch (request.application)
     {
       case "autorizar":
       case "atualizar":
-        if((int)usuario.has_privilege >= (int)UsersModel.userLevel.comunicador)
+        if(usuario.dias_vencimento() > 99)
         {
-          await bot.sendTextMesssageWraper(user.id, $"Usuário {usuario.id} com acesso de {usuario.has_privilege.ToString()} não tem prazo de expiração!");
+          await bot.sendTextMesssageWraper(user.identifier, $"Usuário {usuario.identifier} com cargo {usuario.privilege} não tem prazo de expiração!");
+          return;
         }
-        else
-        {
-          if(usuario.has_privilege == UsersModel.userLevel.desautorizar)
-          {
-            usuario.has_privilege = UsersModel.userLevel.eletricista;
-          }
-          await alterarUsuario(bot, user, usuario, request);
-        }
+        if(usuario.privilege == UsersModel.userLevel.desautorizar)
+          usuario.privilege = UsersModel.userLevel.eletricista;
       break;
       case "desautorizar":
-        usuario.has_privilege = UsersModel.userLevel.desautorizar;
-        await alterarUsuario(bot, user, usuario, request);
+        usuario.privilege = UsersModel.userLevel.desautorizar;
       break;
       case "controlador":
       case "comunicador":
       case "supervisor":
-        var cargo = Enum.Parse<UsersModel.userLevel>(request.aplicacao!);
-        usuario.has_privilege = cargo;
         if(!user.pode_promover())
-          await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
-        else
-          await alterarUsuario(bot, user, usuario, request);
+        {
+          await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para alterar usuários!");
+          return;
+        }
+        var cargo = Enum.Parse<UsersModel.userLevel>(request.application);
+        usuario.privilege = cargo;
       break;
       case "administrador":
-        usuario.has_privilege = UsersModel.userLevel.administrador;
-        if(user.has_privilege != UsersModel.userLevel.proprietario)
-          await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para promover administradores!");
-        else
-          await alterarUsuario(bot, user, usuario, request);
+        if(user.privilege != UsersModel.userLevel.proprietario)
+        {
+          await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para promover administradores!");
+          return;
+        }
+          usuario.privilege = UsersModel.userLevel.administrador;
       break;
     }
-    return;
-  }
-  private async static Task alterarUsuario(HandleMessage bot, UsersModel old_user, UsersModel new_user, Request request)
-  {
     try
     {
-      Database.alterarUsuario(new_user, old_user.id);
-      await bot.sendTextMesssageWraper(old_user.id, "Usuário atualizado com sucesso!");
-      await bot.sendTextMesssageWraper(new_user.id, "Usuário atualizado com sucesso!");
-      if(new_user.phone_number == 0) await bot.RequestContact(new_user.id);
-      Database.inserirRelatorio(new logsModel(old_user.id, request.aplicacao, request.informacao, true, request.received_at));
+      database.AlterarUsuario(usuario);
+      await bot.sendTextMesssageWraper(user.identifier, "Usuário atualizado com sucesso!");
+      await bot.sendTextMesssageWraper(usuario.identifier, "Usuário atualizado com sucesso!");
+      if(usuario.phone_number == 0) await bot.RequestContact(usuario.identifier);
+      request.status = 200;
+      request.response_at = DateTime.Now;
+      database.AlterarSolicitacao(request);
     }
     catch
     {
-      await bot.sendTextMesssageWraper(old_user.id, "Houve um problema em atualizar o usuário");
-      await bot.sendTextMesssageWraper(old_user.id, "Verifique as informações e tente novamente");
-      Database.inserirRelatorio(new logsModel(old_user.id, request.aplicacao, request.informacao, false, request.received_at));
+      await bot.sendTextMesssageWraper(user.identifier, "Houve um problema em atualizar o usuário");
+      await bot.sendTextMesssageWraper(user.identifier, "Verifique as informações e tente novamente");
+      request.status = 500;
+      request.response_at = DateTime.Now;
+      database.AlterarSolicitacao(request);
     }
+    return;
   }
 }
