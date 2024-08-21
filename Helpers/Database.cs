@@ -1,11 +1,30 @@
-using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Linq.Expressions;
+using telbot.Interfaces;
+using telbot.models;
 namespace telbot;
-public static class Database
+public class Database : IDatabase
 {
-  private static string connectionString = "Data Source=database.db";
-  public static void configurarBanco(Configuration cfg)
+  private static Database _instance;
+  private static readonly Object _lock = new object();
+  private bool _disposed = false; // To detect redundant calls
+  private readonly String connectionString = "Data Source=database.db";
+  public static Database GetInstance(Configuration? cfg = null)
+  {
+    lock (_lock)
+    {
+      if (_instance == null)
+      {
+        if (cfg == null)
+        {
+          throw new InvalidOperationException("Database must be instantiated with a valid Configuration object.");
+        }
+        _instance = new Database(cfg);
+      }
+      return _instance;
+    }
+  }
+  private Database(Configuration cfg)
   {
     if(!System.IO.File.Exists("database.db"))
     {
