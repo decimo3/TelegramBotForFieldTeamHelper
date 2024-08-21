@@ -23,8 +23,7 @@ public static class Updater
     Console.WriteLine($"< {DateTime.Now} Manager: Download concluído! Descompactando arquivo de atualização...");
     Unzip(cfg);
     Console.WriteLine($"< {DateTime.Now} Manager: Fechando programas aninhados ao sistema do chatbot...");
-    Terminate("sap");
-    Terminate("ofs");
+    TerminateAll();
     Console.WriteLine($"< {DateTime.Now} Manager: Aplicando atualização do sistema chatbot, por favor aguarde...");
     DbUpdater(cfg);
     Replace(cfg);
@@ -122,20 +121,19 @@ public static class Updater
     System.Diagnostics.Process.Start(executable, String.Join(' ', arguments.Skip(1).ToArray()));
     System.Environment.Exit(0);
   }
-  public static void Terminate(String sistema)
+  public static void Terminate(String[] applications)
   {
-    var processos = new String[5];
-    if(sistema == "sap")
-      processos = new String[] {"sap.exe", "saplpd.exe", "saplogon.exe"};
-    if(sistema == "ofs")
-      processos = new String[] {"chrome.exe", "chromedriver.exe", "ofs.exe"};
-    if(sistema == "prl")
-      processos = new String[] {"chrome.exe", "chromedriver.exe", "prl.exe"};
-    foreach (var process_name in processos)
+    foreach (var process_name in applications)
     {
       if(String.IsNullOrEmpty(process_name)) continue;
       Temporary.executar("taskkill", $"/F /T /IM {process_name}", true);
     }
+  }
+  public static void TerminateAll()
+  {
+    Terminate(new String[] {"sap.exe", "saplpd.exe", "saplogon.exe"});
+    Terminate(new String[] {"chrome.exe", "chromedriver.exe", "ofs.exe"});
+    Terminate(new String[] {"chrome.exe", "chromedriver.exe", "prl.exe"});
   }
   public static Boolean IsChangedVersionFile(Configuration configuration)
   {
