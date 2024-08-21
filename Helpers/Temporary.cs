@@ -28,8 +28,9 @@ public static class Temporary
     ConsoleWrapper.Debug(Entidade.Executor, String.Join('\n', linhas));
     return linhas;
   }
-  public static List<string> executar(Configuration cfg, string aplicacao, long informacao, long telefone = 0, String? regional = null)
+  public static List<string> executar(String aplicacao, long informacao, long telefone = 0, String? regional = null)
   {
+    var cfg = Configuration.GetInstance();
     var argumentos = $"{aplicacao} {informacao} {cfg.INSTANCIA}";
     if(telefone != 0) argumentos += $" --telefone={telefone}";
     if(cfg.SAP_RESTRITO) argumentos += " --sap-restrito";
@@ -78,13 +79,13 @@ public static class Temporary
     }
     return children;
   }
-  public static List<string> executar(Configuration cfg, List<string> listaValoresSeparadosPorTabulacao)
+  public static List<string> executar(List<string> listaValoresSeparadosPorTabulacao)
   {
     string textoValoresSeparadosPorTabulacao = string.Join("\n", listaValoresSeparadosPorTabulacao);
     using(var proc = new System.Diagnostics.Process{
       StartInfo = new System.Diagnostics.ProcessStartInfo
         {
-          FileName = cfg.IMG_SCRIPT,
+          FileName = Configuration.GetInstance().IMG_SCRIPT,
           Arguments = $"\"{textoValoresSeparadosPorTabulacao}\"",
           UseShellExecute = false,
           RedirectStandardOutput = true,
