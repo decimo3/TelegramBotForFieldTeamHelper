@@ -21,7 +21,64 @@ public static class HandleAsynchronous
     database.InserirSolicitacao(request);
   }
   // TODO - Coleta do banco de dados e realiza a solicitação
-  public static async void Cooker() { throw new NotImplementedException(); }
+  public static async void Cooker(Int32 instance)
+  {
+    var cfg = Configuration.GetInstance();
+    var database = Database.GetInstance();
+    while (true)
+    {
+      var solicitacao = database.RecuperarSolicitacao(
+        s => s.status == 0 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
+      ).FirstOrDefault();
+      if (solicitacao == null) continue;
+      switch (solicitacao.typeRequest)
+      {
+        case TypeRequest.gestao:
+          {
+            await Manager.HandleManager(solicitacao);
+            continue;
+          }
+        case TypeRequest.comando:
+          {
+            await Command.HandleCommand(solicitacao);
+            continue;
+          }
+        case TypeRequest.txtInfo:
+        case TypeRequest.pdfInfo:
+        case TypeRequest.picInfo:
+        case TypeRequest.xlsInfo:
+        case TypeRequest.xyzInfo:
+          {
+            var argumentos = new String[] {
+            solicitacao.application,
+            solicitacao.information.ToString(),
+            "--instancia=" + instance,
+            "--timestamp=" + solicitacao.received_at.ToString("U")
+          };
+            Executor.Executar("sap.exe", argumentos, false);
+            break;
+          }
+        case TypeRequest.ofsInfo:
+          {
+            var antes = DateTime.Now;
+            var argumentos = new String[] {
+              solicitacao.application,
+              solicitacao.information.ToString(),
+              solicitacao.received_at.ToString("U")
+            };
+            while (true)
+            {
+              var texto = System.IO.File.ReadAllText("ofs.lock", System.Text.Encoding.UTF8);
+              if (texto.Length > 0) continue;
+              else System.IO.File.WriteAllText("ofs.lock", String.Join(' ', argumentos));
+            }
+          }
+      }
+      solicitacao.instance = instance;
+      solicitacao.status = 300;
+      database.AlterarSolicitacao(solicitacao);
+    }
+  }
   // TODO - Coleta resposta e responde ao usuário
   public static async void Waiter() { throw new NotImplementedException(); }
 }
