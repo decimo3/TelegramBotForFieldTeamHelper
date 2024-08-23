@@ -30,8 +30,6 @@ class Startup
       System.IO.File.Delete($"{config.CURRENT_PATH}\\telbot.exe.old");
     telbot.Helpers.Updater.Update(config);
     Database.GetInstance(config);
-    if(System.IO.File.Exists($"{config.CURRENT_PATH}\\{config.SAP_LOCKFILE}"))
-      System.IO.File.Delete($"{config.CURRENT_PATH}\\{config.SAP_LOCKFILE}");
     var bot = new TelegramBotClient(config.BOT_TOKEN);
     var msg = HandleMessage.GetInstance(bot);
     using (var cts = new CancellationTokenSource())
@@ -51,11 +49,11 @@ class Startup
         var filhos = new String[] {"prl.exe", "chrome.exe", "chromedriver.exe"};
         HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
-      // Remover essa condicional assim que os métodos forem implementados
-      if(config.BOT_ASSINCRONO)
+      // A new cook is instantiated for each reported instance
+      for (var i = 1; i <= config.SAP_INSTANCIA; i++)
       {
-        HandleAsynchronous.Cooker();
-        HandleAsynchronous.Waiter();
+        HandleAsynchronous.Cooker(i);
+        HandleAsynchronous.Waiter(i);
       }
       Console.ReadLine();
       cts.Cancel();
