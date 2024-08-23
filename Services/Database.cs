@@ -50,8 +50,15 @@ public class Database : IDatabase
             information INT NOT NULL,
             received_at DATETIME NOT NULL,
             response_at DATETIME DEFAULT NULL,
-            status INT DEFAULT NULL,
-            instance INT DEFAULT NULL
+            status INT DEFAULT 0,
+            instance INT DEFAULT 0
+            )";
+        command.ExecuteNonQuery();
+        command.CommandText = @$"CREATE TABLE IF NOT EXISTS faturas(
+            filename VARCHAR(64) NOT NULL,
+            instalation INT NOT NULL,
+            timestamp DATETIME NOT NULL,
+            status INT DEFAULT 0
             )";
         command.ExecuteNonQuery();
       }
@@ -214,6 +221,70 @@ public class Database : IDatabase
     }
   }
 
+  public void InserirFatura(pdfsModel fatura)
+  {
+    using(var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = "INSERT INTO faturas " +
+        "(filename, instalation, timestamp, status) " +
+        "VALUES (@valor1, @valor2, @valor3, @valor4)";
+        command.Parameters.Add(new SQLiteParameter("@valor1", fatura.filename));
+        command.Parameters.Add(new SQLiteParameter("@valor2", fatura.instalation));
+        command.Parameters.Add(new SQLiteParameter("@valor3", fatura.timestamp.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor4", fatura.status));
+        command.ExecuteNonQuery();
+      }
+    }
+  }
+  public pdfsModel? RecuperarFatura(string filename)
+  {
+    return RecuperarFatura(f => f.filename == filename).SingleOrDefault();
+  }
+  public List<pdfsModel> RecuperarFatura(Expression<Func<pdfsModel, bool>>? expression = null)
+  {
+    var faturas = new List<pdfsModel>();
+    using (var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status FROM usuarios";
+        using(var dataReader = command.ExecuteReader())
+        {
+          if(!dataReader.HasRows) return faturas;
+          while(dataReader.Read())
+          {
+            var fatura = new pdfsModel();
+            fatura.rowid = Convert.ToInt64(dataReader["rowid"]);
+            fatura.filename = (String)dataReader["filename"];
+            fatura.instalation = Convert.ToInt64(dataReader["instalation"]);
+            fatura.timestamp = (DateTime)dataReader["timestamp"];
+            fatura.status = (pdfsModel.Status)dataReader["status"];
+            faturas.Add(fatura);
+          }
+          return (expression == null) ? faturas : faturas.AsQueryable().Where(expression).ToList();
+        }
+      }
+    }
+  }
+  public void AlterarFatura(pdfsModel fatura)
+  {
+    using(var connection = new SQLiteConnection(connectionString))
+    {
+      connection.Open();
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = "UPDATE faturas SET " + 
+          "status = @valor1 WHERE rowid = @valor2";
+        command.Parameters.Add(new SQLiteParameter("@valor1", fatura.status));
+        command.Parameters.Add(new SQLiteParameter("@valor2", fatura.rowid));
+        command.ExecuteNonQuery();
+      }
+    }
+  }
   public void Dispose()
   {
     Dispose(true);
