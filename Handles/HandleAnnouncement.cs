@@ -31,6 +31,7 @@ public static class HandleAnnouncement
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
     System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
+    // TODO - Resolver conflito de execução com as solicitações
     var argumentos = new String[] {aplicacao, prazo.ToString(), "--regional=" + regional};
     var relatorio_resultado = Executor.Executar("sap.exe", argumentos, true);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
@@ -42,9 +43,9 @@ public static class HandleAnnouncement
       continue;
     }
     Stream relatorio_arquivo = System.IO.File.OpenRead(relatorio_caminho);
-    if(relatorio_arquivo.Length == 0)
+    if(relatorio_arquivo == null || relatorio_arquivo.Length == 0)
     {
-      relatorio_arquivo.Close();
+      if(relatorio_arquivo != null) relatorio_arquivo.Close();
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete(cfg.SAP_LOCKFILE);
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
@@ -54,7 +55,7 @@ public static class HandleAnnouncement
     var padrao = @"([0-9]{2})/([0-9]{2})/([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2})";
     var relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Match(relatorio_mensagem).Value;
     relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Replace(relatorio_filename, "$3-$2-$1_$4-$5-$6");
-    relatorio_filename = relatorio_arquivo != null ? $"{relatorio_filename}_{aplicacao}_{regional}.csv" : $"{relatorio_filename}_{aplicacao}.csv";
+    relatorio_filename = regional != null ? $"{relatorio_filename}_{aplicacao}_{regional}.csv" : $"{relatorio_filename}_{aplicacao}.csv";
     var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_arquivo, relatorio_filename);
     if(relatorio_identificador == String.Empty)
     {
