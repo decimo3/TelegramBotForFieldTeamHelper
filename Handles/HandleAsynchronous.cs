@@ -89,11 +89,17 @@ public static class HandleAsynchronous
     var bot = HandleMessage.GetInstance();
     while (true)
     {
-      System.Threading.Thread.Sleep(10_000);
+      System.Threading.Thread.Sleep(5_000);
       var solicitacao = database.RecuperarSolicitacao(
         s => s.status == 300 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
       ).FirstOrDefault();
       if (solicitacao == null) continue;
+      if(solicitacao.received_at.AddSeconds(cfg.ESPERA) < DateTime.Now)
+      {
+        var erro = new Exception("A sua solicitação expirou!");
+        await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+        return;
+      }
       var arguments = new String[] {
         solicitacao.received_at.ToLocalTime().ToString("U"),
         solicitacao.application,
