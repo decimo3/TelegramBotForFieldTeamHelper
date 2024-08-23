@@ -171,11 +171,35 @@ public static class HandleAsynchronous
           }
           case typeEntity.PDF:
           {
-            // TODO - Implements `RecuperarFatura`
-            tasks.Add(bot.sendTextMesssageWraper(
-              solicitacao.identifier,
-              response.entities[i].data
-            ));
+            var agora = DateTime.Now;
+            while(true)
+            {
+              faturas = database.RecuperarFatura(
+                f => !f.has_expired() &&
+                f.instalation == solicitacao.information
+              );
+              if(faturas.Count == expected_invoices) break;
+              if((DateTime.Now - agora).Seconds > cfg.ESPERA) break;
+              faturas = new List<pdfsModel>();
+            }
+            if(faturas.Count != expected_invoices)
+            {
+              var erro = new Exception("A quantidade de faturas impressas não está batendo com a quantidade esperada!");
+              tasks.Add(bot.ErrorReport(solicitacao.information, erro, solicitacao));
+              continue;
+            }
+            foreach (var fatura in faturas)
+            {
+              fluxos[fluxo_atual] = System.IO.File.OpenRead(fatura.filename);
+              tasks.Add(bot.SendDocumentAsyncWraper(
+                solicitacao.identifier,
+                fluxos[fluxo_atual],
+                fatura.filename
+              ));
+              fatura.status = pdfsModel.Status.sent;
+              database.AlterarFatura(fatura);
+              fluxo_atual++;
+            }
             break;
           }
         }
