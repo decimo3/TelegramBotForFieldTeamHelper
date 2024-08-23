@@ -55,6 +55,7 @@ class Startup
         HandleAsynchronous.Cooker(i);
         HandleAsynchronous.Waiter(i);
       }
+      PdfHandle.Watch();
       Console.ReadLine();
       cts.Cancel();
     }
