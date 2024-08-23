@@ -52,30 +52,30 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, "Estou de prontidão aguardando as solicitações! (^.^)");
         break;
       case "/status":
-        if(user.privilege == UsersModel.userLevel.proprietario)
+        if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
-          await bot.SendDocumentAsyncWraper(user.identifier, stream, $"{DateTime.Now.ToLocalTime().ToString("yyyyMMdd_HHmmss")}.db");
-          stream.Dispose();
+          var erro = new Exeption("Você não tem permissão para usar esse comando!");
+          await bot.ErrorReport(user.identifier, erro, request);
+          return;
         }
-        else
-        {
-          await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para usar esse comando!");
-        }
+        await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
+        await bot.SendDocumentAsyncWraper(user.identifier, stream, $"{DateTime.Now.ToLocalTime().ToString("yyyyMMdd_HHmmss")}.db");
+        stream.Dispose();
         break;
       default:
-        await bot.sendTextMesssageWraper(user.identifier, "Comando solicitado não foi programado! Verifique e tente um válido");
-        break;
+        {
+          var erro = new Exeption("Comando solicitado não foi programado! Verifique e tente um válido!");
+          await bot.ErrorReport(user.identifier, erro, request);
+          return;
+        }
       case "/info":
         var info = new System.Text.StringBuilder();
         info.Append($"*Identificador:* {user.identifier}\n");
         info.Append($"*Telefone:* {user.phone_number}\n");
         info.Append($"*Autorização:* {user.privilege.ToString()}\n");
-        if(user.privilege == UsersModel.userLevel.eletricista || user.privilege == UsersModel.userLevel.supervisor || user.privilege == UsersModel.userLevel.controlador)
+        if(user.dias_vencimento() < 99)
         {
-          var prazo = user.privilege == UsersModel.userLevel.supervisor ? user.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) : user.update_at.AddDays(cfg.DIAS_EXPIRACAO);
-          var dias = prazo - DateTime.Today;
-          info.Append($"*Expiração:* {prazo.ToString("dd/MM/yyyy")} ({(int)dias.TotalDays} dias)\n");
+          info.Append($"*Expiração:* {user.update_at.AddDays(user.dias_vencimento())} ({user.dias_vencimento()} dias)\n");
         }
         info.Append($"*Versão:* {Updater.CurrentVersion(cfg).ToString("yyyyMMdd")}");
         await bot.sendTextMesssageWraper(user.identifier, info.ToString());
@@ -83,8 +83,9 @@ public static class Command
       case "/update":
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          await bot.sendTextMesssageWraper(user.identifier, "Somente o proprietario podem usar esse comando");
-          break;
+          var erro = new Exeption("Somente o proprietario podem usar esse comando!");
+          await bot.ErrorReport(user.identifier, erro, request);
+          return;
         }
         try
         {
@@ -96,6 +97,7 @@ public static class Command
         if(update_version == null)
         {
           await bot.sendTextMesssageWraper(user.identifier, "A versão atual já é a versão mais recente!");
+          break;
         }
         else
         {
@@ -105,14 +107,17 @@ public static class Command
         }
         catch
         {
-          await bot.sendTextMesssageWraper(user.identifier, $"Não foi possível atualizar o sistema remotamente!");
+          var erro = new Exeption("Não foi possível atualizar o sistema remotamente!");
+          await bot.ErrorReport(user.identifier, erro, request);
+          return;
         }
         break;
       case "/hotfix":
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          await bot.sendTextMesssageWraper(user.identifier, "Somente o proprietario podem usar esse comando");
-          break;
+          var erro = new Exeption("Somente o proprietario podem usar esse comando!");
+          await bot.ErrorReport(user.identifier, erro, request);
+          return;
         }
         if(!Updater.IsChangedVersionFile(cfg))
         {
@@ -123,10 +128,11 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, "Sistema atualizado com sucesso!");
         break;
       case "/restart":
-        if(!(user.privilege == UsersModel.userLevel.proprietario || user.privilege == UsersModel.userLevel.administrador))
+        if(!user.pode_promover())
         {
-          await bot.sendTextMesssageWraper(user.identifier, "Somente o proprietario ou administrador podem usar esse comando!");
-          break;
+          var erro = new Exeption("Somente o proprietario ou administrador podem usar esse comando!");
+          await bot.ErrorReport(user.identifier, erro, request);
+          return;
         }
         if(Updater.IsChangedVersionFile(cfg))
         {
@@ -141,8 +147,9 @@ public static class Command
       case "/database":
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          await bot.sendTextMesssageWraper(user.identifier, "Somente o proprietario podem usar esse comando");
-          break;
+          var erro = new Exeption("Somente o proprietario podem usar esse comando!");
+          await bot.ErrorReport(user.identifier, erro, request);
+          return;
         }
         var solicitacoes = Database.GetInstance().RecuperarSolicitacao();
         var tabela_texto = TableMaker<logsModel>.Serialize(solicitacoes, ';');
@@ -158,7 +165,7 @@ public static class Command
       break;
       case "/configs":
       {
-        var properties = typeof(telbot.Configuration).GetFields();
+        var properties = typeof(Configuration).GetFields();
         var stringbuilder = new System.Text.StringBuilder();
         foreach (var property in properties)
         {
@@ -166,12 +173,12 @@ public static class Command
           stringbuilder.Append(": ");
           stringbuilder.Append(property.GetValue(cfg));
           stringbuilder.Append('\n');
-            
         }
         await bot.sendTextMesssageWraper(user.identifier, stringbuilder.ToString(), markdown: false);
       }
       break;
     }
+    bot.SucessReport(request);
     }
     catch (System.Exception)
     {
