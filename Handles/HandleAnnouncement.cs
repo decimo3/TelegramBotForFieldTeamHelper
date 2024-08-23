@@ -24,21 +24,22 @@ public static class HandleAnnouncement
     if(DateTime.Now.Hour <= 7 || DateTime.Now.Hour >= 22) continue;
     while(true)
     {
-      if(!System.IO.File.Exists(cfg.SAP_LOCKFILE)) break;
+      if(!System.IO.File.Exists("sap.lock")) break;
       else System.Threading.Thread.Sleep(1_000);
     }
     try
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
-    System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
+    System.IO.File.Create("sap.lock").Close();
     // TODO - Resolver conflito de execução com as solicitações
+    // TODO - Substituir todas as chamadas para uso do lockfile
     var argumentos = new String[] {aplicacao, prazo.ToString(), "--regional=" + regional};
     var relatorio_resultado = Executor.Executar("sap.exe", argumentos, true);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any() || relatorio_resultado.First().StartsWith("ERRO:") || !System.IO.File.Exists(relatorio_caminho))
     {
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
+      System.IO.File.Delete("sap.lock");
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
@@ -47,7 +48,7 @@ public static class HandleAnnouncement
     {
       if(relatorio_arquivo != null) relatorio_arquivo.Close();
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
+      System.IO.File.Delete("sap.lock");
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
@@ -61,7 +62,7 @@ public static class HandleAnnouncement
     {
       relatorio_arquivo.Close();
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
+      System.IO.File.Delete("sap.lock");
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
@@ -70,7 +71,7 @@ public static class HandleAnnouncement
     await Comunicado(usuarios, cfg.ID_ADM_BOT, relatorio_mensagem, null, null, relatorio_identificador);
     relatorio_arquivo.Close();
     System.IO.File.Delete(relatorio_caminho);
-    System.IO.File.Delete(cfg.SAP_LOCKFILE);
+    System.IO.File.Delete("sap.lock");
     contador_de_regionais = (contador_de_regionais + 1) % cfg.REGIONAIS.Count;
     }
     catch (System.Exception erro)
@@ -97,7 +98,7 @@ public static class HandleAnnouncement
     
     if(!has_txt && !has_jpg && !has_mp4 && !has_doc) return;
     
-    System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
+    System.IO.File.Create("sap.lock").Close();
     
     var comunicado_mensagem = has_txt ? File.ReadAllText(mensagem_caminho) : null;
     if(comunicado_mensagem == null || comunicado_mensagem.Length == 0) has_txt = false;
@@ -140,7 +141,7 @@ public static class HandleAnnouncement
       ConsoleWrapper.Write(Entidade.Advertiser, "Enviado documento do comunicado!");
       System.IO.File.Delete(documento_caminho);
     }
-    System.IO.File.Delete(cfg.SAP_LOCKFILE);
+    System.IO.File.Delete("sap.lock");
     }
     catch (System.Exception erro)
     {
