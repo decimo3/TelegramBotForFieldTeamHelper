@@ -112,10 +112,14 @@ public static class HandleAsynchronous
       if(response == null) continue;
       var tasks = new List<Task>();
       var count = response.entities.Where(
-        e => e.type == typeEntity.PIC || e.type == typeEntity.PDF || e.type == typeEntity.XLS
+        e => e.type == typeEntity.PIC || e.type == typeEntity.XLS
       ).Count();
-      var fluxos = new Stream[count];
+      var expected_invoices = response.entities.Where(
+        e => e.type == typeEntity.PDF
+      ).Sum(e => Int32.Parse(e.data));
+      var fluxos = new Stream[count + expected_invoices];
       var fluxo_atual = 0;
+      var faturas = new List<pdfsModel>();
       for(var i = 0; i < response.entities.Count; i++)
       {
         switch (response.entities[i].type)
