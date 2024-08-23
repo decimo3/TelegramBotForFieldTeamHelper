@@ -1,3 +1,4 @@
+using telbot.Services;
 namespace telbot.handle;
 public static class HandleTypeMessage
 {
@@ -17,7 +18,13 @@ public static class HandleTypeMessage
   }
   public static async Task CoordinatesType(UsersModel usuario, DateTime recebido_em, Double lat, Double lon)
   {
-    await Information.GetZoneInfo(usuario.identifier, lat, lon, recebido_em);
+    var bot = HandleMessage.GetInstance();
+    var argumentos = new String[] {
+      lat.ToString(System.Globalization.CultureInfo.InvariantCulture),
+      lon.ToString(System.Globalization.CultureInfo.InvariantCulture),
+    };
+    var respostas = Executor.Executar("gps.exe", argumentos, true);
+    await bot.sendTextMesssageWraper(usuario.identifier, String.Join("\n", respostas));
     return;
   }
   public static async Task PhotographType(UsersModel usuario, DateTime recebido_em, String photograph, String? caption)

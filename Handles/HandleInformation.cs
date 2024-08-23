@@ -1,12 +1,14 @@
 namespace telbot.handle;
 using telbot.Helpers;
 using telbot.models;
+using telbot.Services;
 public static class Information
 {
   async public static Task SendManuscripts(logsModel request)
   {
     var bot = HandleMessage.GetInstance();
-    var respostas = Temporary.executar(request.application, request.information);
+    var argumentos = new String[] {request.application, request.information.ToString()};
+    var respostas = Executor.Executar("sap.exe", argumentos, true);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
@@ -20,7 +22,8 @@ public static class Information
   async public static Task SendCoordinates(logsModel request)
   {
     var bot = HandleMessage.GetInstance();
-    var respostas = Temporary.executar(request.application, request.information);
+    var argumentos = new String[] {request.application, request.information.ToString()};
+    var respostas = Executor.Executar("sap.exe", argumentos, true);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
@@ -34,7 +37,8 @@ public static class Information
   async public static Task SendDocument(logsModel request)
   {
     var bot = HandleMessage.GetInstance();
-    var respostas = Temporary.executar(request.application, request.information);
+    var argumentos = new String[] {request.application, request.information.ToString()};
+    var respostas = Executor.Executar("sap.exe", argumentos, true);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
@@ -83,7 +87,8 @@ public static class Information
   {
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
-    var respostas = telbot.Temporary.executar(request.application, request.information);
+    var argumentos = new String[] {request.application, request.information.ToString()};
+    var respostas = Executor.Executar("sap.exe", argumentos, true);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
@@ -93,7 +98,8 @@ public static class Information
     }
     try
     {
-      telbot.Temporary.executar(respostas);
+      var csvarg = new String[] {String.Join('\n', respostas)};
+      telbot.Executor.Executar("img.exe", csvarg, true);
       await using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\tmp\temporario.png");
       await bot.SendPhotoAsyncWraper(request.identifier, stream);
       stream.Dispose();
@@ -114,7 +120,8 @@ public static class Information
     var agora = DateTime.Now;
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
-    var respostas = telbot.Temporary.executar(request.application, request.information);
+    var argumentos = new String[] {request.application, request.information.ToString()};
+    var respostas = Executor.Executar("sap.exe", argumentos, true);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {
@@ -269,8 +276,11 @@ public static class Information
         application = "zona",
         received_at = received_at,
       };
-    var argumento = $"{latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)} {longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
-    var respostas = telbot.Temporary.executar("gps.exe", argumento, true);
+    var argumentos = new String[] {
+      latitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
+      longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)
+    };
+    var respostas = telbot.Executor.Executar("gps.exe", argumentos, true);
     var verificacao = VerificarSAP(respostas);
     if(verificacao != null)
     {

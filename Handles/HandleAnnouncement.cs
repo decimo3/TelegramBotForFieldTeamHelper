@@ -1,4 +1,5 @@
 using System.Data;
+using telbot.Services;
 using telbot.Helpers;
 namespace telbot.handle;
 public static class HandleAnnouncement
@@ -30,7 +31,8 @@ public static class HandleAnnouncement
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
     System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
-    var relatorio_resultado = Temporary.executar(aplicacao, prazo, regional: regional);
+    var argumentos = new String[] {aplicacao, prazo.ToString(), "--regional=" + regional};
+    var relatorio_resultado = Executor.Executar("sap.exe", argumentos, true);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
     if(!relatorio_resultado.Any() || relatorio_resultado.First().StartsWith("ERRO:") || !System.IO.File.Exists(relatorio_caminho))
     {
@@ -185,6 +187,7 @@ public static class HandleAnnouncement
   }
   public static async void Executador(String imagename, String[] arguments, String[] children)
   {
+    var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq {imagename}\""};
     while(true)
     {
       try
@@ -193,13 +196,12 @@ public static class HandleAnnouncement
         System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
         if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
         ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
-        var result = Temporary.executar("tasklist", $"/NH /FI \"IMAGENAME eq {imagename}\"", true);
-        ConsoleWrapper.Debug(Entidade.Advertiser, String.Join('\n', result));
+        var result = Executor.Executar("tasklist", argumentos, true);
         if(result.First().StartsWith("INFORMA"))
         {
           ConsoleWrapper.Debug(Entidade.Advertiser, $"Sistema {imagename} não está em execução. Iniciando...");
           Updater.Terminate(children);
-          Temporary.executar(imagename, String.Join(' ', arguments), false);
+          Executor.Executar(imagename, arguments, false);
         }
       }
       catch (System.Exception erro)

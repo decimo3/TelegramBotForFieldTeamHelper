@@ -1,3 +1,4 @@
+using telbot.Services;
 namespace telbot.Helpers;
 public static class Updater
 {
@@ -126,7 +127,8 @@ public static class Updater
     foreach (var process_name in applications)
     {
       if(String.IsNullOrEmpty(process_name)) continue;
-      Temporary.executar("taskkill", $"/F /T /IM {process_name}", true);
+      var argumentos = new String[] {"/F", "/T", "/IM", process_name};
+      Executor.Executar("taskkill", argumentos, true);
     }
   }
   public static void TerminateAll()

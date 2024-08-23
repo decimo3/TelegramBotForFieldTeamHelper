@@ -4,6 +4,7 @@ using Telegram.Bot.Types.Enums;
 using telbot.handle;
 using telbot.models;
 using telbot.Helpers;
+using telbot.Services;
 namespace telbot;
 class Startup
 {
@@ -15,7 +16,8 @@ class Startup
     Console.WriteLine("# Repository: TelegramBotForFieldTeamHelper #");
     Console.WriteLine("#############################################");
     var config = Configuration.GetInstance(System.Environment.GetCommandLineArgs());
-    var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq telbot.exe\"", true);
+    var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq telbot.exe\""};
+    var result = Executor.Executar("tasklist", argumentos, true);
     if(result.Where(r => r.Contains("telbot.exe")).ToList().Count > 1)
     {
       var twice = "Já tem uma instância do chatbot rodando!";
@@ -41,15 +43,13 @@ class Startup
       if(config.SAP_BANDEIRADA) HandleAnnouncement.Vencimento("bandeirada", 7);
       if(config.OFS_MONITORAMENTO)
       {
-        var argumentos = new String[] {"slower"};
         var filhos = new String[] {"ofs.exe", "chrome.exe", "chromedriver.exe"};
-        HandleAnnouncement.Executador("ofs.exe", argumentos, filhos);
+        HandleAnnouncement.Executador("ofs.exe", new String[] {"slower"}, filhos);
       }
       if(config.PRL_SUBSISTEMA)
       {
-        var argumentos = new String[] {"slower"};
         var filhos = new String[] {"prl.exe", "chrome.exe", "chromedriver.exe"};
-        HandleAnnouncement.Executador("prl.exe", argumentos, filhos);
+        HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
       // Remover essa condicional assim que os métodos forem implementados
       if(config.BOT_ASSINCRONO)
