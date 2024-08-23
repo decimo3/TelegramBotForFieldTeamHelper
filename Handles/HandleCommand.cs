@@ -59,13 +59,9 @@ public static class Command
           return;
         }
         var filename = $"{DateTime.Now.ToLocalTime().ToString("yyyyMMdd_HHmmss")}.db";
-        using Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
-        {
-          await bot.SendDocumentAsyncWraper(
-            user.identifier,
-            stream,
-            filename);
-        }
+        Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
+        await bot.SendDocumentAsyncWraper(user.identifier, stream, filename);
+        stream.Close();
         break;
       default:
         {
