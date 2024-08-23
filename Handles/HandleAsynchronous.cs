@@ -1,5 +1,7 @@
+using telbot.API;
 using telbot.Helpers;
 using telbot.models;
+using telbot.Services;
 namespace telbot.handle;
 public static class HandleAsynchronous
 {
@@ -80,5 +82,109 @@ public static class HandleAsynchronous
     }
   }
   // TODO - Coleta resposta e responde ao usuário
-  public static async void Waiter() { throw new NotImplementedException(); }
+  public static async void Waiter(Int32 instance)
+  {
+    var cfg = Configuration.GetInstance();
+    var database = Database.GetInstance();
+    var bot = HandleMessage.GetInstance();
+    while (true)
+    {
+      System.Threading.Thread.Sleep(10_000);
+      var solicitacao = database.RecuperarSolicitacao(
+        s => s.status == 300 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
+      ).FirstOrDefault();
+      if (solicitacao == null) continue;
+      var arguments = new String[] {
+        solicitacao.received_at.ToLocalTime().ToString("U"),
+        solicitacao.application,
+        solicitacao.information.ToString(),
+        ".json"
+      };
+      var filename = String.Join('_', arguments);
+      if(!System.IO.File.Exists(filename)) continue;
+      var response = System.Text.Json.JsonSerializer.Deserialize<Response>(filename);
+      if(response == null) continue;
+      var tasks = new List<Task>();
+      var count = response.entities.Where(
+        e => e.type == typeEntity.PIC || e.type == typeEntity.PDF || e.type == typeEntity.XLS
+      ).Count();
+      var fluxos = new Stream[count];
+      var fluxo_atual = 0;
+      for(var i = 0; i < response.entities.Count; i++)
+      {
+        switch (response.entities[i].type)
+        {
+          case typeEntity.TXT:
+          {
+            tasks.Add(bot.sendTextMesssageWraper(
+              solicitacao.identifier,
+              response.entities[i].data
+            ));
+            break;
+          }
+          case typeEntity.XYZ:
+          {
+            tasks.Add(bot.SendCoordinateAsyncWraper(
+              solicitacao.identifier,
+              response.entities[i].data
+            ));
+            break;
+          }
+          case typeEntity.PIC:
+          {
+            var bytearray = Convert.FromBase64String(response.entities[i].data);
+            fluxos[fluxo_atual] = new MemoryStream(bytearray);
+            tasks.Add(bot.SendPhotoAsyncWraper(
+              solicitacao.identifier,
+              fluxos[fluxo_atual]
+            ));
+            fluxo_atual++;
+            break;
+          }
+          case typeEntity.XLS:
+          {
+            var bytearray = System.Text.Encoding.UTF8.GetBytes(response.entities[i].data);
+            fluxos[fluxo_atual] = new MemoryStream(bytearray);
+            var nomeenvio = new String[] {
+              solicitacao.application,
+              "_",
+              solicitacao.received_at.ToLocalTime().ToString("U"),
+              ".csv"
+            };
+            tasks.Add(bot.SendDocumentAsyncWraper(
+              solicitacao.identifier,
+              fluxos[fluxo_atual],
+              String.Join("", nomeenvio)
+            ));
+            fluxo_atual++;
+            break;
+          }
+          case typeEntity.PDF:
+          {
+            // TODO - Implements `RecuperarFatura`
+            tasks.Add(bot.sendTextMesssageWraper(
+              solicitacao.identifier,
+              response.entities[i].data
+            ));
+            break;
+          }
+        }
+      }
+      await Task.WhenAll(tasks);
+      foreach(var fluxo in fluxos) fluxo.Close();
+      solicitacao.status = response.status;
+      if(solicitacao.status == 200)
+      {
+        bot.SucessReport(solicitacao);
+      }
+      else
+      {
+        await bot.ErrorReport(
+          solicitacao.identifier,
+          new Exception(),
+          solicitacao
+        );
+      }
+    }
+  }
 }
