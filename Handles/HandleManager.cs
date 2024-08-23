@@ -1,11 +1,14 @@
-namespace telbot.handle;
 using telbot.models;
+using telbot.Services;
+namespace telbot.handle;
 public static class Manager
 {
-  public async static Task HandleManager(UsersModel user, logsModel request)
+  public async static Task HandleManager(logsModel request)
   {
     var database = Database.GetInstance();
     var bot = HandleMessage.GetInstance();
+    var user = database.RecuperarUsuario(request.identifier) ??
+      throw new NullReferenceException("Usuario não foi encontrado!");
     if(!user.pode_autorizar())
     {
       await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para alterar usuários!");
