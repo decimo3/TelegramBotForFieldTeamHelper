@@ -64,14 +64,7 @@ public static class HandleAnnouncement
       System.Threading.Thread.Sleep(CINCO_MINUTOS);
       continue;
     }
-    var usuarios = Database.GetInstance().RecuperarUsuario(u =>
-      (
-        u.privilege == UsersModel.userLevel.proprietario ||
-        u.privilege == UsersModel.userLevel.administrador ||
-        (u.privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
-      )
-    );
+    var usuarios = Database.GetInstance().RecuperarUsuario(u => u.dias_vencimento() > 0);
     ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
     await Comunicado(usuarios, cfg.ID_ADM_BOT, relatorio_mensagem, null, null, relatorio_identificador);
     relatorio_arquivo.Close();
@@ -118,16 +111,7 @@ public static class HandleAnnouncement
     var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : null;
     var doc_id = has_doc ? await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, comunicado_documento, $"comunicado_{DateTime.Now.ToString("yyyyMMdd")}.pdf") : null;
 
-    var usuarios = Database.GetInstance().RecuperarUsuario(u =>
-      (
-        u.privilege == UsersModel.userLevel.proprietario ||
-        u.privilege == UsersModel.userLevel.administrador ||
-        u.privilege == UsersModel.userLevel.comunicador ||
-        (u.privilege == UsersModel.userLevel.eletricista && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
-      )
-    );
+    var usuarios = Database.GetInstance().RecuperarUsuario(u => u.dias_vencimento() > 0);
 
     ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
     await Comunicado(usuarios, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id, doc_id);
