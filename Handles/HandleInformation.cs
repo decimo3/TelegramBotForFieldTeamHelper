@@ -58,7 +58,7 @@ public static class Information
       foreach (string fatura in respostas)
       {
         if (fatura == "None" || fatura == null || fatura == "") continue;
-        if(!PdfChecker.PdfCheck($"./tmp/{fatura}", request.information)) continue;
+        if(PdfHandle.Check($"./tmp/{fatura}") != request.information) continue;
         faturas_validas.Add(fatura);
       }
       if(faturas_validas.Count != qnt)
@@ -232,7 +232,7 @@ public static class Information
         var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
         foreach (var file in files)
         {
-          if(!PdfChecker.PdfCheck(file, request.information))
+          if(PdfHandle.Check(file) != request.information)
           {
             var erro = new Exception("ERRO: A fatura recuperada não corresponde com a solicitada!");
             await bot.ErrorReport(request.identifier, erro, request);
