@@ -13,8 +13,8 @@ public interface IDatabase : IDisposable
   public List<logsModel> RecuperarSolicitacao(Expression<Func<logsModel, bool>>? expression = null);
   public void AlterarSolicitacao(logsModel request);
 
-  public void InserirFatura(pdfsModel pdf);
-  public pdfsModel RecuperarFatura(Int64 rowid);
+  public void InserirFatura(pdfsModel fatura);
+  public pdfsModel? RecuperarFatura(String filename);
   public List<pdfsModel> RecuperarFatura(Expression<Func<pdfsModel, bool>>? expression = null);
-  public void AlterarFatura(pdfsModel pdfInfo);
+  public void AlterarFatura(pdfsModel fatura);
 }
