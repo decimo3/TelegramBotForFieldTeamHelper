@@ -4,8 +4,7 @@ public static class HandleTypeMessage
 {
   public static async Task ManuscriptsType(UsersModel usuario, DateTime recebido_em, String mensagem)
   {
-    var text_request = new telbot.models.RequestText(usuario.identifier, mensagem, recebido_em);
-    await HandleAsynchronous.Soiree(text_request);
+    await HandleAsynchronous.Soiree(usuario.identifier, mensagem, recebido_em);
   }
   public static async Task PhoneNumberType(UsersModel usuario, Int64 telefone)
   {
