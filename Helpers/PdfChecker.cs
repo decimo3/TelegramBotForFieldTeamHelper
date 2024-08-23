@@ -1,27 +1,18 @@
-namespace telbot;
-public static class PdfChecker
+namespace telbot.Helpers;
+public static partial class PdfHandle
 {
-  public static bool PdfCheck(String filepath, long instalacao)
+  public static Int64 Check(String filepath)
   {
-    try
+    var text = new System.Text.StringBuilder();
+    using var reader = new iTextSharp.text.pdf.PdfReader(filepath);
+    var strategy = new iTextSharp.text.pdf.parser.SimpleTextExtractionStrategy();
+    for (var page = 1; page <= reader.NumberOfPages; page++)
     {
-      if(!System.IO.File.Exists(filepath)) return false;
-      var reader = new iTextSharp.text.pdf.PdfReader(filepath);
-      var text = new System.Text.StringBuilder();
-      for (int page = 1; page <= reader.NumberOfPages; page++) {
-        var strategy = new iTextSharp.text.pdf.parser.SimpleTextExtractionStrategy();
-        string currentText = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, page, strategy);
-        currentText = System.Text.Encoding.UTF8.GetString(System.Text.ASCIIEncoding.Convert(
-          System.Text.Encoding.Default, System.Text.Encoding.UTF8, System.Text.Encoding.Default.GetBytes(currentText)));
+        var currentText = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, page, strategy);
         text.Append(currentText);
-      }
-      reader.Close();
-      String result = text.ToString();
-      return result.Contains(instalacao.ToString());
     }
-    catch
-    {
-      return false;
+    var re = new System.Text.RegularExpressions.Regex("^[0-9]{10}$");
+    var match = re.Match(text.ToString());
+    return match.Success ? Convert.ToInt64(match.Value) : 0;
     }
-  }
 }
