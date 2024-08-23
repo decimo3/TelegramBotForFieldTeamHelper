@@ -38,7 +38,6 @@ public static class Validador
     if(aplicacao == "medidor") return TypeRequest.txtInfo;
     if(aplicacao == "informacao") return TypeRequest.txtInfo;
     if(aplicacao == "cruzamento") return TypeRequest.picInfo;
-    if(aplicacao == "acesso") return TypeRequest.anyInfo;
     if(aplicacao == "consumo") return TypeRequest.picInfo;
     if(aplicacao == "abertura") return TypeRequest.txtInfo;
     if(aplicacao == "ren360") return TypeRequest.picInfo;

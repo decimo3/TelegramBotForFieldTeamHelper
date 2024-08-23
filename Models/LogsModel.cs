@@ -16,4 +16,4 @@ public class logsModel
   public Int32 instance { get; set; }
   public Int32 status { get; set; }
 }
-public enum TypeRequest {gestao, comando, txtInfo, pdfInfo, picInfo, xlsInfo, anyInfo, xyzInfo, ofsInfo, gpsInfo}
+public enum TypeRequest {gestao, comando, txtInfo, pdfInfo, picInfo, xlsInfo, prlInfo, xyzInfo, ofsInfo, gpsInfo}
