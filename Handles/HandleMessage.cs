@@ -1,5 +1,5 @@
 namespace telbot.handle;
-
+using telbot.Services;
 using telbot.Helpers;
 using telbot.models;
 using Telegram.Bot;
@@ -80,11 +80,12 @@ public class HandleMessage
   }
   public async Task ErrorReport(long id, Exception error, logsModel? request)
   {
-    await sendTextMesssageWraper(id, error.Message);
+    if(!String.IsNullOrEmpty(error.Message))
+      await sendTextMesssageWraper(id, error.Message);
     await sendTextMesssageWraper(id, "Não foi possível processar a sua solicitação!");
     await sendTextMesssageWraper(id, "Solicite a informação para o monitor(a)");
     if(request == null) return;
-    request.status = 500;
+    if(request.status < 400) request.status = 500;
     request.response_at = DateTime.Now;
     Database.GetInstance().AlterarSolicitacao(request);
   }
