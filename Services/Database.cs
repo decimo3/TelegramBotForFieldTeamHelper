@@ -176,7 +176,7 @@ public class Database : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status FROM usuarios";
+        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status FROM solicitacoes";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return solicitacoes;
@@ -184,9 +184,9 @@ public class Database : IDatabase
           {
             var solicitacao = new logsModel();
             solicitacao.rowid = Convert.ToInt64(dataReader["rowid"]);
-            solicitacao.identifier = Convert.ToInt64(dataReader["id"]);
+            solicitacao.identifier = Convert.ToInt64(dataReader["identifier"]);
             solicitacao.application = (String)dataReader["application"];
-            solicitacao.information = Convert.ToInt64(dataReader["informacao"]);
+            solicitacao.information = Convert.ToInt64(dataReader["information"]);
             solicitacao.received_at = (DateTime)dataReader["received_at"];
             solicitacao.response_at = (DateTime)dataReader["response_at"];
             solicitacao.instance = (Int32)dataReader["instance"];
@@ -251,7 +251,7 @@ public class Database : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status FROM usuarios";
+        command.CommandText = "SELECT rowid, filename, instalation, timestamp, status FROM faturas";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return faturas;
