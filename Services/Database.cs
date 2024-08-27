@@ -48,6 +48,7 @@ public class Database : IDatabase
             identifier INT NOT NULL,
             application VARCHAR(16) NOT NULL,
             information INT NOT NULL,
+            request_type INT NOT NULL,
             received_at DATETIME NOT NULL,
             response_at DATETIME DEFAULT NULL,
             status INT DEFAULT 0,
@@ -112,13 +113,13 @@ public class Database : IDatabase
           while(dataReader.Read())
           {
             var usuario = new UsersModel();
-            usuario.rowid = Convert.ToInt64(dataReader["rowid"]);
-            usuario.identifier = Convert.ToInt64(dataReader["identifier"]);
-            usuario.create_at = (DateTime)dataReader["create_at"];
-            usuario.update_at = (DateTime)dataReader["update_at"];
-            usuario.privilege = (UsersModel.userLevel)dataReader["privilege"];
-            usuario.inserted_by = Convert.ToInt64(dataReader["inserted_by"]);
-            usuario.phone_number = Convert.ToInt64(dataReader["phone_number"]);
+            usuario.rowid = dataReader.GetInt64(0);
+            usuario.identifier = dataReader.GetInt64(1);
+            usuario.create_at = dataReader.GetDateTime(2);
+            usuario.update_at = dataReader.GetDateTime(3);
+            usuario.privilege = (UsersModel.userLevel)dataReader.GetInt32(4);
+            usuario.inserted_by = dataReader.GetInt64(5);
+            usuario.phone_number = dataReader.GetInt64(6);
             usuarios.Add(usuario);
           }
           return (expression == null) ? usuarios : usuarios.AsQueryable().Where(expression).ToList();
@@ -158,12 +159,14 @@ public class Database : IDatabase
       using(var command = connection.CreateCommand())
       {
         command.CommandText = "INSERT INTO solicitacoes " +
-        "(identifier, application, information, received_at) " +
-        "VALUES (@valor1, @valor2, @valor3, @valor4)";
+        "(identifier, application, information, received_at, response_at, request_type) " +
+        "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6)";
         command.Parameters.Add(new SQLiteParameter("@valor1", request.identifier));
         command.Parameters.Add(new SQLiteParameter("@valor2", request.application));
         command.Parameters.Add(new SQLiteParameter("@valor3", request.information));
         command.Parameters.Add(new SQLiteParameter("@valor4", request.received_at.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor5", DateTime.MinValue.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor6", request.typeRequest));
         command.ExecuteNonQuery();
       }
     }
@@ -176,21 +179,22 @@ public class Database : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status FROM solicitacoes";
+        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type FROM solicitacoes";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return solicitacoes;
           while(dataReader.Read())
           {
             var solicitacao = new logsModel();
-            solicitacao.rowid = Convert.ToInt64(dataReader["rowid"]);
-            solicitacao.identifier = Convert.ToInt64(dataReader["identifier"]);
-            solicitacao.application = (String)dataReader["application"];
-            solicitacao.information = Convert.ToInt64(dataReader["information"]);
-            solicitacao.received_at = (DateTime)dataReader["received_at"];
-            solicitacao.response_at = (DateTime)dataReader["response_at"];
-            solicitacao.instance = (Int32)dataReader["instance"];
-            solicitacao.status = (Int32)dataReader["status"];
+            solicitacao.rowid = dataReader.GetInt64(0);
+            solicitacao.identifier = dataReader.GetInt64(1);
+            solicitacao.application = dataReader.GetString(2);
+            solicitacao.information = dataReader.GetInt64(3);
+            solicitacao.received_at = dataReader.GetDateTime(4);
+            solicitacao.response_at = dataReader.GetDateTime(5);
+            solicitacao.instance = dataReader.GetInt32(6);
+            solicitacao.status = dataReader.GetInt32(7);
+            solicitacao.typeRequest = (TypeRequest)dataReader.GetInt32(8);
             solicitacoes.Add(solicitacao);
           }
           return (expression == null) ? solicitacoes : solicitacoes.AsQueryable().Where(expression).ToList();
@@ -258,11 +262,11 @@ public class Database : IDatabase
           while(dataReader.Read())
           {
             var fatura = new pdfsModel();
-            fatura.rowid = Convert.ToInt64(dataReader["rowid"]);
-            fatura.filename = (String)dataReader["filename"];
-            fatura.instalation = Convert.ToInt64(dataReader["instalation"]);
-            fatura.timestamp = (DateTime)dataReader["timestamp"];
-            fatura.status = (pdfsModel.Status)dataReader["status"];
+            fatura.rowid = dataReader.GetInt64(0);
+            fatura.filename = dataReader.GetString(1);
+            fatura.instalation = dataReader.GetInt64(2);
+            fatura.timestamp = dataReader.GetDateTime(3);
+            fatura.status = (pdfsModel.Status)dataReader.GetInt32(4);
             faturas.Add(fatura);
           }
           return (expression == null) ? faturas : faturas.AsQueryable().Where(expression).ToList();
