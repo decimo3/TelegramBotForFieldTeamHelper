@@ -66,6 +66,7 @@ public static class Command
       default:
         {
           var erro = new Exception("Comando solicitado não foi programado! Verifique e tente um válido!");
+          request.status = 400;
           await bot.ErrorReport(user.identifier, erro, request);
           return;
         }
