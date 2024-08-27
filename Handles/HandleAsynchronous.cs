@@ -22,78 +22,95 @@ public static class HandleAsynchronous
     request.received_at = received_at.ToLocalTime();
     database.InserirSolicitacao(request);
   }
-  // TODO - Coleta do banco de dados e realiza a solicitação
+  // DONE - Coleta do banco de dados e realiza a solicitação
   public static async void Cooker(Int32 instance)
   {
+    ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} iniciada!");
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     while (true)
     {
+      await Task.Delay(cfg.TASK_DELAY);
+      ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} buscando solicitações...");
       var solicitacao = database.RecuperarSolicitacao(
         s => s.status == 0 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
       ).FirstOrDefault();
-      if (solicitacao == null) continue;
+      if (solicitacao == null)
+      {
+        ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} não encontrou solicitações!");
+        continue;
+      }
+      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
+      ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       switch (solicitacao.typeRequest)
       {
         case TypeRequest.gestao:
-          {
-            await Manager.HandleManager(solicitacao);
-            continue;
-          }
+        {
+          await Manager.HandleManager(solicitacao);
+          break;
+        }
         case TypeRequest.comando:
-          {
-            await Command.HandleCommand(solicitacao);
-            continue;
-          }
+        {
+          await Command.HandleCommand(solicitacao);
+          break;
+        }
         case TypeRequest.txtInfo:
         case TypeRequest.pdfInfo:
         case TypeRequest.picInfo:
         case TypeRequest.xlsInfo:
         case TypeRequest.xyzInfo:
-          {
-            var argumentos = new String[] {
+        {
+          var argumentos = new String[] {
             solicitacao.application,
             solicitacao.information.ToString(),
             "--instancia=" + instance,
-            "--timestamp=" + solicitacao.received_at.ToString("U")
+            "--timestamp=" + solicitacao.received_at.ToLocalTime().ToString("yyyyMMddHHmmss")
           };
-            Executor.Executar("sap.exe", argumentos, false);
-            break;
-          }
+          Executor.Executar("sap.exe", argumentos, false);
+          break;
+        }
         case TypeRequest.ofsInfo:
-          {
-            var antes = DateTime.Now;
-            var argumentos = new String[] {
-              solicitacao.application,
-              solicitacao.information.ToString(),
-              solicitacao.received_at.ToString("U")
-            };
-            while (true)
-            {
-              var texto = System.IO.File.ReadAllText("ofs.lock", System.Text.Encoding.UTF8);
-              if (texto.Length > 0) continue;
-              else System.IO.File.WriteAllText("ofs.lock", String.Join(' ', argumentos));
-            }
-          }
+        {
+          OfsHandle.Enrol(
+            solicitacao.application,
+            solicitacao.information,
+            solicitacao.received_at
+          );
+          break;
+        }
       }
-      solicitacao.instance = instance;
-      solicitacao.status = 300;
-      database.AlterarSolicitacao(solicitacao);
+      solicitacao = database.RecuperarSolicitacao(
+        s => s.rowid == solicitacao.rowid
+      ).Single();
+      if(solicitacao.status == 0)
+      {
+        solicitacao.instance = instance;
+        solicitacao.status = 300;
+        database.AlterarSolicitacao(solicitacao);
+      }
     }
   }
-  // TODO - Coleta resposta e responde ao usuário
+  // DONE - Coleta resposta e responde ao usuário
   public static async void Waiter(Int32 instance)
   {
+    ConsoleWrapper.Debug(Entidade.WaiterAsync, $"Instância {instance} iniciada!");
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     var bot = HandleMessage.GetInstance();
     while (true)
     {
-      System.Threading.Thread.Sleep(5_000);
+      await Task.Delay(cfg.TASK_DELAY);
+      ConsoleWrapper.Debug(Entidade.WaiterAsync, $"Instância {instance} buscando respostas...");
       var solicitacao = database.RecuperarSolicitacao(
         s => s.status == 300 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
       ).FirstOrDefault();
-      if (solicitacao == null) continue;
+      if (solicitacao == null)
+      {
+        ConsoleWrapper.Debug(Entidade.WaiterAsync, $"Instância {instance} não encontrou respostas!");
+        continue;
+      }
+      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
+      ConsoleWrapper.Debug(Entidade.WaiterAsync, solicitacao_texto);
       if(solicitacao.received_at.AddSeconds(cfg.ESPERA) < DateTime.Now)
       {
         var erro = new Exception("A sua solicitação expirou!");
@@ -101,7 +118,7 @@ public static class HandleAsynchronous
         return;
       }
       var arguments = new String[] {
-        solicitacao.received_at.ToLocalTime().ToString("U"),
+        solicitacao.received_at.ToLocalTime().ToString("yyyyMMddHHmmss"),
         solicitacao.application,
         solicitacao.information.ToString(),
         ".json"
@@ -181,6 +198,7 @@ public static class HandleAsynchronous
               if(faturas.Count == expected_invoices) break;
               if((DateTime.Now - agora).Seconds > cfg.ESPERA) break;
               faturas = new List<pdfsModel>();
+              await Task.Delay(cfg.TASK_DELAY);
             }
             if(faturas.Count != expected_invoices)
             {
