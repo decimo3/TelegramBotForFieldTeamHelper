@@ -8,7 +8,7 @@ using telbot.Services;
 namespace telbot;
 class Startup
 {
-  public static void Main(string[] args)
+  static async Task Main(String[] args)
   {
     Console.WriteLine("#############################################");
     Console.WriteLine("# BOT de atendimento automágico MestreRuan  #");
