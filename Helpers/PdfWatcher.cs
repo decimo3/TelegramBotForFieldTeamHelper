@@ -11,7 +11,7 @@ public static partial class PdfHandle
     {
       try
       {
-        
+        await Task.Delay(cfg.TASK_DELAY);
         var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
         foreach (var file in files)
         {
