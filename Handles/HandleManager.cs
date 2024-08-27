@@ -11,25 +11,33 @@ public static class Manager
       throw new NullReferenceException("Usuario não foi encontrado!");
     if(!user.pode_autorizar())
     {
-      await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para alterar usuários!");
+      request.status = 400;
+      var erro = new Exception("Você não tem permissão para alterar usuários!");
+      await bot.ErrorReport(user.identifier, erro, request);
       return;
     }
     var usuario = database.RecuperarUsuario(request.information);
     if(usuario == null)
     {
-      await bot.sendTextMesssageWraper(user.identifier, "Não há registro que esse usuário entrou em contato com o chatbot!");
+      request.status = 404;
+      var erro = new Exception("Não há registro que esse usuário entrou em contato com o chatbot!");
+      await bot.ErrorReport(user.identifier, erro, request);
       return;
     }
     if(usuario.privilege == UsersModel.userLevel.proprietario)
     {
-      await bot.sendTextMesssageWraper(user.identifier, "Nenhum usuário tem permissão suficiente para alterar o proprietário!");
+      request.status = 403;
+      var erro = new Exception("Nenhum usuário tem permissão suficiente para alterar o proprietário!");
+      await bot.ErrorReport(user.identifier, erro, request);
       return;
     }
     if(usuario.privilege == UsersModel.userLevel.administrador)
     {
       if(!user.pode_promover())
       {
-        await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão suficiente para alterar o administrador!");
+        request.status = 403;
+        var erro = new Exception("Você não tem permissão suficiente para alterar o administrador!");
+        await bot.ErrorReport(user.identifier, erro, request);
         return;
       }
     }
@@ -40,7 +48,9 @@ public static class Manager
       case "atualizar":
         if(usuario.dias_vencimento() > 99)
         {
-          await bot.sendTextMesssageWraper(user.identifier, $"Usuário {usuario.identifier} com cargo {usuario.privilege} não tem prazo de expiração!");
+          request.status = 400;
+          var erro = new Exception($"Usuário {usuario.identifier} com cargo {usuario.privilege} não tem prazo de expiração!");
+          await bot.ErrorReport(user.identifier, erro, request);
           return;
         }
         if(usuario.privilege == UsersModel.userLevel.desautorizar)
@@ -54,7 +64,9 @@ public static class Manager
       case "supervisor":
         if(!user.pode_promover())
         {
-          await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para alterar usuários!");
+          request.status = 403;
+          var erro = new Exception("Você não tem permissão para alterar usuários!");
+          await bot.ErrorReport(user.identifier, erro, request);
           return;
         }
         var cargo = Enum.Parse<UsersModel.userLevel>(request.application);
@@ -63,7 +75,9 @@ public static class Manager
       case "administrador":
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          await bot.sendTextMesssageWraper(user.identifier, "Você não tem permissão para promover administradores!");
+          request.status = 403;
+          var erro = new Exception("Você não tem permissão para promover administradores!");
+          await bot.ErrorReport(user.identifier, erro, request);
           return;
         }
           usuario.privilege = UsersModel.userLevel.administrador;
@@ -75,17 +89,13 @@ public static class Manager
       await bot.sendTextMesssageWraper(user.identifier, "Usuário atualizado com sucesso!");
       await bot.sendTextMesssageWraper(usuario.identifier, "Usuário atualizado com sucesso!");
       if(usuario.phone_number == 0) await bot.RequestContact(usuario.identifier);
-      request.status = 200;
-      request.response_at = DateTime.Now;
-      database.AlterarSolicitacao(request);
+      bot.SucessReport(request);
     }
     catch
     {
-      await bot.sendTextMesssageWraper(user.identifier, "Houve um problema em atualizar o usuário");
-      await bot.sendTextMesssageWraper(user.identifier, "Verifique as informações e tente novamente");
       request.status = 500;
-      request.response_at = DateTime.Now;
-      database.AlterarSolicitacao(request);
+      var erro = new Exception("Houve um problema em atualizar o usuário");
+      await bot.ErrorReport(user.identifier, erro, request);
     }
     return;
   }
