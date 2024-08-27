@@ -36,5 +36,5 @@ namespace telbot.Helpers
       return args.Contains("--em-desenvolvimento");
     }
   }
-  public enum Entidade {Usuario, Chatbot, Manager, Updater, Messenger, Advertiser, Recovery, Executor}
+  public enum Entidade {Usuario, Chatbot, Manager, Updater, Messenger, Advertiser, Recovery, Executor, SoireeAsync, CookerAsync, WaiterAsync}
 }
