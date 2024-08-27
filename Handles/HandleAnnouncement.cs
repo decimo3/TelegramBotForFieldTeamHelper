@@ -19,13 +19,13 @@ public static class HandleAnnouncement
       tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 5, 0) : new TimeSpan(0, 30, 0);
       regional = cfg.REGIONAIS[contador_de_regionais];
     }
-    Thread.Sleep(tempo);
+    await Task.Delay(tempo);
     if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
     if(DateTime.Now.Hour <= 7 || DateTime.Now.Hour >= 22) continue;
     while(true)
     {
       if(!System.IO.File.Exists("sap.lock")) break;
-      else System.Threading.Thread.Sleep(1_000);
+      else await Task.Delay(cfg.TASK_DELAY);
     }
     try
     {
@@ -40,7 +40,7 @@ public static class HandleAnnouncement
     {
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete("sap.lock");
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
+      await Task.Delay(CINCO_MINUTOS);
       continue;
     }
     Stream relatorio_arquivo = System.IO.File.OpenRead(relatorio_caminho);
@@ -49,7 +49,7 @@ public static class HandleAnnouncement
       if(relatorio_arquivo != null) relatorio_arquivo.Close();
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete("sap.lock");
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
+      await Task.Delay(CINCO_MINUTOS);
       continue;
     }
     var relatorio_mensagem = String.Join('\n', relatorio_resultado);
@@ -63,7 +63,7 @@ public static class HandleAnnouncement
       relatorio_arquivo.Close();
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete("sap.lock");
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
+      await Task.Delay(CINCO_MINUTOS);
       continue;
     }
     var usuarios = Database.GetInstance().RecuperarUsuario(u => u.dias_vencimento() > 0);
@@ -179,7 +179,6 @@ public static class HandleAnnouncement
       try
       {
         await Task.Delay(new TimeSpan(0, 1, 0));
-        System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
         if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
         ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
         var result = Executor.Executar("tasklist", argumentos, true);
