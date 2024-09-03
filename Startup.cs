@@ -57,7 +57,6 @@ class Startup
       for (var i = 1; i <= config.SAP_INSTANCIA; i++)
       {
         HandleAsynchronous.Cooker(i);
-        HandleAsynchronous.Waiter(i);
       }
       PdfHandle.Watch();
       Console.ReadLine();
