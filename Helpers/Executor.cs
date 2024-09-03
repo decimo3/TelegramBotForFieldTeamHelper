@@ -41,7 +41,7 @@ public static class Executor
           mo.Kill();
         }
       }
-    }, null, cfg.ESPERA, Timeout.Infinite);
+    }, null, cfg.SAP_ESPERA, Timeout.Infinite);
     if(expect_return)
     {
       while (!processo.StandardOutput.EndOfStream)

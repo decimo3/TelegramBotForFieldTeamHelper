@@ -11,7 +11,7 @@ public class Configuration
   public readonly int SAP_INSTANCIA = 0;
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
-  public readonly int ESPERA = 60_000;
+  public readonly int SAP_ESPERA = 60_000;
   public readonly bool PRL_SUBSISTEMA = false;
   public readonly bool SAP_VENCIMENTO = false;
   public readonly bool SAP_BANDEIRADA = false;
@@ -53,7 +53,7 @@ public class Configuration
       }
       if(arg.StartsWith("--sap-espera"))
       { 
-        if(Int32.TryParse(arg.Split("=")[1], out int espera)) ESPERA = espera * 1000;
+        if(Int32.TryParse(arg.Split("=")[1], out int espera)) SAP_ESPERA = espera * 1000;
         else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
         continue;
       }
