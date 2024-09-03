@@ -12,7 +12,7 @@ public class pdfsModel
   public Status status { get; set; }
   public Boolean has_expired()
   {
-    return (DateTime.Now - this.timestamp).Minutes > 20;
+    return (DateTime.Now - this.timestamp).Minutes > 30;
   }
   public enum Status {wait, sent, done}
 }
