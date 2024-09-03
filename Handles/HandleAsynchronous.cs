@@ -41,6 +41,7 @@ public static class HandleAsynchronous
       {
         continue;
       }
+      solicitacao.instance == instance;
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(solicitacao.received_at.AddSeconds(cfg.SAP_ESPERA) < DateTime.Now)
@@ -66,7 +67,7 @@ public static class HandleAsynchronous
           var argumentos = new String[] {
             solicitacao.application,
             solicitacao.information.ToString(),
-            instance.ToString()
+            (instance - 1).ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
@@ -98,7 +99,7 @@ public static class HandleAsynchronous
           var argumentos = new String[] {
             solicitacao.application,
             solicitacao.information.ToString(),
-            instance.ToString()
+            (instance - 1).ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
@@ -152,7 +153,7 @@ public static class HandleAsynchronous
           var argumentos = new String[] {
             solicitacao.application,
             solicitacao.information.ToString(),
-            instance.ToString()
+            (instance - 1).ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
@@ -194,7 +195,7 @@ public static class HandleAsynchronous
           var argumentos = new String[] {
             solicitacao.application,
             solicitacao.information.ToString(),
-            instance.ToString()
+            (instance - 1).ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
@@ -224,7 +225,7 @@ public static class HandleAsynchronous
           var argumentos = new String[] {
             solicitacao.application,
             solicitacao.information.ToString(),
-            instance.ToString()
+            (instance - 1).ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
