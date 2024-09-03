@@ -18,7 +18,11 @@ class Startup
     var config = Configuration.GetInstance(System.Environment.GetCommandLineArgs());
     var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq telbot.exe\""};
     var result = Executor.Executar("tasklist", argumentos, true);
-    if(result.Where(r => r.Contains("telbot.exe")).ToList().Count > 1)
+    // DONE - Counts how many times the executable name appears to check the number of instances
+    if(((
+      result.Length - 
+      result.Replace("telbot.exe", "").Length) /
+      "telbot.exe".Length) > 1)
     {
       var twice = "Já tem uma instância do chatbot rodando!";
       ConsoleWrapper.Error(Entidade.Manager, new Exception(twice));

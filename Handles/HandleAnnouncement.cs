@@ -36,7 +36,7 @@ public static class HandleAnnouncement
     var argumentos = new String[] {aplicacao, prazo.ToString(), "--regional=" + regional};
     var relatorio_resultado = Executor.Executar("sap.exe", argumentos, true);
     var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
-    if(!relatorio_resultado.Any() || relatorio_resultado.First().StartsWith("ERRO:") || !System.IO.File.Exists(relatorio_caminho))
+    if(!String.IsNullOrEmpty(relatorio_resultado) || relatorio_resultado.StartsWith("ERRO:") || !System.IO.File.Exists(relatorio_caminho))
     {
       ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
       System.IO.File.Delete("sap.lock");
@@ -182,7 +182,7 @@ public static class HandleAnnouncement
         if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
         ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
         var result = Executor.Executar("tasklist", argumentos, true);
-        if(result.First().StartsWith("INFORMA"))
+        if(result.StartsWith("INFORMA"))
         {
           ConsoleWrapper.Debug(Entidade.Advertiser, $"Sistema {imagename} não está em execução. Iniciando...");
           Updater.Terminate(children);
