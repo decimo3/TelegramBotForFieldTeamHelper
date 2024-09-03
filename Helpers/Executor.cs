@@ -47,16 +47,16 @@ public static class Executor
       var output = processo.StandardOutput.ReadToEnd();
       var errput = processo.StandardError.ReadToEnd();
       processo.WaitForExit();
-      if(process.ExitCode == 0)
+      if(processo.ExitCode == 0)
       {
         ConsoleWrapper.Debug(Entidade.Executor, output);
-        return output
+        return output;
       }
       else
       {
         var erro = new Exception(errput);
         ConsoleWrapper.Error(Entidade.Executor, erro);
-        return erro;
+        return errput;
       }
     }
     return null;
