@@ -15,12 +15,12 @@ public static class Executor
     }
     return children;
   }
-  public static List<String> Executar(String aplicacao, String[] argumentos, Boolean expect_return)
+  public static String Executar(String aplicacao, String[] argumentos, Boolean expect_return)
   {
     var linhas = new List<String>();
     var cfg = Configuration.GetInstance();
     var argumentos_texto = String.Join(' ', argumentos);
-    ConsoleWrapper.Debug(Entidade.Executor, aplicacao + argumentos_texto);
+    ConsoleWrapper.Debug(Entidade.Executor, aplicacao + " " + argumentos_texto);
     using var processo = new System.Diagnostics.Process();
     var startInfo = new System.Diagnostics.ProcessStartInfo()
     {
@@ -50,7 +50,8 @@ public static class Executor
         if(!String.IsNullOrEmpty(linha)) linhas.Add(linha);
       }
     }
-    ConsoleWrapper.Debug(Entidade.Executor, String.Join('\n', linhas));
-    return linhas;
+    var retorno = String.Join('\n', linhas);
+    ConsoleWrapper.Debug(Entidade.Executor, retorno);
+    return retorno;
   }
 }
