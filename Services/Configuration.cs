@@ -20,6 +20,7 @@ public class Configuration
   public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
   public readonly Int32 TASK_DELAY = 1_000;
+  public readonly Int32 TASK_DELAY_LONG = 10_000;
   public readonly List<String> REGIONAIS = new();
   public readonly Dictionary<String, String> CONFIGURACAO = new();
   private static Configuration _instance;
