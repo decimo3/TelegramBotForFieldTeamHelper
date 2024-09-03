@@ -34,15 +34,11 @@ public static class HandleAsynchronous
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
-      ConsoleWrapper.Debug(Entidade.CookerAsync,
-        $"Instância {instance} buscando solicitações...");
       var solicitacao = database.RecuperarSolicitacao(
         s => s.status == 0 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
       ).FirstOrDefault();
       if (solicitacao == null)
       {
-        ConsoleWrapper.Debug(Entidade.CookerAsync,
-          $"Instância {instance} não encontrou solicitações!");
         continue;
       }
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
