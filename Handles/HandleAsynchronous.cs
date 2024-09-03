@@ -41,7 +41,7 @@ public static class HandleAsynchronous
       {
         continue;
       }
-      solicitacao.instance == instance;
+      solicitacao.instance = instance;
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(solicitacao.received_at.AddSeconds(cfg.SAP_ESPERA) < DateTime.Now)
