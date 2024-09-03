@@ -15,9 +15,8 @@ public static class Executor
     }
     return children;
   }
-  public static String Executar(String aplicacao, String[] argumentos, Boolean expect_return)
+  public static String? Executar(String aplicacao, String[] argumentos, Boolean expect_return)
   {
-    var linhas = new List<String>();
     var cfg = Configuration.GetInstance();
     var argumentos_texto = String.Join(' ', argumentos);
     ConsoleWrapper.Debug(Entidade.Executor, aplicacao + " " + argumentos_texto);
@@ -28,6 +27,7 @@ public static class Executor
       Arguments = argumentos_texto,
       UseShellExecute = !expect_return,
       RedirectStandardOutput = expect_return,
+      RedirectStandardError = expect_return,
       CreateNoWindow = true
     };
     processo.StartInfo = startInfo;
@@ -44,14 +44,21 @@ public static class Executor
     }, null, cfg.SAP_ESPERA, Timeout.Infinite);
     if(expect_return)
     {
-      while (!processo.StandardOutput.EndOfStream)
+      var output = processo.StandardOutput.ReadToEnd();
+      var errput = processo.StandardError.ReadToEnd();
+      processo.WaitForExit();
+      if(process.ExitCode == 0)
       {
-        var linha = processo.StandardOutput.ReadLine();
-        if(!String.IsNullOrEmpty(linha)) linhas.Add(linha);
+        ConsoleWrapper.Debug(Entidade.Executor, output);
+        return output
+      }
+      else
+      {
+        var erro = new Exception(errput);
+        ConsoleWrapper.Error(Entidade.Executor, erro);
+        return erro;
       }
     }
-    var retorno = String.Join('\n', linhas);
-    ConsoleWrapper.Debug(Entidade.Executor, retorno);
-    return retorno;
+    return null;
   }
 }
