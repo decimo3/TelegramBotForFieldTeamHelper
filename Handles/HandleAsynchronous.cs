@@ -1,4 +1,3 @@
-using telbot.API;
 using telbot.Helpers;
 using telbot.models;
 using telbot.Services;
@@ -14,8 +13,10 @@ public static class HandleAsynchronous
     var request = Validador.isRequest(mensagem);
     if (request is null)
     {
-      await telegram.sendTextMesssageWraper(identificador, "Verifique o formato da informação e tente novamente da forma correta!");
-      await telegram.sendTextMesssageWraper(identificador, "Se tiver em dúvida de como usar o bot, digite /ajuda.");
+      await telegram.sendTextMesssageWraper(identificador,
+        "Verifique o formato da informação e tente novamente da forma correta!");
+      await telegram.sendTextMesssageWraper(identificador,
+        "Se tiver em dúvida de como usar o bot, digite /ajuda.");
       return;
     }
     request.identifier = identificador;
@@ -29,16 +30,19 @@ public static class HandleAsynchronous
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
+    var regex = new System.Text.RegularExpressions.Regex("^[0-9]{3}");
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
-      ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} buscando solicitações...");
+      ConsoleWrapper.Debug(Entidade.CookerAsync,
+        $"Instância {instance} buscando solicitações...");
       var solicitacao = database.RecuperarSolicitacao(
         s => s.status == 0 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
       ).FirstOrDefault();
       if (solicitacao == null)
       {
-        ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} não encontrou solicitações!");
+        ConsoleWrapper.Debug(Entidade.CookerAsync,
+          $"Instância {instance} não encontrou solicitações!");
         continue;
       }
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
@@ -69,25 +73,29 @@ public static class HandleAsynchronous
             instance.ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
-          if(resposta == null)
+          if(String.IsNullOrEmpty(resposta_txt))
           {
-            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            var erro = new IndexOutOfRangeException(
+              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          if(resposta.status == 200)
+          var match = regex.Match(resposta_txt);
+          if(match.Success)
           {
-            await bot.sendTextMesssageWraper(solicitacao.identifier, String.Join('\n', resposta.data));
-            bot.SucessReport(solicitacao);
+            solicitacao.status = Int32.Parse(match.Value);
+            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
           }
           else
           {
-            solicitacao.status = resposta.status;
-            var erro = new Exception(resposta.data);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.sendTextMesssageWraper(
+              solicitacao.identifier,
+              resposta_txt);
+            bot.SucessReport(solicitacao);
+            break;
           }
-          break;
         }
         case TypeRequest.picInfo:
         {
@@ -97,27 +105,43 @@ public static class HandleAsynchronous
             instance.ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
-          if(resposta == null)
+          if(String.IsNullOrEmpty(resposta_txt))
           {
-            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            var erro = new IndexOutOfRangeException(
+              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          if(resposta.status == 200)
+          var match = regex.Match(resposta_txt);
+          if(match.Success)
           {
-            argumentos = new String[] { resposta.data };
+            solicitacao.status = Int32.Parse(match.Value);
+            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+          else
+          {
+            argumentos = new String[] { resposta_txt };
             resposta_txt = Executor.Executar("img.exe", argumentos, true);
-            resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
-            if(resposta == null)
+            if(String.IsNullOrEmpty(resposta_txt))
             {
-              var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `IMG2CSV`!");
+              var erro = new IndexOutOfRangeException(
+                "Não foi recebida nenhuma resposta do `IMG2CSV`!");
               await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
               break;
             }
-            if(resposta.status == 200)
+            match = regex.Match(resposta_txt);
+            if(match.Success)
             {
-              var bytearray = Convert.FromBase64String(resposta.data);
+              solicitacao.status = Int32.Parse(match.Value);
+              var erro = new Exception(resposta_txt.Skip(5).ToString());
+              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+              break;
+            }
+            else
+            {
+              var bytearray = Convert.FromBase64String(resposta_txt);
               using(var memstream = new MemoryStream(bytearray))
               {
                 await bot.SendPhotoAsyncWraper(solicitacao.identifier, memstream);
@@ -125,20 +149,6 @@ public static class HandleAsynchronous
                 break;
               }
             }
-            else
-            {
-              solicitacao.status = resposta.status;
-              var erro = new Exception(resposta.data);
-              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-              break;
-            }
-          }
-          else
-          {
-            solicitacao.status = resposta.status;
-            var erro = new Exception(resposta.data);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-            break;
           }
         }
         case TypeRequest.xlsInfo:
@@ -149,16 +159,24 @@ public static class HandleAsynchronous
             instance.ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
-          if(resposta == null)
+          if(String.IsNullOrEmpty(resposta_txt))
           {
-            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            var erro = new IndexOutOfRangeException(
+              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          if(resposta.status == 200)
+          var match = regex.Match(resposta_txt);
+          if(match.Success)
           {
-            var bytearray = System.Text.Encoding.ASCII.GetBytes(resposta.data);
+            solicitacao.status = Int32.Parse(match.Value);
+            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+          else
+          {
+            var bytearray = System.Text.Encoding.UTF8.GetBytes(resposta_txt);
             using(var memstream = new MemoryStream(bytearray))
             {
               var filename = new String[] {
@@ -174,7 +192,6 @@ public static class HandleAsynchronous
               break;
             }
           }
-          break;
         }
         case TypeRequest.xyzInfo:
         {
@@ -184,23 +201,25 @@ public static class HandleAsynchronous
             instance.ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
-          if(resposta == null)
+          if(String.IsNullOrEmpty(resposta_txt))
           {
-            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            var erro = new IndexOutOfRangeException(
+              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          if(resposta.status == 200)
+          var match = regex.Match(resposta_txt);
+          if(match.Success)
           {
-            await bot.SendCoordinateAsyncWraper(solicitacao.identifier, String.Join('\n', resposta.data));
-            bot.SucessReport(solicitacao);
+            solicitacao.status = Int32.Parse(match.Value);
+            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
           }
           else
           {
-            solicitacao.status = resposta.status;
-            var erro = new Exception(resposta.data);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.SendCoordinateAsyncWraper(solicitacao.identifier, resposta_txt);
+            bot.SucessReport(solicitacao);
           }
           break;
         }
@@ -212,41 +231,49 @@ public static class HandleAsynchronous
             instance.ToString()
           };
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
-          if(resposta == null)
+          if(String.IsNullOrEmpty(resposta_txt))
           {
-            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            var erro = new IndexOutOfRangeException(
+              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          if(resposta.status == 200)
+          var match = regex.Match(resposta_txt);
+          if(match.Success)
+          {
+            solicitacao.status = Int32.Parse(match.Value);
+            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+          else
           {
             var fluxo_atual = 0;
             var agora = DateTime.Now;
-            var quantidade_experada = Int32.Parse(resposta.data);
+            var quantidade_experada = Int32.Parse(resposta_txt);
             var fluxos = new Stream[quantidade_experada];
             var faturas = new List<pdfsModel>();
-            // TODO - Adicionar tempo de expiração para a solicitação
+            var tasks = new List<Task>();
             while (true)
             {
               await Task.Delay(cfg.TASK_DELAY_LONG);
               faturas = database.RecuperarFatura(
                 f => f.instalation == solicitacao.information &&
-                !f.has_expired()
+                !f.has_expired() && f.status == pdfsModel.Status.wait
               );
               if(faturas.Count == quantidade_experada) break;
               if((DateTime.Now - agora).Seconds > cfg.ESPERA) break;
             }
             if(faturas.Count != quantidade_experada)
             {
-              var erro = new Exception("A quantidade de faturas impressas não está batendo com a quantidade esperada!");
+              var erro = new Exception(
+                "A quantidade de faturas não condiz com a quantidade esperada!");
               await bot.ErrorReport(solicitacao.information, erro, solicitacao);
-              continue;
+              break;
             }
-            var tasks = new List<Task>();
-            
             foreach (var fatura in faturas)
             {
+              if(fatura.status == pdfsModel.Status.sent) continue;
               fluxos[fluxo_atual] = System.IO.File.OpenRead(fatura.filename);
               tasks.Add(bot.SendDocumentAsyncWraper(
                 solicitacao.identifier,
@@ -262,16 +289,10 @@ public static class HandleAsynchronous
             bot.SucessReport(solicitacao);
             break;
           }
-          else
-          {
-            solicitacao.status = resposta.status;
-            var erro = new Exception(resposta.data);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-          }
-          break;
         }
         case TypeRequest.ofsInfo:
         {
+          var agora = DateTime.Now;
           OfsHandle.Enrol(
             solicitacao.application,
             solicitacao.information,
