@@ -6,11 +6,11 @@ namespace telbot.handle;
 public static class HandleAsynchronous
 {
   // DONE - Recebe, verifica e registra no banco de dados
-  public static async Task Soiree(Int64 identificador, String mensagem, DateTime received_at)
+  public static async Task Waiter(Int64 identificador, String mensagem, DateTime received_at)
   {
     var database = Database.GetInstance();
     var telegram = HandleMessage.GetInstance();
-    ConsoleWrapper.Write(Entidade.Usuario, $"{identificador} escreveu: {mensagem}");
+    ConsoleWrapper.Write(Entidade.WaiterAsync, $"{identificador} escreveu: {mensagem}");
     var request = Validador.isRequest(mensagem);
     if (request is null)
     {
@@ -26,6 +26,7 @@ public static class HandleAsynchronous
   public static async void Cooker(Int32 instance)
   {
     ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} iniciada!");
+    var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     while (true)
@@ -42,6 +43,12 @@ public static class HandleAsynchronous
       }
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
+      if(solicitacao.received_at.AddSeconds(cfg.ESPERA) < DateTime.Now)
+      {
+        var erro = new Exception("A sua solicitação expirou!");
+        await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+        return;
+      }
       switch (solicitacao.typeRequest)
       {
         case TypeRequest.gestao:
@@ -55,157 +62,189 @@ public static class HandleAsynchronous
           break;
         }
         case TypeRequest.txtInfo:
-        case TypeRequest.pdfInfo:
+        {
+          var argumentos = new String[] {
+            solicitacao.application,
+            solicitacao.information.ToString(),
+            instance.ToString()
+          };
+          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
+          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
+          if(resposta == null)
+          {
+            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+          if(resposta.status == 200)
+          {
+            await bot.sendTextMesssageWraper(solicitacao.identifier, String.Join('\n', resposta.data));
+            bot.SucessReport(solicitacao);
+          }
+          else
+          {
+            solicitacao.status = resposta.status;
+            var erro = new Exception(resposta.data);
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+          }
+          break;
+        }
         case TypeRequest.picInfo:
+        {
+          var argumentos = new String[] {
+            solicitacao.application,
+            solicitacao.information.ToString(),
+            instance.ToString()
+          };
+          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
+          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
+          if(resposta == null)
+          {
+            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+          if(resposta.status == 200)
+          {
+            argumentos = new String[] { resposta.data };
+            resposta_txt = Executor.Executar("img.exe", argumentos, true);
+            resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
+            if(resposta == null)
+            {
+              var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `IMG2CSV`!");
+              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+              break;
+            }
+            if(resposta.status == 200)
+            {
+              var bytearray = Convert.FromBase64String(resposta.data);
+              using(var memstream = new MemoryStream(bytearray))
+              {
+                await bot.SendPhotoAsyncWraper(solicitacao.identifier, memstream);
+                bot.SucessReport(solicitacao);
+                break;
+              }
+            }
+            else
+            {
+              solicitacao.status = resposta.status;
+              var erro = new Exception(resposta.data);
+              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+              break;
+            }
+          }
+          else
+          {
+            solicitacao.status = resposta.status;
+            var erro = new Exception(resposta.data);
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+        }
         case TypeRequest.xlsInfo:
+        {
+          var argumentos = new String[] {
+            solicitacao.application,
+            solicitacao.information.ToString(),
+            instance.ToString()
+          };
+          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
+          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
+          if(resposta == null)
+          {
+            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+          if(resposta.status == 200)
+          {
+            var bytearray = System.Text.Encoding.ASCII.GetBytes(resposta.data);
+            using(var memstream = new MemoryStream(bytearray))
+            {
+              var filename = new String[] {
+                solicitacao.application,
+                DateTime.Now.ToString("yyyyMMddHHmmss")
+              };
+              await bot.SendDocumentAsyncWraper(
+                solicitacao.identifier,
+                memstream,
+                String.Join('_', filename) + ".csv"
+              );
+              bot.SucessReport(solicitacao);
+              break;
+            }
+          }
+          break;
+        }
         case TypeRequest.xyzInfo:
         {
           var argumentos = new String[] {
             solicitacao.application,
             solicitacao.information.ToString(),
-            "--instancia=" + instance,
-            "--timestamp=" + solicitacao.received_at.ToLocalTime().ToString("yyyyMMddHHmmss")
+            instance.ToString()
           };
-          Executor.Executar("sap.exe", argumentos, false);
+          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
+          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
+          if(resposta == null)
+          {
+            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
+          if(resposta.status == 200)
+          {
+            await bot.SendCoordinateAsyncWraper(solicitacao.identifier, String.Join('\n', resposta.data));
+            bot.SucessReport(solicitacao);
+          }
+          else
+          {
+            solicitacao.status = resposta.status;
+            var erro = new Exception(resposta.data);
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+          }
           break;
         }
-        case TypeRequest.ofsInfo:
+        case TypeRequest.pdfInfo:
         {
-          OfsHandle.Enrol(
+          var argumentos = new String[] {
             solicitacao.application,
-            solicitacao.information,
-            solicitacao.received_at
-          );
-          break;
-        }
-      }
-      solicitacao = database.RecuperarSolicitacao(
-        s => s.rowid == solicitacao.rowid
-      ).Single();
-      if(solicitacao.status == 0)
-      {
-        solicitacao.instance = instance;
-        solicitacao.status = 300;
-        database.AlterarSolicitacao(solicitacao);
-      }
-    }
-  }
-  // DONE - Coleta resposta e responde ao usuário
-  public static async void Waiter(Int32 instance)
-  {
-    ConsoleWrapper.Debug(Entidade.WaiterAsync, $"Instância {instance} iniciada!");
-    var cfg = Configuration.GetInstance();
-    var database = Database.GetInstance();
-    var bot = HandleMessage.GetInstance();
-    while (true)
-    {
-      await Task.Delay(cfg.TASK_DELAY);
-      ConsoleWrapper.Debug(Entidade.WaiterAsync, $"Instância {instance} buscando respostas...");
-      var solicitacao = database.RecuperarSolicitacao(
-        s => s.status == 300 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
-      ).FirstOrDefault();
-      if (solicitacao == null)
-      {
-        ConsoleWrapper.Debug(Entidade.WaiterAsync, $"Instância {instance} não encontrou respostas!");
-        continue;
-      }
-      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
-      ConsoleWrapper.Debug(Entidade.WaiterAsync, solicitacao_texto);
-      if(solicitacao.received_at.AddSeconds(cfg.ESPERA) < DateTime.Now)
-      {
-        var erro = new Exception("A sua solicitação expirou!");
-        await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-        return;
-      }
-      var arguments = new String[] {
-        solicitacao.received_at.ToLocalTime().ToString("yyyyMMddHHmmss"),
-        solicitacao.application,
-        solicitacao.information.ToString(),
-        ".json"
-      };
-      var filename = String.Join('_', arguments);
-      if(!System.IO.File.Exists(filename)) continue;
-      var response = System.Text.Json.JsonSerializer.Deserialize<Response>(filename);
-      if(response == null) continue;
-      var tasks = new List<Task>();
-      var count = response.entities.Where(
-        e => e.type == typeEntity.PIC || e.type == typeEntity.XLS
-      ).Count();
-      var expected_invoices = response.entities.Where(
-        e => e.type == typeEntity.PDF
-      ).Sum(e => Int32.Parse(e.data));
-      var fluxos = new Stream[count + expected_invoices];
-      var fluxo_atual = 0;
-      var faturas = new List<pdfsModel>();
-      for(var i = 0; i < response.entities.Count; i++)
-      {
-        switch (response.entities[i].type)
-        {
-          case typeEntity.TXT:
+            solicitacao.information.ToString(),
+            instance.ToString()
+          };
+          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
+          var resposta = System.Text.Json.JsonSerializer.Deserialize<Response>(resposta_txt);
+          if(resposta == null)
           {
-            tasks.Add(bot.sendTextMesssageWraper(
-              solicitacao.identifier,
-              response.entities[i].data
-            ));
+            var erro = new IndexOutOfRangeException("Não foi recebida nenhuma resposta do `SAP_BOT`!");
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          case typeEntity.XYZ:
+          if(resposta.status == 200)
           {
-            tasks.Add(bot.SendCoordinateAsyncWraper(
-              solicitacao.identifier,
-              response.entities[i].data
-            ));
-            break;
-          }
-          case typeEntity.PIC:
-          {
-            var bytearray = Convert.FromBase64String(response.entities[i].data);
-            fluxos[fluxo_atual] = new MemoryStream(bytearray);
-            tasks.Add(bot.SendPhotoAsyncWraper(
-              solicitacao.identifier,
-              fluxos[fluxo_atual]
-            ));
-            fluxo_atual++;
-            break;
-          }
-          case typeEntity.XLS:
-          {
-            var bytearray = System.Text.Encoding.UTF8.GetBytes(response.entities[i].data);
-            fluxos[fluxo_atual] = new MemoryStream(bytearray);
-            var nomeenvio = new String[] {
-              solicitacao.application,
-              "_",
-              solicitacao.received_at.ToLocalTime().ToString("U"),
-              ".csv"
-            };
-            tasks.Add(bot.SendDocumentAsyncWraper(
-              solicitacao.identifier,
-              fluxos[fluxo_atual],
-              String.Join("", nomeenvio)
-            ));
-            fluxo_atual++;
-            break;
-          }
-          case typeEntity.PDF:
-          {
+            var fluxo_atual = 0;
             var agora = DateTime.Now;
-            while(true)
+            var quantidade_experada = Int32.Parse(resposta.data);
+            var fluxos = new Stream[quantidade_experada];
+            var faturas = new List<pdfsModel>();
+            // TODO - Adicionar tempo de expiração para a solicitação
+            while (true)
             {
+              await Task.Delay(cfg.TASK_DELAY_LONG);
               faturas = database.RecuperarFatura(
-                f => !f.has_expired() &&
-                f.instalation == solicitacao.information
+                f => f.instalation == solicitacao.information &&
+                !f.has_expired()
               );
-              if(faturas.Count == expected_invoices) break;
+              if(faturas.Count == quantidade_experada) break;
               if((DateTime.Now - agora).Seconds > cfg.ESPERA) break;
-              faturas = new List<pdfsModel>();
-              await Task.Delay(cfg.TASK_DELAY);
             }
-            if(faturas.Count != expected_invoices)
+            if(faturas.Count != quantidade_experada)
             {
               var erro = new Exception("A quantidade de faturas impressas não está batendo com a quantidade esperada!");
-              tasks.Add(bot.ErrorReport(solicitacao.information, erro, solicitacao));
+              await bot.ErrorReport(solicitacao.information, erro, solicitacao);
               continue;
             }
+            var tasks = new List<Task>();
+            
             foreach (var fatura in faturas)
             {
               fluxos[fluxo_atual] = System.IO.File.OpenRead(fatura.filename);
@@ -218,24 +257,28 @@ public static class HandleAsynchronous
               database.AlterarFatura(fatura);
               fluxo_atual++;
             }
+            await Task.WhenAll(tasks);
+            foreach(var fluxo in fluxos) fluxo.Close();
+            bot.SucessReport(solicitacao);
             break;
           }
+          else
+          {
+            solicitacao.status = resposta.status;
+            var erro = new Exception(resposta.data);
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+          }
+          break;
         }
-      }
-      await Task.WhenAll(tasks);
-      foreach(var fluxo in fluxos) fluxo.Close();
-      solicitacao.status = response.status;
-      if(solicitacao.status == 200)
-      {
-        bot.SucessReport(solicitacao);
-      }
-      else
-      {
-        await bot.ErrorReport(
-          solicitacao.identifier,
-          new Exception(),
-          solicitacao
-        );
+        case TypeRequest.ofsInfo:
+        {
+          OfsHandle.Enrol(
+            solicitacao.application,
+            solicitacao.information,
+            solicitacao.received_at
+          );
+          break;
+        }
       }
     }
   }
