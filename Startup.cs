@@ -110,7 +110,7 @@ class Startup
         }
         await HandleTypeMessage.ManuscriptsType(
           usuario: usuario,
-          recebido_em: update.Message.Date,
+          recebido_em: update.Message.Date.ToLocalTime(),
           mensagem: update.Message.Text
         );
         break;
