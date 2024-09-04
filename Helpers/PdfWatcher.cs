@@ -7,6 +7,7 @@ public static partial class PdfHandle
   {
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
+    ConsoleWrapper.Debug(Entidade.SoireeAsync, "Monitor de faturas iniciado!");
     while (true)
     {
       try
@@ -22,12 +23,15 @@ public static partial class PdfHandle
           {
             var instalation = PdfHandle.Check(file);
             var timestamp = System.IO.File.GetLastWriteTime(file);
-            database.InserirFatura(new pdfsModel() {
+            var fatura = new pdfsModel() {
               filename = filename,
               instalation = instalation,
               timestamp = timestamp,
               status = pdfsModel.Status.wait
-            });
+            };
+            var fatura_txt = System.Text.Json.JsonSerializer.Serialize<pdfsModel>(fatura);
+            ConsoleWrapper.Debug(Entidade.SoireeAsync, fatura_txt);
+            database.InserirFatura(fatura);
           }
           else
           {
