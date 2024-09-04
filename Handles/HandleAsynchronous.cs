@@ -82,7 +82,7 @@ public static class HandleAsynchronous
           if(match.Success)
           {
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
@@ -114,7 +114,7 @@ public static class HandleAsynchronous
           if(match.Success)
           {
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
@@ -133,7 +133,7 @@ public static class HandleAsynchronous
             if(match.Success)
             {
               solicitacao.status = Int32.Parse(match.Value);
-              var erro = new Exception(resposta_txt.Skip(5).ToString());
+              var erro = new Exception(resposta_txt[5..]);
               await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
               break;
             }
@@ -168,7 +168,7 @@ public static class HandleAsynchronous
           if(match.Success)
           {
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
@@ -210,7 +210,7 @@ public static class HandleAsynchronous
           if(match.Success)
           {
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
@@ -240,7 +240,7 @@ public static class HandleAsynchronous
           if(match.Success)
           {
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt.Skip(5).ToString());
+            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
