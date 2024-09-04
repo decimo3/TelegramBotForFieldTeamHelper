@@ -41,6 +41,7 @@ public static class Manager
         return;
       }
     }
+    usuario.inserted_by = request.identifier;
     usuario.update_at = request.received_at;
     switch (request.application)
     {
