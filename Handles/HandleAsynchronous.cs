@@ -20,7 +20,7 @@ public static class HandleAsynchronous
       return;
     }
     request.identifier = identificador;
-    request.received_at = received_at.ToLocalTime();
+    request.received_at = received_at;
     database.InserirSolicitacao(request);
   }
   // DONE - Coleta do banco de dados e realiza a solicitação

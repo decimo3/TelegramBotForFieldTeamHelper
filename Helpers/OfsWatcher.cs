@@ -9,7 +9,7 @@ public static partial class OfsHandle
     var argumentos = new String[] {
       application,
       information.ToString(),
-      received_at.ToLocalTime().ToString("yyyyMMddHHmmss")
+      received_at.ToString("yyyyMMddHHmmss")
     };
     var argumentos_texto = String.Join(' ', argumentos);
     while (true)

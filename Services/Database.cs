@@ -89,8 +89,8 @@ public class Database : IDatabase
           "(identifier, create_at, update_at, privilege, inserted_by, phone_number)" +
           "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6)";
         command.Parameters.Add(new SQLiteParameter("@valor1", user_model.identifier));
-        command.Parameters.Add(new SQLiteParameter("@valor2", user_model.create_at.ToLocalTime().ToString("u")));
-        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor2", user_model.create_at.ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString("u")));
         command.Parameters.Add(new SQLiteParameter("@valor4", (int)user_model.privilege));
         command.Parameters.Add(new SQLiteParameter("@valor5", user_model.inserted_by));
         command.Parameters.Add(new SQLiteParameter("@valor6", user_model.phone_number));
@@ -164,8 +164,8 @@ public class Database : IDatabase
         command.Parameters.Add(new SQLiteParameter("@valor1", request.identifier));
         command.Parameters.Add(new SQLiteParameter("@valor2", request.application));
         command.Parameters.Add(new SQLiteParameter("@valor3", request.information));
-        command.Parameters.Add(new SQLiteParameter("@valor4", request.received_at.ToLocalTime().ToString("u")));
-        command.Parameters.Add(new SQLiteParameter("@valor5", DateTime.MinValue.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor4", request.received_at.ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor5", DateTime.MinValue.ToString("u")));
         command.Parameters.Add(new SQLiteParameter("@valor6", request.typeRequest));
         command.ExecuteNonQuery();
       }
@@ -216,7 +216,7 @@ public class Database : IDatabase
         command.CommandText = "UPDATE solicitacoes SET " + 
           "response_at = @valor1, instance = @valor2, status = @valor3 " +
           "WHERE rowid = @valor4";
-        command.Parameters.Add(new SQLiteParameter("@valor1", request.response_at.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor1", request.response_at.ToString("u")));
         command.Parameters.Add(new SQLiteParameter("@valor2", request.instance));
         command.Parameters.Add(new SQLiteParameter("@valor3", request.status));
         command.Parameters.Add(new SQLiteParameter("@valor4", request.rowid));
@@ -237,7 +237,7 @@ public class Database : IDatabase
         "VALUES (@valor1, @valor2, @valor3, @valor4)";
         command.Parameters.Add(new SQLiteParameter("@valor1", fatura.filename));
         command.Parameters.Add(new SQLiteParameter("@valor2", fatura.instalation));
-        command.Parameters.Add(new SQLiteParameter("@valor3", fatura.timestamp.ToLocalTime().ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor3", fatura.timestamp));
         command.Parameters.Add(new SQLiteParameter("@valor4", fatura.status));
         command.ExecuteNonQuery();
       }

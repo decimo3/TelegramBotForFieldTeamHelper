@@ -58,7 +58,7 @@ public static class Command
           await bot.ErrorReport(user.identifier, erro, request);
           return;
         }
-        var filename = $"{DateTime.Now.ToLocalTime().ToString("yyyyMMdd_HHmmss")}.db";
+        var filename = $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.db";
         Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
         await bot.SendDocumentAsyncWraper(user.identifier, stream, filename);
         stream.Close();
