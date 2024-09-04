@@ -49,7 +49,7 @@ public static class HandleAsynchronous
         solicitacao.status = 408;
         var erro = new Exception("A sua solicitação expirou!");
         await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-        return;
+        continue;
       }
       switch (solicitacao.typeRequest)
       {
