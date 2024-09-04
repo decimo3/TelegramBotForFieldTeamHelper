@@ -46,6 +46,7 @@ public static class HandleAsynchronous
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
       {
+        solicitacao.status = 408;
         var erro = new Exception("A sua solicitação expirou!");
         await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
         return;
