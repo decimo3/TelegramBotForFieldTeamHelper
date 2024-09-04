@@ -44,7 +44,7 @@ public static class HandleAsynchronous
       solicitacao.instance = instance;
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
-      if(solicitacao.received_at.AddSeconds(cfg.SAP_ESPERA) < DateTime.Now)
+      if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
       {
         var erro = new Exception("A sua solicitação expirou!");
         await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
@@ -259,7 +259,7 @@ public static class HandleAsynchronous
                 !f.has_expired() && f.status == pdfsModel.Status.wait
               );
               if(faturas.Count == quantidade_experada) break;
-              if((DateTime.Now - agora).Seconds > cfg.SAP_ESPERA) break;
+              if((DateTime.Now - agora) > TimeSpan.FromMilliseconds(cfg.SAP_ESPERA)) break;
             }
             if(faturas.Count != quantidade_experada)
             {
