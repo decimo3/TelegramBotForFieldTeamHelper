@@ -73,6 +73,7 @@ public static class HandleAsynchronous
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
           {
+            solicitacao.status = 503;
             var erro = new IndexOutOfRangeException(
               "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
@@ -105,6 +106,7 @@ public static class HandleAsynchronous
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
           {
+            solicitacao.status = 503;
             var erro = new IndexOutOfRangeException(
               "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
@@ -124,6 +126,7 @@ public static class HandleAsynchronous
             resposta_txt = Executor.Executar("img.exe", argumentos, true);
             if(String.IsNullOrEmpty(resposta_txt))
             {
+              solicitacao.status = 503;
               var erro = new IndexOutOfRangeException(
                 "Não foi recebida nenhuma resposta do `IMG2CSV`!");
               await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
@@ -159,6 +162,7 @@ public static class HandleAsynchronous
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
           {
+            solicitacao.status = 503;
             var erro = new IndexOutOfRangeException(
               "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
@@ -201,6 +205,7 @@ public static class HandleAsynchronous
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
           {
+            solicitacao.status = 503;
             var erro = new IndexOutOfRangeException(
               "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
@@ -231,6 +236,7 @@ public static class HandleAsynchronous
           var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
           if(String.IsNullOrEmpty(resposta_txt))
           {
+            solicitacao.status = 503;
             var erro = new IndexOutOfRangeException(
               "Não foi recebida nenhuma resposta do `SAP_BOT`!");
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
@@ -262,8 +268,17 @@ public static class HandleAsynchronous
               if(faturas.Count == quantidade_experada) break;
               if((DateTime.Now - agora) > TimeSpan.FromMilliseconds(cfg.SAP_ESPERA)) break;
             }
+            if(!faturas.Any())
+            {
+              solicitacao.status = 503;
+              var erro = new Exception(
+                "Não foi gerada nenhuma fatura pelo sistema SAP!");
+              await bot.ErrorReport(solicitacao.information, erro, solicitacao);
+              break;
+            }
             if(faturas.Count != quantidade_experada)
             {
+              solicitacao.status = 503;
               var erro = new Exception(
                 "A quantidade de faturas não condiz com a quantidade esperada!");
               await bot.ErrorReport(solicitacao.information, erro, solicitacao);
