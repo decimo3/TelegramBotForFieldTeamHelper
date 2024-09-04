@@ -119,7 +119,7 @@ public static class HandleAsynchronous
           }
           else
           {
-            argumentos = new String[] { resposta_txt };
+            argumentos = new String[] { "\"" + resposta_txt + "\"" };
             resposta_txt = Executor.Executar("img.exe", argumentos, true);
             if(String.IsNullOrEmpty(resposta_txt))
             {
