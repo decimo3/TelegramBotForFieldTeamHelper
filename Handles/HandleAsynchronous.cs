@@ -149,6 +149,12 @@ public static class HandleAsynchronous
               solicitacao.information,
               instance
             );
+            if(solicitacao.identifier < 10)
+            {
+              HandleAnnouncement.Vencimento(resposta_txt, solicitacao);
+              bot.SucessReport(solicitacao);
+              break;
+            }
             var bytearray = System.Text.Encoding.UTF8.GetBytes(resposta_txt);
             using(var memstream = new MemoryStream(bytearray))
             {
