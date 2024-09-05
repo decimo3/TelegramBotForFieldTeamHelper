@@ -202,22 +202,22 @@ public static class HandleAsynchronous
           {
             var fluxo_atual = 0;
             var agora = DateTime.Now;
-            var resposta_txt = Int64.Parse(ExecutarSap(
+            var resposta_txt = ExecutarSap(
               "instalacao",
               solicitacao.information,
               instance
-            ));
+            );
             if(!Int64.TryParse(resposta_txt, out Int64 instalation))
             {
               throw new InvalidOperationException(
                 "500: Não foi recebido o número da instalação!");
             }
-            var resposta_txt = ExecutarSap(
+            resposta_txt = ExecutarSap(
               solicitacao.application,
-              solicitacao.information,
+              instalation,
               instance
             );
-            if(!Int64.TryParse(resposta_txt, out Int32 quantidade_experada))
+            if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
             {
               throw new InvalidOperationException(
                 "500: Quantidade de faturas desconhecida!");
