@@ -1,83 +1,80 @@
 using System.Data;
 using telbot.Services;
 using telbot.Helpers;
+using telbot.models;
 namespace telbot.handle;
 public static class HandleAnnouncement
 {
   public static async void Vencimento(String aplicacao, Int32 prazo)
   {
-    var CINCO_MINUTOS = new TimeSpan(0, 5, 0);
     var cfg = Configuration.GetInstance();
-    var msg = HandleMessage.GetInstance();
-    String? regional = null;
     var contador_de_regionais = 0;
     while(true)
     {
-    var tempo = cfg.IS_DEVELOPMENT ?  new TimeSpan(0, 5, 0) : new TimeSpan(1, 0, 0);
-    if(cfg.REGIONAIS.Any())
-    {
-      tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 5, 0) : new TimeSpan(0, 30, 0);
-      regional = cfg.REGIONAIS[contador_de_regionais];
+      var tempo = cfg.IS_DEVELOPMENT ?  new TimeSpan(0, 5, 0) : new TimeSpan(1, 0, 0);
+      if(cfg.REGIONAIS.Any()) tempo /= cfg.REGIONAIS.Count;
+      await Task.Delay(tempo);
+      if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
+      if(DateTime.Now.Hour <= 7 || DateTime.Now.Hour >= 22) continue;
+      var solicitacao = new logsModel() {
+        identifier = contador_de_regionais,
+        application = aplicacao,
+        information = prazo,
+        received_at = DateTime.Now,
+        typeRequest = TypeRequest.xlsInfo
+      };
+      Database.GetInstance().InserirSolicitacao(solicitacao);
+      contador_de_regionais = (contador_de_regionais + 1) % cfg.REGIONAIS.Count;
     }
-    await Task.Delay(tempo);
-    if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
-    if(DateTime.Now.Hour <= 7 || DateTime.Now.Hour >= 22) continue;
-    while(true)
-    {
-      if(!System.IO.File.Exists("sap.lock")) break;
-      else await Task.Delay(cfg.TASK_DELAY);
-    }
+  }
+  public static async void Vencimento(String relatorio, logsModel solicitacao)
+  {
     try
     {
-    ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
-    System.IO.File.Create("sap.lock").Close();
-    // TODO - Resolver conflito de execução com as solicitações
-    // TODO - Substituir todas as chamadas para uso do lockfile
-    var argumentos = new String[] {aplicacao, prazo.ToString(), "--regional=" + regional};
-    var relatorio_resultado = Executor.Executar("sap.exe", argumentos, true);
-    var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
-    if(!String.IsNullOrEmpty(relatorio_resultado) || relatorio_resultado.StartsWith("ERRO:") || !System.IO.File.Exists(relatorio_caminho))
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete("sap.lock");
-      await Task.Delay(CINCO_MINUTOS);
-      continue;
-    }
-    Stream relatorio_arquivo = System.IO.File.OpenRead(relatorio_caminho);
-    if(relatorio_arquivo == null || relatorio_arquivo.Length == 0)
-    {
-      if(relatorio_arquivo != null) relatorio_arquivo.Close();
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete("sap.lock");
-      await Task.Delay(CINCO_MINUTOS);
-      continue;
-    }
-    var relatorio_mensagem = String.Join('\n', relatorio_resultado);
-    var padrao = @"([0-9]{2})/([0-9]{2})/([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2})";
-    var relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Match(relatorio_mensagem).Value;
-    relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Replace(relatorio_filename, "$3-$2-$1_$4-$5-$6");
-    relatorio_filename = regional != null ? $"{relatorio_filename}_{aplicacao}_{regional}.csv" : $"{relatorio_filename}_{aplicacao}.csv";
-    var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_arquivo, relatorio_filename);
-    if(relatorio_identificador == String.Empty)
-    {
-      relatorio_arquivo.Close();
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete("sap.lock");
-      await Task.Delay(CINCO_MINUTOS);
-      continue;
-    }
-    var usuarios = Database.GetInstance().RecuperarUsuario(u => u.dias_vencimento() > 0);
-    ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
-    await Comunicado(usuarios, cfg.ID_ADM_BOT, relatorio_mensagem, null, null, relatorio_identificador);
-    relatorio_arquivo.Close();
-    System.IO.File.Delete(relatorio_caminho);
-    System.IO.File.Delete("sap.lock");
-    contador_de_regionais = (contador_de_regionais + 1) % cfg.REGIONAIS.Count;
+      var cfg = Configuration.GetInstance();
+      var msg = HandleMessage.GetInstance();
+      var regional = cfg.REGIONAIS[(Int32)solicitacao.identifier];
+      var relatorio_identificador = String.Empty;
+      if(String.IsNullOrEmpty(relatorio))
+      {
+        var erro = new Exception(
+          "Erro ao gerar o relatório de notas em aberto!");
+        ConsoleWrapper.Error(Entidade.Advertiser, erro);
+        return;
+      }
+      ConsoleWrapper.Write(Entidade.Advertiser,
+        $"Comunicado de {solicitacao.application}, regional {regional}!");
+      var filename = new String[] {
+        solicitacao.response_at.ToString("u"),
+        solicitacao.application,
+        regional,
+      };
+      var relatorio_filename = String.Join('_', filename) + ".csv";
+      var bytearray = System.Text.Encoding.UTF8.GetBytes(relatorio);
+      using(var relatorio_arquivo = new MemoryStream(bytearray))
+      {
+        relatorio_identificador = await msg.SendDocumentAsyncWraper(
+          cfg.ID_ADM_BOT,
+          relatorio_arquivo,
+          relatorio_filename
+        );
+      }
+      if(String.IsNullOrEmpty(relatorio_identificador))
+      {
+          var erro = new Exception(
+            "Erro ao gerar o relatório de notas em aberto!");
+          ConsoleWrapper.Error(Entidade.Advertiser, erro);
+          return;
+      }
+      var usuarios = Database.GetInstance().RecuperarUsuario(u => u.pode_relatorios());
+      ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
+      await Comunicado(usuarios, cfg.ID_ADM_BOT, null, null, null, relatorio_identificador);
+      return;
     }
     catch (System.Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
+      return;
     }
   }
   public static async void Comunicado()
@@ -98,8 +95,6 @@ public static class HandleAnnouncement
     
     if(!has_txt && !has_jpg && !has_mp4 && !has_doc) return;
     
-    System.IO.File.Create("sap.lock").Close();
-    
     var comunicado_mensagem = has_txt ? File.ReadAllText(mensagem_caminho) : null;
     if(comunicado_mensagem == null || comunicado_mensagem.Length == 0) has_txt = false;
     Stream comunicado_imagem = has_jpg ? File.OpenRead(imagem_caminho) : Stream.Null;
@@ -113,7 +108,7 @@ public static class HandleAnnouncement
     var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : null;
     var doc_id = has_doc ? await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, comunicado_documento, $"comunicado_{DateTime.Now.ToString("yyyyMMdd")}.pdf") : null;
 
-    var usuarios = Database.GetInstance().RecuperarUsuario(u => u.dias_vencimento() > 0);
+    var usuarios = Database.GetInstance().RecuperarUsuario();
 
     ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
     await Comunicado(usuarios, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id, doc_id);
@@ -141,7 +136,6 @@ public static class HandleAnnouncement
       ConsoleWrapper.Write(Entidade.Advertiser, "Enviado documento do comunicado!");
       System.IO.File.Delete(documento_caminho);
     }
-    System.IO.File.Delete("sap.lock");
     }
     catch (System.Exception erro)
     {
@@ -159,6 +153,7 @@ public static class HandleAnnouncement
     foreach (var usuario in usuarios)
     {
       if(usuario.identifier == myself) continue;
+      if(usuario.dias_vencimento() < 0) continue;
       if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.identifier, image_id, text));
       if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.identifier, video_id, text));
       if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.identifier, doc_id, text));
