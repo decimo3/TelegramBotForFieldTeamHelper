@@ -4,9 +4,9 @@ using telbot.Services;
 namespace telbot.handle;
 public static class HandleAsynchronous
 {
+  private static readonly System.Text.RegularExpressions.Regex regex = new("^[0-9]{3}:");
   private static Stream ExecutarImg(String table)
   {
-    var regex = new System.Text.RegularExpressions.Regex("^[0-9]{3}");
     var argumentos = new String[] { "\"" + table + "\"" };
     var resposta_txt = Executor.Executar("img.exe", argumentos, true);
     if(String.IsNullOrEmpty(resposta_txt))
@@ -23,7 +23,6 @@ public static class HandleAsynchronous
   }
   private static String ExecutarSap(String solicitation, Int64 information, Int32 instance)
   {
-    var regex = new System.Text.RegularExpressions.Regex("^[0-9]{3}");
     var argumentos = new String[] {
       solicitation,
       information.ToString(),
@@ -67,7 +66,6 @@ public static class HandleAsynchronous
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
-    var regex = new System.Text.RegularExpressions.Regex("^[0-9]{3}");
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
