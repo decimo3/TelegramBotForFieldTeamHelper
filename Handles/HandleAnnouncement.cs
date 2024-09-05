@@ -174,7 +174,7 @@ public static class HandleAnnouncement
     {
       try
       {
-        await Task.Delay(new TimeSpan(0, 1, 0));
+        await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
         if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
         ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
         var result = Executor.Executar("tasklist", argumentos, true);
