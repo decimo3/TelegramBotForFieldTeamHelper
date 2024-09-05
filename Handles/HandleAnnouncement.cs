@@ -171,9 +171,9 @@ public static class HandleAnnouncement
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
     }
   }
-  public static async void Executador(String imagename, String[] arguments, String[] children)
+  public static async void Executador(String imagename, String[] arguments, String[]? children)
   {
-    var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq {imagename}\""};
+    var argumentos = new String[] {"/NH", "/FI", $"\"IMAGENAME eq {imagename}\""};
     while(true)
     {
       try
@@ -182,10 +182,10 @@ public static class HandleAnnouncement
         if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
         ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
         var result = Executor.Executar("tasklist", argumentos, true);
-        if(result.StartsWith("INFORMA"))
+        if(String.IsNullOrEmpty(result) || result.StartsWith("INFORMA"))
         {
           ConsoleWrapper.Debug(Entidade.Advertiser, $"Sistema {imagename} não está em execução. Iniciando...");
-          Updater.Terminate(children);
+          if(children != null) Updater.Terminate(children);
           Executor.Executar(imagename, arguments, false);
         }
       }
