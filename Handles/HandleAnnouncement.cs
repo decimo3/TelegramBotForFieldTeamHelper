@@ -7,6 +7,7 @@ public static class HandleAnnouncement
 {
   public static async void Vencimento(String aplicacao, Int32 prazo)
   {
+    ConsoleWrapper.Debug(Entidade.SoireeAsync, $"Monitor de {aplicacao} iniciado!");
     var cfg = Configuration.GetInstance();
     var contador_de_regionais = 0;
     while(true)
