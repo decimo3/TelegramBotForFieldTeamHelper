@@ -4,6 +4,43 @@ using telbot.Services;
 namespace telbot.handle;
 public static class HandleAsynchronous
 {
+  private static Stream ExecutarImg(String table)
+  {
+    var regex = new System.Text.RegularExpressions.Regex("^[0-9]{3}");
+    var argumentos = new String[] { "\"" + table + "\"" };
+    var resposta_txt = Executor.Executar("img.exe", argumentos, true);
+    if(String.IsNullOrEmpty(resposta_txt))
+    {
+      throw new IndexOutOfRangeException(
+        "503: Não foi recebida nenhuma resposta do `IMG2CSV`!");
+    }
+    if(regex.Match(resposta_txt).Success)
+    {
+      throw new InvalidOperationException(resposta_txt);
+    }
+    var bytearray = Convert.FromBase64String(resposta_txt);
+    return new MemoryStream(bytearray);
+  }
+  private static String ExecutarSap(String solicitation, Int64 information, Int32 instance)
+  {
+    var regex = new System.Text.RegularExpressions.Regex("^[0-9]{3}");
+    var argumentos = new String[] {
+      solicitation,
+      information.ToString(),
+      (instance - 1).ToString()
+    };
+    var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
+    if(String.IsNullOrEmpty(resposta_txt))
+    {
+      throw new NullReferenceException(
+        $"503: Não foi recebida nenhuma resposta do `SAP_BOT`!");
+    }
+    if(regex.Match(resposta_txt).Success)
+    {
+      throw new InvalidOperationException(resposta_txt);
+    }
+    return resposta_txt;
+  }
   // DONE - Recebe, verifica e registra no banco de dados
   public static async Task Waiter(Int64 identificador, String mensagem, DateTime received_at)
   {
@@ -64,120 +101,58 @@ public static class HandleAsynchronous
           break;
         }
         case TypeRequest.txtInfo:
-        {
-          var argumentos = new String[] {
-            solicitacao.application,
-            solicitacao.information.ToString(),
-            (instance - 1).ToString()
-          };
-          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          if(String.IsNullOrEmpty(resposta_txt))
+          try
           {
-            solicitacao.status = 503;
-            var erro = new IndexOutOfRangeException(
-              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-            break;
-          }
-          var match = regex.Match(resposta_txt);
-          if(match.Success)
-          {
-            solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt[5..]);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-            break;
-          }
-          else
-          {
+            var resposta_txt = ExecutarSap(
+              solicitacao.application,
+              solicitacao.information,
+              instance
+            );
             await bot.sendTextMesssageWraper(
               solicitacao.identifier,
               resposta_txt);
             bot.SucessReport(solicitacao);
             break;
           }
-        }
+          catch (System.Exception erro)
+          {
+            var match = regex.Match(erro.Message);
+            var texto = new Exception(erro.Message[5..]);
+            solicitacao.status = Int32.Parse(match.Value);
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
         case TypeRequest.picInfo:
-        {
-          var argumentos = new String[] {
-            solicitacao.application,
-            solicitacao.information.ToString(),
-            (instance - 1).ToString()
-          };
-          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          if(String.IsNullOrEmpty(resposta_txt))
+          try
           {
-            solicitacao.status = 503;
-            var erro = new IndexOutOfRangeException(
-              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-            break;
+            var resposta_txt = ExecutarSap(
+              solicitacao.application,
+              solicitacao.information,
+              instance
+            );
+            using(var image = ExecutarImg(resposta_txt))
+            {
+              await bot.SendPhotoAsyncWraper(solicitacao.identifier, image);
+              bot.SucessReport(solicitacao);
+              break;
+            }
           }
-          var match = regex.Match(resposta_txt);
-          if(match.Success)
+          catch (System.Exception erro)
           {
+            var match = regex.Match(erro.Message);
+            var texto = new Exception(erro.Message[5..]);
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          else
-          {
-            argumentos = new String[] { "\"" + resposta_txt + "\"" };
-            resposta_txt = Executor.Executar("img.exe", argumentos, true);
-            if(String.IsNullOrEmpty(resposta_txt))
-            {
-              solicitacao.status = 503;
-              var erro = new IndexOutOfRangeException(
-                "Não foi recebida nenhuma resposta do `IMG2CSV`!");
-              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-              break;
-            }
-            match = regex.Match(resposta_txt);
-            if(match.Success)
-            {
-              solicitacao.status = Int32.Parse(match.Value);
-              var erro = new Exception(resposta_txt[5..]);
-              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-              break;
-            }
-            else
-            {
-              var bytearray = Convert.FromBase64String(resposta_txt);
-              using(var memstream = new MemoryStream(bytearray))
-              {
-                await bot.SendPhotoAsyncWraper(solicitacao.identifier, memstream);
-                bot.SucessReport(solicitacao);
-                break;
-              }
-            }
-          }
-        }
         case TypeRequest.xlsInfo:
-        {
-          var argumentos = new String[] {
-            solicitacao.application,
-            solicitacao.information.ToString(),
-            (instance - 1).ToString()
-          };
-          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          if(String.IsNullOrEmpty(resposta_txt))
+          try
           {
-            solicitacao.status = 503;
-            var erro = new IndexOutOfRangeException(
-              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-            break;
-          }
-          var match = regex.Match(resposta_txt);
-          if(match.Success)
-          {
-            solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt[5..]);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-            break;
-          }
-          else
-          {
+            var resposta_txt = ExecutarSap(
+              solicitacao.application,
+              solicitacao.information,
+              instance
+            );
             var bytearray = System.Text.Encoding.UTF8.GetBytes(resposta_txt);
             using(var memstream = new MemoryStream(bytearray))
             {
@@ -194,75 +169,66 @@ public static class HandleAsynchronous
               break;
             }
           }
-        }
-        case TypeRequest.xyzInfo:
-        {
-          var argumentos = new String[] {
-            solicitacao.application,
-            solicitacao.information.ToString(),
-            (instance - 1).ToString()
-          };
-          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          if(String.IsNullOrEmpty(resposta_txt))
+          catch (System.Exception erro)
           {
-            solicitacao.status = 503;
-            var erro = new IndexOutOfRangeException(
-              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
-            break;
-          }
-          var match = regex.Match(resposta_txt);
-          if(match.Success)
-          {
+            var match = regex.Match(erro.Message);
+            var texto = new Exception(erro.Message[5..]);
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          else
+        case TypeRequest.xyzInfo:
+          try
           {
+            var resposta_txt = ExecutarSap(
+              solicitacao.application,
+              solicitacao.information,
+              instance
+            );
             await bot.SendCoordinateAsyncWraper(solicitacao.identifier, resposta_txt);
             bot.SucessReport(solicitacao);
-          }
-          break;
-        }
-        case TypeRequest.pdfInfo:
-        {
-          var argumentos = new String[] {
-            solicitacao.application,
-            solicitacao.information.ToString(),
-            (instance - 1).ToString()
-          };
-          var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
-          if(String.IsNullOrEmpty(resposta_txt))
-          {
-            solicitacao.status = 503;
-            var erro = new IndexOutOfRangeException(
-              "Não foi recebida nenhuma resposta do `SAP_BOT`!");
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          var match = regex.Match(resposta_txt);
-          if(match.Success)
+          catch (System.Exception erro)
           {
+            var match = regex.Match(erro.Message);
+            var texto = new Exception(erro.Message[5..]);
             solicitacao.status = Int32.Parse(match.Value);
-            var erro = new Exception(resposta_txt[5..]);
             await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
             break;
           }
-          else
+        case TypeRequest.pdfInfo:
+          try
           {
             var fluxo_atual = 0;
             var agora = DateTime.Now;
-            var quantidade_experada = Int32.Parse(resposta_txt);
-            var fluxos = new Stream[quantidade_experada];
+            var resposta_txt = Int64.Parse(ExecutarSap(
+              "instalacao",
+              solicitacao.information,
+              instance
+            ));
+            if(!Int64.TryParse(resposta_txt, out Int64 instalation))
+            {
+              throw new InvalidOperationException(
+                "500: Não foi recebido o número da instalação!");
+            }
+            var resposta_txt = ExecutarSap(
+              solicitacao.application,
+              solicitacao.information,
+              instance
+            );
+            if(!Int64.TryParse(resposta_txt, out Int32 quantidade_experada))
+            {
+              throw new InvalidOperationException(
+                "500: Quantidade de faturas desconhecida!");
+            }
             var faturas = new List<pdfsModel>();
             var tasks = new List<Task>();
             while (true)
             {
               await Task.Delay(cfg.TASK_DELAY_LONG);
               faturas = database.RecuperarFatura(
-                f => f.instalation == solicitacao.information &&
+                f => f.instalation == instalation &&
                 !f.has_expired() && f.status == pdfsModel.Status.wait
               );
               if(faturas.Count == quantidade_experada) break;
@@ -284,6 +250,7 @@ public static class HandleAsynchronous
               await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
               break;
             }
+            var fluxos = new Stream[quantidade_experada];
             foreach (var fatura in faturas)
             {
               if(fatura.status == pdfsModel.Status.sent) continue;
@@ -302,17 +269,33 @@ public static class HandleAsynchronous
             bot.SucessReport(solicitacao);
             break;
           }
-        }
+          catch (System.Exception erro)
+          {
+            var match = regex.Match(erro.Message);
+            var texto = new Exception(erro.Message[5..]);
+            solicitacao.status = Int32.Parse(match.Value);
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
         case TypeRequest.ofsInfo:
-        {
-          var agora = DateTime.Now;
-          OfsHandle.Enrol(
-            solicitacao.application,
-            solicitacao.information,
-            solicitacao.received_at
-          );
-          break;
-        }
+          try
+          {
+            var agora = DateTime.Now;
+            OfsHandle.Enrol(
+              solicitacao.application,
+              solicitacao.information,
+              solicitacao.received_at
+            );
+            break;
+          }
+          catch (System.Exception erro)
+          {
+            var match = regex.Match(erro.Message);
+            var texto = new Exception(erro.Message[5..]);
+            solicitacao.status = Int32.Parse(match.Value);
+            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            break;
+          }
       }
     }
   }
