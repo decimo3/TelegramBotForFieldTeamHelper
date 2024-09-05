@@ -53,6 +53,7 @@ class Startup
         var filhos = new String[] {"prl.exe", "chrome.exe", "chromedriver.exe"};
         HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
+      HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
       // A new cook is instantiated for each reported instance
       for (var i = 1; i <= config.SAP_INSTANCIA; i++)
       {
