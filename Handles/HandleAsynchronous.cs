@@ -40,7 +40,6 @@ public static class HandleAsynchronous
     }
     return resposta_txt;
   }
-  // DONE - Recebe, verifica e registra no banco de dados
   public static async Task Waiter(Int64 identificador, String mensagem, DateTime received_at)
   {
     var database = Database.GetInstance();
@@ -59,7 +58,6 @@ public static class HandleAsynchronous
     request.received_at = received_at;
     database.InserirSolicitacao(request);
   }
-  // DONE - Coleta do banco de dados e realiza a solicitação
   public static async void Cooker(Int32 instance)
   {
     ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} iniciada!");
