@@ -273,7 +273,7 @@ public static class HandleAsynchronous
               solicitacao.status = 503;
               var erro = new Exception(
                 "Não foi gerada nenhuma fatura pelo sistema SAP!");
-              await bot.ErrorReport(solicitacao.information, erro, solicitacao);
+              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
               break;
             }
             if(faturas.Count != quantidade_experada)
@@ -281,7 +281,7 @@ public static class HandleAsynchronous
               solicitacao.status = 503;
               var erro = new Exception(
                 "A quantidade de faturas não condiz com a quantidade esperada!");
-              await bot.ErrorReport(solicitacao.information, erro, solicitacao);
+              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
               break;
             }
             foreach (var fatura in faturas)
