@@ -21,7 +21,7 @@ public static class HandleAnnouncement
         identifier = contador_de_regionais,
         application = aplicacao,
         information = prazo,
-        received_at = DateTime.Now,
+        received_at = DateTime.Now.ToUniversalTime(),
         typeRequest = TypeRequest.xlsInfo
       };
       Database.GetInstance().InserirSolicitacao(solicitacao);
