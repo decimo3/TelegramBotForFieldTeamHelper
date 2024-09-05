@@ -46,7 +46,7 @@ public static class HandleAnnouncement
       ConsoleWrapper.Write(Entidade.Advertiser,
         $"Comunicado de {solicitacao.application}, regional {regional}!");
       var filename = new String[] {
-        solicitacao.response_at.ToString("u"),
+        DateTime.Now.ToString("yyyyMMddHHmmss"),
         solicitacao.application,
         regional,
       };
@@ -107,7 +107,7 @@ public static class HandleAnnouncement
     
     var photo_id = has_jpg ? await msg.SendPhotoAsyncWraper(cfg.ID_ADM_BOT, comunicado_imagem) : null;
     var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : null;
-    var doc_id = has_doc ? await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, comunicado_documento, $"comunicado_{DateTime.Now.ToString("yyyyMMdd")}.pdf") : null;
+    var doc_id = has_doc ? await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, comunicado_documento, $"comunicado_{DateTime.Now.ToString("yyyyMMddHHmmss")}.pdf") : null;
 
     var usuarios = Database.GetInstance().RecuperarUsuario();
 
