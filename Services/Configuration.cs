@@ -8,7 +8,7 @@ public class Configuration
   public readonly string CURRENT_PATH = String.Empty;
   public readonly bool GERAR_FATURAS = true;
   public readonly bool SAP_OFFLINE = false;
-  public readonly int SAP_INSTANCIA = 0;
+  public readonly int SAP_INSTANCIA = 1;
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
   public readonly int SAP_ESPERA = 60_000;
