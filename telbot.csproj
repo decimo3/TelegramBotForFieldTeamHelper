@@ -8,6 +8,7 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <OutputPath>..\tmp\</OutputPath>
     <NoWarn>IDE0049</NoWarn>
     <ApplicationIcon>appicon.ico</ApplicationIcon>
   </PropertyGroup>
