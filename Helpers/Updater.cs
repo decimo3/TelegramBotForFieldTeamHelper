@@ -10,25 +10,25 @@ public static class Updater
     if(!System.IO.Directory.Exists(cfg.UPDATE_PATH))
       throw new DirectoryNotFoundException();
     var version = CurrentVersion(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Versão atual do sistema chatbot: {version.ToString("yyyyMMdd")}");
+    ConsoleWrapper.Write(Entidade.Updater, $"Versão atual do sistema chatbot: {version.ToString("yyyyMMdd")}");
     var updates = ListUpdates(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Verificando se há novas versões do sistema chatbot...");
+    ConsoleWrapper.Write(Entidade.Updater, "Verificando se há novas versões do sistema chatbot...");
     var update = HasUpdate(updates, version);
     if(update == null)
     {
-      Console.WriteLine($"< {DateTime.Now} Manager: Não foram encontradas atualizações para o sistema.");
+      ConsoleWrapper.Write(Entidade.Updater, "Não foram encontradas atualizações para o sistema.");
       return;
     }
-    Console.WriteLine($"< {DateTime.Now} Manager: Nova versão {update} do sistema chatbot encontrada! Baixando...");
+    ConsoleWrapper.Write(Entidade.Updater, "Nova versão {update} do sistema chatbot encontrada! Baixando...");
     Download(cfg, update);
-    Console.WriteLine($"< {DateTime.Now} Manager: Download concluído! Descompactando arquivo de atualização...");
+    ConsoleWrapper.Write(Entidade.Updater, "Download concluído! Descompactando arquivo de atualização...");
     Unzip(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Fechando programas aninhados ao sistema do chatbot...");
+    ConsoleWrapper.Write(Entidade.Updater, "Fechando programas aninhados ao sistema do chatbot...");
     TerminateAll();
-    Console.WriteLine($"< {DateTime.Now} Manager: Aplicando atualização do sistema chatbot, por favor aguarde...");
+    ConsoleWrapper.Write(Entidade.Updater, "Aplicando atualização do sistema chatbot, por favor aguarde...");
     DbUpdater(cfg);
     Replace(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
+    ConsoleWrapper.Write(Entidade.Updater, "Sistema chatbot atualizado com sucesso! Reiniciando...");
     Restart(cfg);
     }
     catch (Exception erro)

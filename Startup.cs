@@ -39,7 +39,7 @@ class Startup
     using (var cts = new CancellationTokenSource())
     {
       bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
-      Console.WriteLine($"< {DateTime.Now} Manager: Start listening for updates. Press enter to stop.");
+      ConsoleWrapper.Write(Entidade.Manager, "Start listening for updates. Press enter to stop.");
       if(config.IS_DEVELOPMENT == false) HandleAnnouncement.Comunicado();
       if(config.SAP_VENCIMENTO) HandleAnnouncement.Vencimento("vencimento", 7);
       if(config.SAP_BANDEIRADA) HandleAnnouncement.Vencimento("bandeirada", 7);
