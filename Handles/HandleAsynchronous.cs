@@ -173,11 +173,6 @@ public static class HandleAsynchronous
           }
           catch (System.Exception erro)
           {
-            if(solicitacao.identifier < 10)
-            {
-              ConsoleWrapper.Error(Entidade.CookerAsync, erro);
-              break;
-            }
             var match = regex.Match(erro.Message);
             var texto = new Exception(erro.Message[5..]);
             solicitacao.status = Int32.Parse(match.Value);

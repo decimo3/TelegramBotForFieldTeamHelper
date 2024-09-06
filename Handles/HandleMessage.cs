@@ -80,10 +80,14 @@ public class HandleMessage
   }
   public async Task ErrorReport(long id, Exception error, logsModel? request)
   {
-    if(!String.IsNullOrEmpty(error.Message))
-      await sendTextMesssageWraper(id, error.Message);
-    await sendTextMesssageWraper(id, "Não foi possível processar a sua solicitação!");
-    await sendTextMesssageWraper(id, "Solicite a informação para o monitor(a)");
+    if(id > 10)
+    {
+      if(!String.IsNullOrEmpty(error.Message))
+        await sendTextMesssageWraper(id, error.Message);
+      await sendTextMesssageWraper(id, "Não foi possível processar a sua solicitação!");
+      await sendTextMesssageWraper(id, "Solicite a informação para o monitor(a)");
+    }
+    ConsoleWrapper.Error(Entidade.CookerAsync, error);
     if(request == null) return;
     if(request.status < 400) request.status = 500;
     request.response_at = DateTime.Now;
@@ -121,7 +125,7 @@ public class HandleMessage
       var keys = new[] { KeyboardButton.WithRequestContact("Enviar meu número de telefone") };
       var requestReplyKeyboard = new ReplyKeyboardMarkup(keys);
       await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
-      Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
+      ConsoleWrapper.Write(Entidade.Messenger, msg);
     }
     catch (Exception erro)
     {
@@ -136,7 +140,7 @@ public class HandleMessage
       var msg = $"Telefone {tel} cadastrado! Agora serás atendido normalmente!";
       var requestReplyKeyboard = new ReplyKeyboardRemove();
       await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
-      Console.WriteLine($"< {DateTime.Now} chatbot: {msg}");
+      ConsoleWrapper.Write(Entidade.Messenger, msg);
     }
     catch (Exception erro)
     {
