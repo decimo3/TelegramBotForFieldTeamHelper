@@ -78,18 +78,29 @@ public class HandleMessage
       ConsoleWrapper.Error(Entidade.Messenger, erro);
     }
   }
-  public async Task ErrorReport(long id, Exception error, logsModel? request)
+  public async Task ErrorReport(Exception error, logsModel request)
   {
-    if(id > 10)
+    String texto;
+    var regex = new System.Text.RegularExpressions.Regex("^([0-9]{3}):");
+    ConsoleWrapper.Error(Entidade.Messenger, error);
+    var match = regex.Match(error.Message);
+    if(match.Success)
     {
-      if(!String.IsNullOrEmpty(error.Message))
-        await sendTextMesssageWraper(id, error.Message);
-      await sendTextMesssageWraper(id, "Não foi possível processar a sua solicitação!");
-      await sendTextMesssageWraper(id, "Solicite a informação para o monitor(a)");
+      texto = error.Message[5..];
+      request.status = Int32.Parse(match.Value[..2]);
     }
-    ConsoleWrapper.Error(Entidade.CookerAsync, error);
-    if(request == null) return;
-    if(request.status < 400) request.status = 500;
+    else
+    {
+      texto = error.Message;
+      if(request.status < 400) request.status = 500;
+    }
+    if(request.identifier > 10)
+    {
+      if(!String.IsNullOrEmpty(texto))
+        await sendTextMesssageWraper(request.identifier, texto);
+      await sendTextMesssageWraper(request.identifier, "Não foi possível processar a sua solicitação!");
+      await sendTextMesssageWraper(request.identifier, "Solicite a informação para o monitor(a)");
+    }
     request.response_at = DateTime.Now;
     Database.GetInstance().AlterarSolicitacao(request);
   }
