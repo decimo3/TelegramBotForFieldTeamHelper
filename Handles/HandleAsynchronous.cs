@@ -191,7 +191,6 @@ public static class HandleAsynchronous
           try
           {
             var fluxo_atual = 0;
-            var agora = DateTime.Now;
             var resposta_txt = ExecutarSap(
               "instalacao",
               solicitacao.information,
@@ -214,15 +213,16 @@ public static class HandleAsynchronous
             }
             var faturas = new List<pdfsModel>();
             var tasks = new List<Task>();
+            var agora = DateTime.Now;
             while (true)
             {
               await Task.Delay(cfg.TASK_DELAY_LONG);
               faturas = database.RecuperarFatura(
                 f => f.instalation == instalation &&
-                !f.has_expired() && f.status == pdfsModel.Status.wait
+                  f.status == pdfsModel.Status.wait
               );
               if(faturas.Count == quantidade_experada) break;
-              if((DateTime.Now - agora) > TimeSpan.FromMilliseconds(cfg.SAP_ESPERA)) break;
+              if(agora.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now) break;
             }
             if(!faturas.Any())
             {
@@ -244,7 +244,8 @@ public static class HandleAsynchronous
             foreach (var fatura in faturas)
             {
               if(fatura.status == pdfsModel.Status.sent) continue;
-              fluxos[fluxo_atual] = System.IO.File.OpenRead(fatura.filename);
+              var caminho = System.IO.Path.Combine(cfg.TEMP_FOLDER, fatura.filename);
+              fluxos[fluxo_atual] = System.IO.File.OpenRead(caminho);
               tasks.Add(bot.SendDocumentAsyncWraper(
                 solicitacao.identifier,
                 fluxos[fluxo_atual],
