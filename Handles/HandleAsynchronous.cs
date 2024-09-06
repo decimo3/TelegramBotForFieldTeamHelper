@@ -81,7 +81,7 @@ public static class HandleAsynchronous
       {
         solicitacao.status = 408;
         var erro = new Exception("A sua solicitação expirou!");
-        await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+        await bot.ErrorReport(erro, solicitacao);
         continue;
       }
       switch (solicitacao.typeRequest)
@@ -112,10 +112,7 @@ public static class HandleAsynchronous
           }
           catch (System.Exception erro)
           {
-            var match = regex.Match(erro.Message);
-            var texto = new Exception(erro.Message[5..]);
-            solicitacao.status = Int32.Parse(match.Value);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.ErrorReport(erro, solicitacao);
             break;
           }
         case TypeRequest.picInfo:
@@ -135,10 +132,7 @@ public static class HandleAsynchronous
           }
           catch (System.Exception erro)
           {
-            var match = regex.Match(erro.Message);
-            var texto = new Exception(erro.Message[5..]);
-            solicitacao.status = Int32.Parse(match.Value);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.ErrorReport(erro, solicitacao);
             break;
           }
         case TypeRequest.xlsInfo:
@@ -173,10 +167,7 @@ public static class HandleAsynchronous
           }
           catch (System.Exception erro)
           {
-            var match = regex.Match(erro.Message);
-            var texto = new Exception(erro.Message[5..]);
-            solicitacao.status = Int32.Parse(match.Value);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.ErrorReport(erro, solicitacao);
             break;
           }
         case TypeRequest.xyzInfo:
@@ -193,10 +184,7 @@ public static class HandleAsynchronous
           }
           catch (System.Exception erro)
           {
-            var match = regex.Match(erro.Message);
-            var texto = new Exception(erro.Message[5..]);
-            solicitacao.status = Int32.Parse(match.Value);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.ErrorReport(erro, solicitacao);
             break;
           }
         case TypeRequest.pdfInfo:
@@ -241,7 +229,7 @@ public static class HandleAsynchronous
               solicitacao.status = 503;
               var erro = new Exception(
                 "Não foi gerada nenhuma fatura pelo sistema SAP!");
-              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+              await bot.ErrorReport(erro, solicitacao);
               break;
             }
             if(faturas.Count != quantidade_experada)
@@ -249,7 +237,7 @@ public static class HandleAsynchronous
               solicitacao.status = 503;
               var erro = new Exception(
                 "A quantidade de faturas não condiz com a quantidade esperada!");
-              await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+              await bot.ErrorReport(erro, solicitacao);
               break;
             }
             var fluxos = new Stream[quantidade_experada];
@@ -273,10 +261,7 @@ public static class HandleAsynchronous
           }
           catch (System.Exception erro)
           {
-            var match = regex.Match(erro.Message);
-            var texto = new Exception(erro.Message[5..]);
-            solicitacao.status = Int32.Parse(match.Value);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.ErrorReport(erro, solicitacao);
             break;
           }
         case TypeRequest.ofsInfo:
@@ -292,10 +277,7 @@ public static class HandleAsynchronous
           }
           catch (System.Exception erro)
           {
-            var match = regex.Match(erro.Message);
-            var texto = new Exception(erro.Message[5..]);
-            solicitacao.status = Int32.Parse(match.Value);
-            await bot.ErrorReport(solicitacao.identifier, erro, solicitacao);
+            await bot.ErrorReport(erro, solicitacao);
             break;
           }
       }

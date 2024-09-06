@@ -55,7 +55,7 @@ public static class Command
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
           var erro = new Exception("Você não tem permissão para usar esse comando!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         var filename = $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.db";
@@ -67,7 +67,7 @@ public static class Command
         {
           var erro = new Exception("Comando solicitado não foi programado! Verifique e tente um válido!");
           request.status = 400;
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
       case "/info":
@@ -86,7 +86,7 @@ public static class Command
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
           var erro = new Exception("Somente o proprietario podem usar esse comando!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         try
@@ -110,7 +110,7 @@ public static class Command
         catch
         {
           var erro = new Exception("Não foi possível atualizar o sistema remotamente!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         break;
@@ -118,7 +118,7 @@ public static class Command
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
           var erro = new Exception("Somente o proprietario podem usar esse comando!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         if(!Updater.IsChangedVersionFile(cfg))
@@ -133,7 +133,7 @@ public static class Command
         if(!user.pode_promover())
         {
           var erro = new Exception("Somente o proprietario ou administrador podem usar esse comando!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         if(Updater.IsChangedVersionFile(cfg))
@@ -150,7 +150,7 @@ public static class Command
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
           var erro = new Exception("Somente o proprietario podem usar esse comando!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         var solicitacoes = Database.GetInstance().RecuperarSolicitacao();
@@ -184,7 +184,8 @@ public static class Command
     }
     catch (System.Exception)
     {
-      await bot.ErrorReport(user.identifier, new Exception("Houve um erro ao processar o seu comando!"), request);
+      var error = new Exception("Houve um erro ao processar o seu comando!");
+      await bot.ErrorReport(error, request);
     }
     return;
   }

@@ -103,10 +103,15 @@ class Startup
         {
           var erroMessage = "O formato da mensagem não é reconhecido!";
           await chatbot.ErrorReport(
-            id: update.Message.From.Id,
             error: new Exception(erroMessage),
-            request: null
-          );
+            request: new logsModel() {
+              identifier = update.Message.From.Id,
+              application = "nullmessage",
+              received_at = update.Message.Date.ToUniversalTime(),
+              response_at = DateTime.Now,
+              typeRequest = TypeRequest.nullInfo,
+              status = 400
+          });
           return;
         }
         await HandleTypeMessage.ManuscriptsType(
@@ -122,10 +127,15 @@ class Startup
         {
           var erroMessage = "O formato da mensagem não é reconhecido!";
           await chatbot.ErrorReport(
-            id: update.Message.From.Id,
             error: new Exception(erroMessage),
-            request: null
-          );
+            request: new logsModel() {
+              identifier = update.Message.From.Id,
+              application = "nullmessage",
+              received_at = update.Message.Date.ToUniversalTime(),
+              response_at = DateTime.Now,
+              typeRequest = TypeRequest.nullInfo,
+              status = 400
+          });
           return;
         }
         await HandleTypeMessage.PhoneNumberType(
@@ -140,10 +150,15 @@ class Startup
         {
           var erroMessage = "O formato do imagem não é reconhecido!";
           await chatbot.ErrorReport(
-            id: update.Message.From.Id,
             error: new Exception(erroMessage),
-            request: null
-          );
+            request: new logsModel() {
+              identifier = update.Message.From.Id,
+              application = "nullmessage",
+              received_at = update.Message.Date.ToUniversalTime(),
+              response_at = DateTime.Now,
+              typeRequest = TypeRequest.nullInfo,
+              status = 400
+          });
           return;
         }
         await HandleTypeMessage.PhotographType(
@@ -160,10 +175,15 @@ class Startup
         {
           var erroMessage = "O formato do documento não é reconhecido!";
           await chatbot.ErrorReport(
-            id: update.Message.From.Id,
             error: new Exception(erroMessage),
-            request: null
-          );
+            request: new logsModel() {
+              identifier = update.Message.From.Id,
+              application = "nullmessage",
+              received_at = update.Message.Date.ToUniversalTime(),
+              response_at = DateTime.Now,
+              typeRequest = TypeRequest.nullInfo,
+              status = 400
+          });
           return;
         }
         await HandleTypeMessage.DocumentType(
@@ -180,10 +200,15 @@ class Startup
         {
           var erroMessage = "O formato da vídeo não é reconhecido!";
           await chatbot.ErrorReport(
-            id: update.Message.From.Id,
             error: new Exception(erroMessage),
-            request: null
-          );
+            request: new logsModel() {
+              identifier = update.Message.From.Id,
+              application = "nullmessage",
+              received_at = update.Message.Date.ToUniversalTime(),
+              response_at = DateTime.Now,
+              typeRequest = TypeRequest.nullInfo,
+              status = 400
+          });
           return;
         }
         await HandleTypeMessage.VideoclipType(
@@ -198,10 +223,15 @@ class Startup
       {
         var erroMessage = "O formato da mensagem não é reconhecido!";
         await chatbot.ErrorReport(
-          id: update.Message.From.Id,
           error: new Exception(erroMessage),
-          request: null
-        );
+          request: new logsModel() {
+              identifier = update.Message.From.Id,
+              application = "nullmessage",
+              received_at = update.Message.Date.ToUniversalTime(),
+              response_at = DateTime.Now,
+              typeRequest = TypeRequest.nullInfo,
+              status = 400
+          });
       }
       break;
     }

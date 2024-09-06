@@ -13,7 +13,7 @@ public static class Manager
     {
       request.status = 400;
       var erro = new Exception("Você não tem permissão para alterar usuários!");
-      await bot.ErrorReport(user.identifier, erro, request);
+      await bot.ErrorReport(erro, request);
       return;
     }
     var usuario = database.RecuperarUsuario(request.information);
@@ -21,14 +21,14 @@ public static class Manager
     {
       request.status = 404;
       var erro = new Exception("Não há registro que esse usuário entrou em contato com o chatbot!");
-      await bot.ErrorReport(user.identifier, erro, request);
+      await bot.ErrorReport(erro, request);
       return;
     }
     if(usuario.privilege == UsersModel.userLevel.proprietario)
     {
       request.status = 403;
       var erro = new Exception("Nenhum usuário tem permissão suficiente para alterar o proprietário!");
-      await bot.ErrorReport(user.identifier, erro, request);
+      await bot.ErrorReport(erro, request);
       return;
     }
     if(usuario.privilege == UsersModel.userLevel.administrador)
@@ -37,7 +37,7 @@ public static class Manager
       {
         request.status = 403;
         var erro = new Exception("Você não tem permissão suficiente para alterar o administrador!");
-        await bot.ErrorReport(user.identifier, erro, request);
+        await bot.ErrorReport(erro, request);
         return;
       }
     }
@@ -51,7 +51,7 @@ public static class Manager
         {
           request.status = 400;
           var erro = new Exception($"Usuário {usuario.identifier} com cargo {usuario.privilege} não tem prazo de expiração!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         if(usuario.privilege == UsersModel.userLevel.desautorizar)
@@ -67,7 +67,7 @@ public static class Manager
         {
           request.status = 403;
           var erro = new Exception("Você não tem permissão para alterar usuários!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
         var cargo = Enum.Parse<UsersModel.userLevel>(request.application);
@@ -78,7 +78,7 @@ public static class Manager
         {
           request.status = 403;
           var erro = new Exception("Você não tem permissão para promover administradores!");
-          await bot.ErrorReport(user.identifier, erro, request);
+          await bot.ErrorReport(erro, request);
           return;
         }
           usuario.privilege = UsersModel.userLevel.administrador;
@@ -96,7 +96,7 @@ public static class Manager
     {
       request.status = 500;
       var erro = new Exception("Houve um problema em atualizar o usuário");
-      await bot.ErrorReport(user.identifier, erro, request);
+      await bot.ErrorReport(erro, request);
     }
     return;
   }
