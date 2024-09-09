@@ -54,7 +54,7 @@ public static class HandleTypeMessage
       return;
     }
     var usuarios = database.RecuperarUsuario(u => u.dias_vencimento() > 0);
-    // usuarios = usuarios.Where(u => u.dias_vencimento() > 0).ToList();
+    caption = caption == null ? $"Enviado por: {usuario.username}" : caption + "\n\n" + $"Enviado por: {usuario.username}";
     await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, photograph, null, null);
     return;
   }
@@ -68,7 +68,7 @@ public static class HandleTypeMessage
       return;
     }
     var usuarios = database.RecuperarUsuario(u => u.dias_vencimento() > 0);
-    // usuarios = usuarios.Where(u => u.dias_vencimento() > 0).ToList();
+    caption = caption == null ? $"Enviado por: {usuario.username}" : caption + "\n\n" + $"Enviado por: {usuario.username}";
     await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, null, videoclip, null);
     return;
   }
@@ -82,7 +82,7 @@ public static class HandleTypeMessage
       return;
     }
     var usuarios = database.RecuperarUsuario(u => u.dias_vencimento() > 0);
-    // usuarios = usuarios.Where(u => u.dias_vencimento() > 0).ToList();
+    caption = caption == null ? $"Enviado por: {usuario.username}" : caption + "\n\n" + $"Enviado por: {usuario.username}";
     await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, null, null, document);
     return;
   }
