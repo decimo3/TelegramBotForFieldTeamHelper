@@ -140,7 +140,8 @@ class Startup
         }
         await HandleTypeMessage.PhoneNumberType(
           usuario: usuario,
-          telefone: Convert.ToInt64(update.Message.Contact.PhoneNumber.Replace("+", ""))
+          telefone: Convert.ToInt64(update.Message.Contact.PhoneNumber.Replace("+", "")),
+          username: update.Message.From.FirstName + " " + update.Message.From.LastName
         );
         break;
       }
