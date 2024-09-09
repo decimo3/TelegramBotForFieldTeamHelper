@@ -4,7 +4,25 @@ public static class HandleTypeMessage
 {
   public static async Task ManuscriptsType(UsersModel usuario, DateTime recebido_em, String mensagem)
   {
-    await HandleAsynchronous.Waiter(usuario.identifier, mensagem, recebido_em);
+    if(mensagem.Length < 50)
+    {
+      await HandleAsynchronous.Waiter(usuario.identifier, mensagem, recebido_em);
+      return;
+    }
+    if(!usuario.pode_transmitir())
+    {
+      await HandleMessage.GetInstance().sendTextMesssageWraper(
+        usuario.identifier,
+        "Você não possui permissão para enviar comunicados!");
+      return;
+    }
+    var usuarios = Database.GetInstance().RecuperarUsuario(u => u.dias_vencimento() > 0);
+    var caption = "*COMUNICADO DO CHATBOT:*\n\n" + mensagem + $"\n\n*Enviado por: " + usuario.username + "*";
+    await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, null, null, null);
+    await HandleMessage.GetInstance().sendTextMesssageWraper(
+      usuario.identifier,
+      $"Comunicado enviado com sucesso para {usuarios.Count} usuários!");
+    return;
   }
   public static async Task PhoneNumberType(UsersModel usuario, Int64 telefone)
   {
