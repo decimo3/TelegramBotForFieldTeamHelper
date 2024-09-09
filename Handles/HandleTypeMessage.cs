@@ -24,11 +24,12 @@ public static class HandleTypeMessage
       $"Comunicado enviado com sucesso para {usuarios.Count} usuários!");
     return;
   }
-  public static async Task PhoneNumberType(UsersModel usuario, Int64 telefone)
+  public static async Task PhoneNumberType(UsersModel usuario, Int64 telefone, String username)
   {
     var database = Database.GetInstance();
     var chatbot = HandleMessage.GetInstance();
     usuario.phone_number = telefone;
+    usuario.username = username;
     database.AlterarUsuario(usuario);
     await chatbot.RemoveRequest(usuario.identifier, telefone);
     return;
