@@ -17,7 +17,7 @@ public static class HandleTypeMessage
       return;
     }
     var usuarios = Database.GetInstance().RecuperarUsuario(u => u.dias_vencimento() > 0);
-    var caption = "*COMUNICADO DO CHATBOT:*\n\n" + mensagem + $"\n\n*Enviado por: " + usuario.username + "*";
+    var caption = "*COMUNICADO DO CHATBOT:*\n\n" + mensagem + $"\n\nEnviado por: {usuario.username}";
     await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, null, null, null);
     await HandleMessage.GetInstance().sendTextMesssageWraper(
       usuario.identifier,
@@ -51,12 +51,17 @@ public static class HandleTypeMessage
     var chatbot = HandleMessage.GetInstance();
     if(!usuario.pode_transmitir())
     {
-      await chatbot.sendTextMesssageWraper(usuario.identifier, "Você não possui permissão para enviar comunicados!");
+      await chatbot.sendTextMesssageWraper(
+        usuario.identifier,
+        "Você não possui permissão para enviar comunicados!");
       return;
     }
     var usuarios = database.RecuperarUsuario(u => u.dias_vencimento() > 0);
     caption = caption == null ? $"Enviado por: {usuario.username}" : caption + "\n\n" + $"Enviado por: {usuario.username}";
     await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, photograph, null, null);
+    await HandleMessage.GetInstance().sendTextMesssageWraper(
+      usuario.identifier,
+      $"Comunicado enviado com sucesso para {usuarios.Count} usuários!");
     return;
   }
   public static async Task VideoclipType(UsersModel usuario, DateTime recebido_em, String videoclip, String? caption)
@@ -65,12 +70,17 @@ public static class HandleTypeMessage
     var chatbot = HandleMessage.GetInstance();
     if(!usuario.pode_transmitir())
     {
-      await chatbot.sendTextMesssageWraper(usuario.identifier, "Você não possui permissão para enviar comunicados!");
+      await chatbot.sendTextMesssageWraper(
+        usuario.identifier,
+        "Você não possui permissão para enviar comunicados!");
       return;
     }
     var usuarios = database.RecuperarUsuario(u => u.dias_vencimento() > 0);
     caption = caption == null ? $"Enviado por: {usuario.username}" : caption + "\n\n" + $"Enviado por: {usuario.username}";
     await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, null, videoclip, null);
+    await HandleMessage.GetInstance().sendTextMesssageWraper(
+      usuario.identifier,
+      $"Comunicado enviado com sucesso para {usuarios.Count} usuários!");
     return;
   }
   public static async Task DocumentType(UsersModel usuario, DateTime recebido_em, String document, String? caption)
@@ -79,12 +89,24 @@ public static class HandleTypeMessage
     var chatbot = HandleMessage.GetInstance();
     if(!usuario.pode_transmitir())
     {
-      await chatbot.sendTextMesssageWraper(usuario.identifier, "Você não possui permissão para enviar comunicados!");
+      await chatbot.sendTextMesssageWraper(
+        usuario.identifier,
+        "Você não possui permissão para enviar comunicados!");
+      return;
+    }
+    if(String.IsNullOrEmpty(caption))
+    {
+      await chatbot.sendTextMesssageWraper(
+        usuario.identifier,
+        "Documentos necessitam de uma legenda descritiva!");
       return;
     }
     var usuarios = database.RecuperarUsuario(u => u.dias_vencimento() > 0);
     caption = caption == null ? $"Enviado por: {usuario.username}" : caption + "\n\n" + $"Enviado por: {usuario.username}";
     await HandleAnnouncement.Comunicado(usuarios, usuario.identifier, caption, null, null, document);
+    await HandleMessage.GetInstance().sendTextMesssageWraper(
+      usuario.identifier,
+      $"Comunicado enviado com sucesso para {usuarios.Count} usuários!");
     return;
   }
 }
