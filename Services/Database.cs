@@ -41,7 +41,8 @@ public class Database : IDatabase
             update_at DATETIME NOT NULL,
             privilege INT DEFAULT 0,
             inserted_by INT DEFAULT 0,
-            phone_number INT DEFAULT 0
+            phone_number INT DEFAULT 0,
+            username TEXT DEFAULT ''
             )";
         command.ExecuteNonQuery();
         command.CommandText = @$"CREATE TABLE IF NOT EXISTS solicitacoes(
@@ -86,14 +87,15 @@ public class Database : IDatabase
       using(var command = connection.CreateCommand())
       {
         command.CommandText = "INSERT INTO usuarios" + 
-          "(identifier, create_at, update_at, privilege, inserted_by, phone_number)" +
-          "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6)";
+          "(identifier, create_at, update_at, privilege, inserted_by, phone_number, username)" +
+          "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6, @valor7)";
         command.Parameters.Add(new SQLiteParameter("@valor1", user_model.identifier));
         command.Parameters.Add(new SQLiteParameter("@valor2", user_model.create_at.ToString("u")));
         command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString("u")));
         command.Parameters.Add(new SQLiteParameter("@valor4", (int)user_model.privilege));
         command.Parameters.Add(new SQLiteParameter("@valor5", user_model.inserted_by));
         command.Parameters.Add(new SQLiteParameter("@valor6", user_model.phone_number));
+        command.Parameters.Add(new SQLiteParameter("@valor7", user_model.username));
         command.ExecuteNonQuery();
       }
     }
@@ -106,7 +108,7 @@ public class Database : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "SELECT rowid, identifier, create_at, update_at, privilege, inserted_by, phone_number FROM usuarios";
+        command.CommandText = "SELECT rowid, identifier, create_at, update_at, privilege, inserted_by, phone_number, username FROM usuarios";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return usuarios;
@@ -120,6 +122,7 @@ public class Database : IDatabase
             usuario.privilege = (UsersModel.userLevel)dataReader.GetInt32(4);
             usuario.inserted_by = dataReader.GetInt64(5);
             usuario.phone_number = dataReader.GetInt64(6);
+            usuario.username = dataReader.GetString(7);
             usuarios.Add(usuario);
           }
           return (expression == null) ? usuarios : usuarios.AsQueryable().Where(expression).ToList();
@@ -140,12 +143,13 @@ public class Database : IDatabase
       {
         command.CommandText = "UPDATE usuarios SET " + 
           "phone_number = @valor1, privilege = @valor2, update_at = @valor3, " +
-          "inserted_by = @valor4 WHERE rowid = @valor5";
+          "inserted_by = @valor4, username = @valor6 WHERE rowid = @valor5";
         command.Parameters.Add(new SQLiteParameter("@valor1", user_model.phone_number));
         command.Parameters.Add(new SQLiteParameter("@valor2", (int)user_model.privilege));
         command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString("u")));
         command.Parameters.Add(new SQLiteParameter("@valor4", user_model.inserted_by));
         command.Parameters.Add(new SQLiteParameter("@valor5", user_model.rowid));
+        command.Parameters.Add(new SQLiteParameter("@valor6", user_model.username));
         command.ExecuteNonQuery();
       }
     }
