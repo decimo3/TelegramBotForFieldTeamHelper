@@ -99,123 +99,48 @@ class Startup
     {
       case MessageType.Text:
       {
-        if(update.Message.Text == null)
-        {
-          var erroMessage = "O formato da mensagem não é reconhecido!";
-          await chatbot.ErrorReport(
-            error: new Exception(erroMessage),
-            request: new logsModel() {
-              identifier = update.Message.From.Id,
-              application = "nullmessage",
-              received_at = update.Message.Date.ToUniversalTime(),
-              response_at = DateTime.Now,
-              typeRequest = TypeRequest.nullInfo,
-              status = 400
-          });
-          return;
-        }
         await HandleTypeMessage.ManuscriptsType(
           usuario: usuario,
           recebido_em: update.Message.Date.ToUniversalTime(),
-          mensagem: update.Message.Text
+          mensagem: update.Message.Text!
         );
         break;
       }
       case MessageType.Contact:
       {
-        if(update.Message.Contact == null)
-        {
-          var erroMessage = "O formato da mensagem não é reconhecido!";
-          await chatbot.ErrorReport(
-            error: new Exception(erroMessage),
-            request: new logsModel() {
-              identifier = update.Message.From.Id,
-              application = "nullmessage",
-              received_at = update.Message.Date.ToUniversalTime(),
-              response_at = DateTime.Now,
-              typeRequest = TypeRequest.nullInfo,
-              status = 400
-          });
-          return;
-        }
         await HandleTypeMessage.PhoneNumberType(
           usuario: usuario,
-          telefone: Convert.ToInt64(update.Message.Contact.PhoneNumber.Replace("+", "")),
+          telefone: Convert.ToInt64(update.Message.Contact!.PhoneNumber.Replace("+", "")),
           username: update.Message.From.FirstName + " " + update.Message.From.LastName
         );
         break;
       }
       case MessageType.Photo:
       {
-        if(update.Message.Photo == null)
-        {
-          var erroMessage = "O formato do imagem não é reconhecido!";
-          await chatbot.ErrorReport(
-            error: new Exception(erroMessage),
-            request: new logsModel() {
-              identifier = update.Message.From.Id,
-              application = "nullmessage",
-              received_at = update.Message.Date.ToUniversalTime(),
-              response_at = DateTime.Now,
-              typeRequest = TypeRequest.nullInfo,
-              status = 400
-          });
-          return;
-        }
         await HandleTypeMessage.PhotographType(
           usuario: usuario,
-          recebido_em: update.Message.Date,
-          photograph: update.Message.Photo.First().FileId,
+          recebido_em: update.Message.Date.ToUniversalTime(),
+          photograph: update.Message.Photo!.First().FileId,
           caption: update.Message.Caption
         );
         break;
       }
       case MessageType.Document:
       {
-        if(update.Message.Document == null)
-        {
-          var erroMessage = "O formato do documento não é reconhecido!";
-          await chatbot.ErrorReport(
-            error: new Exception(erroMessage),
-            request: new logsModel() {
-              identifier = update.Message.From.Id,
-              application = "nullmessage",
-              received_at = update.Message.Date.ToUniversalTime(),
-              response_at = DateTime.Now,
-              typeRequest = TypeRequest.nullInfo,
-              status = 400
-          });
-          return;
-        }
         await HandleTypeMessage.DocumentType(
           usuario: usuario,
-          recebido_em: update.Message.Date,
-          document: update.Message.Document.FileId,
+          recebido_em: update.Message.Date.ToUniversalTime(),
+          document: update.Message.Document!.FileId,
           caption: update.Message.Caption
         );
         break;
       }
       case MessageType.Video:
       {
-        if(update.Message.Video == null)
-        {
-          var erroMessage = "O formato da vídeo não é reconhecido!";
-          await chatbot.ErrorReport(
-            error: new Exception(erroMessage),
-            request: new logsModel() {
-              identifier = update.Message.From.Id,
-              application = "nullmessage",
-              received_at = update.Message.Date.ToUniversalTime(),
-              response_at = DateTime.Now,
-              typeRequest = TypeRequest.nullInfo,
-              status = 400
-          });
-          return;
-        }
         await HandleTypeMessage.VideoclipType(
           usuario: usuario,
-          recebido_em: update.Message.Date,
-          videoclip: update.Message.Video.FileId,
+          recebido_em: update.Message.Date.ToUniversalTime(),
+          videoclip: update.Message.Video!.FileId,
           caption: update.Message.Caption
         );
         break;
