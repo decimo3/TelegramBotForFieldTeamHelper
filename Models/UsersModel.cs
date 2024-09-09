@@ -18,6 +18,7 @@ public class UsersModel : IValidatableObject
   public long inserted_by {get; set;} = 0;
   [Required]
   public long phone_number {get; set;} = 0;
+  public String username { get; set; } = String.Empty;
   public IEnumerable<ValidationResult> Validate (ValidationContext context)
   {
     var results = new List<ValidationResult>();
