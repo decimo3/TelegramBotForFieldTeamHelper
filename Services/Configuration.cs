@@ -11,7 +11,7 @@ public class Configuration
   public readonly int SAP_INSTANCIA = 1;
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
-  public readonly int SAP_ESPERA = 60_000;
+  public readonly int SAP_ESPERA = 120_000;
   public readonly bool PRL_SUBSISTEMA = false;
   public readonly bool SAP_VENCIMENTO = false;
   public readonly bool SAP_BANDEIRADA = false;
