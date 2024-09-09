@@ -149,7 +149,7 @@ public static class HandleAnnouncement
     try
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado para todos - Comunicado");
-    var has_media = String.IsNullOrEmpty(image_id) || String.IsNullOrEmpty(video_id) || String.IsNullOrEmpty(doc_id);
+    var has_media = !String.IsNullOrEmpty(image_id) || !String.IsNullOrEmpty(video_id) || !String.IsNullOrEmpty(doc_id);
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
