@@ -32,7 +32,6 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, "*INFORMACAO* para receber informações código e CPF do cliente;");
         await bot.sendTextMesssageWraper(user.identifier, "*CRUZAMENTO* para receber as ruas que cruzam com o logradouro da nota;");
         await bot.sendTextMesssageWraper(user.identifier, "*CONSUMO* para receber informações das últimas leituras e consumos do cliente;");
-        await bot.sendTextMesssageWraper(user.identifier, "*ACESSO* para receber as COORDENADAS, LEITURISTA e CRUZAMENTOS de uma vez só;");
         await bot.sendTextMesssageWraper(user.identifier, "*ABERTURA* para receber o resultado da análise automática da instalação para abertura de nota de recuperação;");
         await bot.sendTextMesssageWraper(user.identifier, "*REN360* para receber a lista dos consumos dos clientes próximos e passividade para abertura de nota de recuperação;");
         await bot.sendTextMesssageWraper(user.identifier, "*EVIDENCIA* para receber as informações de finalização de notas no OFS");
