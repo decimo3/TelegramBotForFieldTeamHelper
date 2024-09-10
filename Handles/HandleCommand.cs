@@ -47,21 +47,6 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, "*CONTROLADOR* para alterar para um usuário que pode receber avisos sobre outros usuário");
         await bot.sendTextMesssageWraper(user.identifier, "*COMUNICADOR* para alterar para um usuário capaz de enviar transmissões pelo sistema");
         break;
-      case "/ping":
-        await bot.sendTextMesssageWraper(user.identifier, "Estou de prontidão aguardando as solicitações! (^.^)");
-        break;
-      case "/status":
-        if(user.privilege != UsersModel.userLevel.proprietario)
-        {
-          var erro = new Exception("Você não tem permissão para usar esse comando!");
-          await bot.ErrorReport(erro, request);
-          return;
-        }
-        var filename = $"{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.db";
-        Stream stream = System.IO.File.OpenRead(@$"{cfg.CURRENT_PATH}\database.db");
-        await bot.SendDocumentAsyncWraper(user.identifier, stream, filename);
-        stream.Close();
-        break;
       default:
         {
           var erro = new Exception("Comando solicitado não foi programado! Verifique e tente um válido!");
