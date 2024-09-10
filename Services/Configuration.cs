@@ -19,7 +19,7 @@ public class Configuration
   public readonly List<String> REGIONAIS = new();
   public readonly Dictionary<String, String> CONFIGURACAO = new();
   private static Configuration _instance;
-  private static readonly Object _lock = new object();
+  private static readonly Object _lock = new();
   public static Configuration GetInstance(string[]? args = null)
   {
     lock (_lock)
@@ -30,7 +30,7 @@ public class Configuration
         {
           throw new InvalidOperationException("Configuration must be instantiated with a valid string array.");
         }
-        _instance = new Configuration(args);
+        _instance = new(args);
       }
       return _instance;
     }
@@ -95,7 +95,7 @@ public class Configuration
     if(!System.IO.Directory.Exists(TEMP_FOLDER))
       System.IO.Directory.CreateDirectory(TEMP_FOLDER);
   }
-  public Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
+  public static Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
   {
     var parametros = new Dictionary<string,string>();
     var filepath = System.IO.Path.Combine(System.AppContext.BaseDirectory, filename);
@@ -109,7 +109,7 @@ public class Configuration
     }
     return parametros;
   }
-  public void Ajuda(String arg)
+  public static void Ajuda(String arg)
   {
     var ajuda = @$"
     O argumento {arg} é inválido!
