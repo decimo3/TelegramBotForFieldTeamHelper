@@ -98,7 +98,8 @@ public class Configuration
   public Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
   {
     var parametros = new Dictionary<string,string>();
-    var file = System.IO.File.ReadAllLines(filename);
+    var filepath = System.IO.Path.Combine(System.AppContext.BaseDirectory, filename);
+    var file = System.IO.File.ReadAllLines(filepath);
     foreach (var line in file)
     {
       if(String.IsNullOrEmpty(line)) continue;

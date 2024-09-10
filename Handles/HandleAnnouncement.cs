@@ -82,10 +82,10 @@ public static class HandleAnnouncement
   {
     var cfg = Configuration.GetInstance();
     var msg = HandleMessage.GetInstance();
-    var mensagem_caminho = cfg.CURRENT_PATH + "\\comunicado.txt";
-    var imagem_caminho = cfg.CURRENT_PATH + "\\comunicado.jpg";
-    var videoclipe_caminho = cfg.CURRENT_PATH + "\\comunicado.mp4";
-    var documento_caminho = cfg.CURRENT_PATH + "\\comunicado.pdf";
+    var mensagem_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.txt");
+    var imagem_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.jpg");
+    var videoclipe_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.mp4");
+    var documento_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.pdf");
     try
     {
 
