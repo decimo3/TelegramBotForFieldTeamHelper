@@ -63,7 +63,7 @@ public static class Command
         {
           info.Append($"*Expiração:* {user.update_at.AddDays(user.dias_vencimento())} ({user.dias_vencimento()} dias)\n");
         }
-        info.Append($"*Versão:* {Updater.CurrentVersion(cfg).ToString("yyyyMMdd")}");
+        info.Append($"*Versão:* {Updater.CurrentVersion().ToString("yyyyMMdd")}");
         await bot.sendTextMesssageWraper(user.identifier, info.ToString());
         break;
       case "/update":
@@ -75,10 +75,10 @@ public static class Command
         }
         try
         {
-        var current_version = Updater.CurrentVersion(cfg);
+        var current_version = Updater.CurrentVersion();
         await bot.sendTextMesssageWraper(user.identifier, $"Versão atual do sistema chatbot: {current_version.ToString("yyyyMMdd")}");
         await bot.sendTextMesssageWraper(user.identifier, "Verificando se há novas versões do sistema chatbot...");
-        var updates_list = Updater.ListUpdates(cfg);
+        var updates_list = Updater.ListUpdates();
         var update_version = Updater.HasUpdate(updates_list, current_version);
         if(update_version == null)
         {
@@ -88,7 +88,7 @@ public static class Command
         else
         {
           await bot.sendTextMesssageWraper(user.identifier, $"Nova versão {update_version} do sistema chatbot encontrada!");
-          Updater.Restart(cfg);
+          Updater.Restart();
         }
         }
         catch
@@ -105,10 +105,10 @@ public static class Command
           await bot.ErrorReport(erro, request);
           return;
         }
-        if(!Updater.IsChangedVersionFile(cfg))
+        if(!Updater.IsChangedVersionFile())
         {
-          Updater.UpdateVersionFile(cfg, DateTime.MinValue);
-          Updater.Restart(cfg);
+          Updater.UpdateVersionFile(DateTime.MinValue);
+          Updater.Restart();
           break;
         }
         await bot.sendTextMesssageWraper(user.identifier, "Sistema atualizado com sucesso!");
@@ -120,15 +120,15 @@ public static class Command
           await bot.ErrorReport(erro, request);
           return;
         }
-        if(Updater.IsChangedVersionFile(cfg))
+        if(Updater.IsChangedVersionFile())
         {
           await bot.sendTextMesssageWraper(user.identifier, "Sistema reiniciado com sucesso!");
           break;
         }
         Updater.TerminateAll();
         await bot.sendTextMesssageWraper(user.identifier, "Processos finalizados, reiniciando o sistema...");
-        Updater.UpdateVersionFile(cfg, Updater.CurrentVersion(cfg));
-        Updater.Restart(cfg);
+        Updater.UpdateVersionFile(Updater.CurrentVersion());
+        Updater.Restart();
         break;
       case "/database":
         if(user.privilege != UsersModel.userLevel.proprietario)
