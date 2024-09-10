@@ -5,9 +5,6 @@ public class Configuration
   public readonly string BOT_TOKEN = String.Empty;
   public readonly long ID_ADM_BOT = 0;
   public readonly bool IS_DEVELOPMENT = false;
-  public readonly string CURRENT_PATH = String.Empty;
-  public readonly bool GERAR_FATURAS = true;
-  public readonly bool SAP_OFFLINE = false;
   public readonly int SAP_INSTANCIA = 1;
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
@@ -16,8 +13,6 @@ public class Configuration
   public readonly bool SAP_VENCIMENTO = false;
   public readonly bool SAP_BANDEIRADA = false;
   public readonly bool OFS_MONITORAMENTO = false;
-  public readonly string SERVER_NAME = "192.168.10.213";
-  public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
   public readonly Int32 TASK_DELAY = 1_000;
   public readonly Int32 TASK_DELAY_LONG = 10_000;
@@ -68,8 +63,6 @@ public class Configuration
       }
       switch (arg)
       {
-        case "--sem-faturas": GERAR_FATURAS = false; break;
-        case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
         case "--sap-vencimento": SAP_VENCIMENTO = true; break;
         case "--sap-bandeirada": SAP_BANDEIRADA = true; break;
@@ -78,8 +71,6 @@ public class Configuration
         default: Ajuda(arg); break;
       }
     }
-    if(SAP_OFFLINE && (SAP_VENCIMENTO || SAP_BANDEIRADA))
-      throw new InvalidOperationException("Não é possível usar os argumentos '--sap-offline' e '--sap-vencimento' ou --sap-bandeirada ao mesmo tempo");
 
     if(IS_DEVELOPMENT == true) DotEnv.Load();
 
@@ -100,12 +91,9 @@ public class Configuration
     if(DateTime.Now > prazo) throw new InvalidOperationException("O período de licença de uso expirou!");
 
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
-    CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
-    TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
+    TEMP_FOLDER = System.IO.Path.Combine(System.AppContext.BaseDirectory, "tmp");
     if(!System.IO.Directory.Exists(TEMP_FOLDER))
       System.IO.Directory.CreateDirectory(TEMP_FOLDER);
-    UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
-
   }
   public Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
   {
