@@ -17,7 +17,7 @@ public static class Validador
   {
     return Int64.TryParse(informacao, out long a);
   }
-  public static TypeRequest? isAplicacaoOption (string aplicacao)
+  public static TypeRequest isAplicacaoOption (string aplicacao)
   {
     if(aplicacao == "telefone") return TypeRequest.txtInfo;
     if(aplicacao == "coordenada") return TypeRequest.xyzInfo;
@@ -52,7 +52,7 @@ public static class Validador
     if(aplicacao == "codbarra") return TypeRequest.txtInfo;
     if(aplicacao == "fuga") return TypeRequest.picInfo;
     if(aplicacao == "zona") return TypeRequest.picInfo;
-    return null;
+    return TypeRequest.nullInfo;
   }
   public static bool? orderOperandos (string info1, string info2)
   {
@@ -86,7 +86,7 @@ public static class Validador
       request.application = ((bool)estaNaNaOrdemCerta) ? args[0] : args[1];
       request.information = ((bool)estaNaNaOrdemCerta) ? Int64.Parse(args[1]) : Int64.Parse(args[0]);
       request.typeRequest = isAplicacaoOption(request.application);
-      if(request.typeRequest is null) return null;
+      if(request.typeRequest == TypeRequest.nullInfo) return null;
       return request;
     }
   }

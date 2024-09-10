@@ -10,7 +10,7 @@ public class logsModel
   public Int64 identifier { get; set; }
   public String application { get; set; } = String.Empty;
   public Int64 information { get; set; }
-  public TypeRequest? typeRequest { get; set; }
+  public TypeRequest typeRequest { get; set; }
   public DateTime received_at { get; set; }
   public DateTime response_at { get; set; }
   public Int32 instance { get; set; }
