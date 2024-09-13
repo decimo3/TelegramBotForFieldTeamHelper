@@ -168,7 +168,7 @@ public class PostgreSQL : IDatabase
       command.Parameters.Add(new NpgsqlParameter("@valor1", fatura.filename));
       command.Parameters.Add(new NpgsqlParameter("@valor2", fatura.instalation));
       command.Parameters.Add(new NpgsqlParameter("@valor3", fatura.timestamp));
-      command.Parameters.Add(new NpgsqlParameter("@valor4", fatura.status));
+      command.Parameters.Add(new NpgsqlParameter("@valor4", (int)fatura.status));
       command.ExecuteNonQuery();
     }
   }
@@ -205,7 +205,7 @@ public class PostgreSQL : IDatabase
     {
       command.CommandText = "UPDATE faturas SET " + 
         "status = @valor1 WHERE rowid = @valor2";
-      command.Parameters.Add(new NpgsqlParameter("@valor1", fatura.status));
+      command.Parameters.Add(new NpgsqlParameter("@valor1", (int)fatura.status));
       command.Parameters.Add(new NpgsqlParameter("@valor2", fatura.rowid));
       command.ExecuteNonQuery();
     }
