@@ -1,6 +1,6 @@
 # Instruções de operação do chatbot
 
-O arquivo `telbot.exe` pode ser executado diretamente pelo explorer, com dois cliques, usando as configurações padrões. Para alterar o comportamento do programa conforme a necessidade é necessário executar o programa **via linha de comando**.
+O arquivo `bot.exe` pode ser executado diretamente pelo explorer, com dois cliques, usando as configurações padrões. Para alterar o comportamento do programa conforme a necessidade é necessário executar o programa **via linha de comando**.
 
 Para executar via linha de comando, use o atalho `Inicio + R` e digite `cmd` na janela Executar.
 

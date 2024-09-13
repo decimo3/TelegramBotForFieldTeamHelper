@@ -16,13 +16,13 @@ class Startup
     Console.WriteLine("# Repository: TelegramBotForFieldTeamHelper #");
     Console.WriteLine("#############################################");
     var config = Configuration.GetInstance(System.Environment.GetCommandLineArgs());
-    var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq telbot.exe\""};
+    var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq bot.exe\""};
     var result = Executor.Executar("tasklist", argumentos, true);
     // DONE - Counts how many times the executable name appears to check the number of instances
     if(((
       result.Length - 
-      result.Replace("telbot.exe", "").Length) /
-      "telbot.exe".Length) > 1)
+      result.Replace("bot.exe", "").Length) /
+      "bot.exe".Length) > 1)
     {
       var twice = "Já tem uma instância do chatbot rodando!";
       ConsoleWrapper.Error(Entidade.Manager, new Exception(twice));
@@ -31,7 +31,7 @@ class Startup
       System.Environment.Exit(1);
     }
     var oldExecutableFile = System.IO.Path.Combine(
-      System.AppContext.BaseDirectory, "telbot.exe.old");
+      System.AppContext.BaseDirectory, "bot.exe.old");
     if(System.IO.File.Exists(oldExecutableFile))
       System.IO.File.Delete(oldExecutableFile);
     telbot.Helpers.Updater.Update();

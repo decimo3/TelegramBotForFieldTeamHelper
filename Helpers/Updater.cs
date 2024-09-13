@@ -109,13 +109,13 @@ public static class Updater
     {
       if(file == "sap.conf") continue;
       if(file == "ofs.conf") continue;
-      if(file == "telbot.exe") continue;
+      if(file == "bot.exe") continue;
       if(file == "database.db") continue;
       var new_file = System.IO.Path.Combine(update_destpath, file);
       var old_file = System.IO.Path.Combine(System.AppContext.BaseDirectory, file);
       System.IO.File.Copy(new_file, old_file, true);
     }
-    var new_version = System.IO.Path.Combine(update_destpath, "telbot.exe");
+    var new_version = System.IO.Path.Combine(update_destpath, "bot.exe");
     var current_filepath = System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
     var temporary_filepath = current_filepath + ".old";
     System.IO.File.Move(current_filepath, temporary_filepath);
@@ -124,7 +124,7 @@ public static class Updater
   public static void Restart()
   {
     var arguments = System.Environment.GetCommandLineArgs();
-    var executable = System.IO.Path.Combine(System.AppContext.BaseDirectory, "telbot.exe");
+    var executable = System.IO.Path.Combine(System.AppContext.BaseDirectory, "bot.exe");
     System.Diagnostics.Process.Start(executable, String.Join(' ', arguments.Skip(1).ToArray()));
     System.Environment.Exit(0);
   }

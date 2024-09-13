@@ -114,7 +114,7 @@ public class Configuration
     var ajuda = @$"
     O argumento {arg} é inválido!
 
-    Instruções de uso: telbot.exe [options]
+    Instruções de uso: bot.exe [options]
     --em-desenvolvimento   Usado para testes na aplicação;
     --sap-offline          Sinaliza ao usuários se o sistema SAP estiver fora do ar;
     --sem-faturas          Sinalizar ao usuários se o sistema SAP não estiver enviando faturas;
