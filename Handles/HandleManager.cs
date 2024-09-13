@@ -1,90 +1,152 @@
-namespace telbot.handle;
 using telbot.models;
+using telbot.Services;
+namespace telbot.handle;
 public static class Manager
 {
-  public async static Task HandleManager(HandleMessage bot, Configuration cfg, UsersModel user, Request request)
+  public async static Task HandleManager(logsModel request)
   {
+    var database = Database.GetInstance();
+    var bot = HandleMessage.GetInstance();
+    var user = database.RecuperarUsuario(request.identifier) ??
+      throw new NullReferenceException("Usuario não foi encontrado!");
     if(!user.pode_autorizar())
     {
-      await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
+      request.status = 400;
+      var erro = new Exception("Você não tem permissão para alterar usuários!");
+      await bot.ErrorReport(erro, request);
       return;
     }
-    var usuario = Database.recuperarUsuario(request.informacao);
+    var usuario = database.RecuperarUsuario(request.information);
     if(usuario == null)
     {
-      await bot.sendTextMesssageWraper(user.id, "Não há registro que esse usuário entrou em contato com o chatbot!");
+      request.status = 404;
+      var erro = new Exception("Não há registro que esse usuário entrou em contato com o chatbot!");
+      await bot.ErrorReport(erro, request);
       return;
     }
-    if(usuario.has_privilege == UsersModel.userLevel.proprietario)
+    if(usuario.privilege == UsersModel.userLevel.proprietario)
     {
-      await bot.sendTextMesssageWraper(user.id, "Nenhum usuário tem permissão suficiente para alterar o proprietário!");
+      request.status = 403;
+      var erro = new Exception("Nenhum usuário tem permissão suficiente para alterar o proprietário!");
+      await bot.ErrorReport(erro, request);
       return;
     }
-    if(usuario.has_privilege == UsersModel.userLevel.administrador)
+    if(usuario.privilege == UsersModel.userLevel.administrador)
     {
       if(!user.pode_promover())
       {
-        await bot.sendTextMesssageWraper(user.id, "Você não tem permissão suficiente para alterar o administrador!");
+        request.status = 403;
+        var erro = new Exception("Você não tem permissão suficiente para alterar o administrador!");
+        await bot.ErrorReport(erro, request);
         return;
       }
     }
+    usuario.inserted_by = request.identifier;
     usuario.update_at = request.received_at;
-    switch (request.aplicacao)
+    switch (request.application)
     {
       case "autorizar":
       case "atualizar":
-        if((int)usuario.has_privilege >= (int)UsersModel.userLevel.comunicador)
+        if(usuario.dias_vencimento() > 99)
         {
-          await bot.sendTextMesssageWraper(user.id, $"Usuário {usuario.id} com acesso de {usuario.has_privilege.ToString()} não tem prazo de expiração!");
+          request.status = 400;
+          var erro = new Exception($"Usuário {usuario.identifier} com cargo {usuario.privilege} não tem prazo de expiração!");
+          await bot.ErrorReport(erro, request);
+          return;
         }
-        else
-        {
-          if(usuario.has_privilege == UsersModel.userLevel.desautorizar)
-          {
-            usuario.has_privilege = UsersModel.userLevel.eletricista;
-          }
-          await alterarUsuario(bot, user, usuario, request);
-        }
+        if(usuario.privilege == UsersModel.userLevel.desautorizar)
+          usuario.privilege = UsersModel.userLevel.eletricista;
       break;
       case "desautorizar":
-        usuario.has_privilege = UsersModel.userLevel.desautorizar;
-        await alterarUsuario(bot, user, usuario, request);
+        usuario.privilege = UsersModel.userLevel.desautorizar;
       break;
       case "controlador":
       case "comunicador":
       case "supervisor":
-        var cargo = Enum.Parse<UsersModel.userLevel>(request.aplicacao!);
-        usuario.has_privilege = cargo;
         if(!user.pode_promover())
-          await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para alterar usuários!");
-        else
-          await alterarUsuario(bot, user, usuario, request);
+        {
+          request.status = 403;
+          var erro = new Exception("Você não tem permissão para alterar usuários!");
+          await bot.ErrorReport(erro, request);
+          return;
+        }
+        var cargo = Enum.Parse<UsersModel.userLevel>(request.application);
+        usuario.privilege = cargo;
       break;
       case "administrador":
-        usuario.has_privilege = UsersModel.userLevel.administrador;
-        if(user.has_privilege != UsersModel.userLevel.proprietario)
-          await bot.sendTextMesssageWraper(user.id, "Você não tem permissão para promover administradores!");
-        else
-          await alterarUsuario(bot, user, usuario, request);
+        if(user.privilege != UsersModel.userLevel.proprietario)
+        {
+          request.status = 403;
+          var erro = new Exception("Você não tem permissão para promover administradores!");
+          await bot.ErrorReport(erro, request);
+          return;
+        }
+          usuario.privilege = UsersModel.userLevel.administrador;
       break;
     }
-    return;
-  }
-  private async static Task alterarUsuario(HandleMessage bot, UsersModel old_user, UsersModel new_user, Request request)
-  {
     try
     {
-      Database.alterarUsuario(new_user, old_user.id);
-      await bot.sendTextMesssageWraper(old_user.id, "Usuário atualizado com sucesso!");
-      await bot.sendTextMesssageWraper(new_user.id, "Usuário atualizado com sucesso!");
-      if(new_user.phone_number == 0) await bot.RequestContact(new_user.id);
-      Database.inserirRelatorio(new logsModel(old_user.id, request.aplicacao, request.informacao, true, request.received_at));
+      database.AlterarUsuario(usuario);
+      await bot.sendTextMesssageWraper(user.identifier, "Usuário atualizado com sucesso!");
+      await bot.sendTextMesssageWraper(usuario.identifier, "Usuário atualizado com sucesso!");
+      if(usuario.phone_number == 0) await bot.RequestContact(usuario.identifier);
+      bot.SucessReport(request);
     }
     catch
     {
-      await bot.sendTextMesssageWraper(old_user.id, "Houve um problema em atualizar o usuário");
-      await bot.sendTextMesssageWraper(old_user.id, "Verifique as informações e tente novamente");
-      Database.inserirRelatorio(new logsModel(old_user.id, request.aplicacao, request.informacao, false, request.received_at));
+      request.status = 500;
+      var erro = new Exception("Houve um problema em atualizar o usuário");
+      await bot.ErrorReport(erro, request);
     }
+    return;
+  }
+  public async static Task<UsersModel?> HandleSecury(Int64 identificador, DateTime recebido_em)
+  {
+    var database = Database.GetInstance();
+    var telegram = HandleMessage.GetInstance();
+    //##################################################//
+    //       Verifica se o usuário está cadastrado      //
+    //       e se tem permissão para usar o sistema     //
+    //##################################################//
+    var user = database.RecuperarUsuario(identificador);
+    if(user is null)
+    {
+      database.InserirUsuario(new UsersModel() {
+        identifier = identificador,
+        create_at = recebido_em,
+        update_at = DateTime.Now
+      });
+      await telegram.sendTextMesssageWraper(identificador, "Seja bem vindo ao sistema de atendimento automático do chatbot!");
+      await telegram.sendTextMesssageWraper(identificador, "Eu não estou autorizado a te passar informações no momento");
+      await telegram.sendTextMesssageWraper(identificador, $"Seu identificador do Telegram é `{identificador}`.");
+      await telegram.sendTextMesssageWraper(identificador, "Informe ao seu supervisor esse identificador para ter acesso");
+      return null;
+    }
+    if(user.privilege == UsersModel.userLevel.desautorizar)
+    {
+      await telegram.sendTextMesssageWraper(identificador, "Eu não estou autorizado a te passar informações no momento");
+      await telegram.sendTextMesssageWraper(identificador, "Para restaurar o seu acesso ao sistema, solicite ao seu supervisor o acesso ao BOT.");
+      await telegram.sendTextMesssageWraper(identificador, $"Seu identificador do telegram é `{identificador}`, esse número deverá ser informado ao seu supervisor.");
+      return null;
+    }
+    //##################################################//
+    //       Verifica se o prazo da autorização de      //
+    //     eletricistas, supervisores e controladores   //
+    //##################################################//
+    if(user.dias_vencimento() <= 0)
+    {
+      await telegram.sendTextMesssageWraper(identificador, "Sua autorização expirou e não posso mais te passar informações");
+      await telegram.sendTextMesssageWraper(identificador, "Solicite a autorização novamente para o seu supervisor!");
+      await telegram.sendTextMesssageWraper(identificador, $"Seu identificador do Telegram é `{identificador}`.");
+      return null;
+    }
+    // Verifica se o cadastro está perto de expirar (7 dias antes) e avisa
+    if(user.dias_vencimento() <= 7)
+    {
+      await telegram.sendTextMesssageWraper(identificador, "Sua autorização está quase expirando!");
+      await telegram.sendTextMesssageWraper(identificador, "Solicite a **atualização** para o seu supervisor!");
+      await telegram.sendTextMesssageWraper(identificador, $"Seu identificador do Telegram é `{identificador}`.");
+    }
+    return user;
   }
 }

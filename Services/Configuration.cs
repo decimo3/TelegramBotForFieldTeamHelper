@@ -1,50 +1,54 @@
 using dotenv.net;
-namespace telbot;
+namespace telbot.Services;
 public class Configuration
 {
   public readonly string BOT_TOKEN = String.Empty;
   public readonly long ID_ADM_BOT = 0;
   public readonly bool IS_DEVELOPMENT = false;
-  public readonly string CURRENT_PATH = String.Empty;
-  public readonly string SAP_SCRIPT = String.Empty;
-  public readonly string IMG_SCRIPT = String.Empty;
-  public readonly string OFS_SCRIPT = String.Empty;
-  public readonly string PRL_SCRIPT = String.Empty;
-  public readonly int DIAS_EXPIRACAO = 30;
-  public readonly bool GERAR_FATURAS = true;
-  public readonly bool SAP_OFFLINE = false;
-  public readonly int INSTANCIA = 0;
+  public readonly int SAP_INSTANCIA = 1;
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
-  public readonly bool SAP_RESTRITO = false;
-  public readonly int ESPERA = 60_000;
-  public readonly string SAP_LOCKFILE = "sap.lock";
-  public readonly string OFS_LOCKFILE = "ofs.lock";
-  public readonly string PRL_LOCKFILE = "prl.lock";
+  public readonly int SAP_ESPERA = 120_000;
   public readonly bool PRL_SUBSISTEMA = false;
   public readonly bool SAP_VENCIMENTO = false;
   public readonly bool SAP_BANDEIRADA = false;
   public readonly bool OFS_MONITORAMENTO = false;
-  public readonly bool OFS_FINALIZACAO = false;
-  public readonly string SERVER_NAME = "192.168.10.213";
-  public readonly string UPDATE_PATH = String.Empty;
   public readonly string TEMP_FOLDER = String.Empty;
+  public readonly Int32 TASK_DELAY = 1_000;
+  public readonly Int32 TASK_DELAY_LONG = 10_000;
   public readonly List<String> REGIONAIS = new();
-  public readonly Dictionary<String, Int64> BOT_CHANNELS = new();
   public readonly Dictionary<String, String> CONFIGURACAO = new();
-  public Configuration(string[] args)
+  private static Configuration _instance;
+  private static readonly Object _lock = new();
+  public static Configuration GetInstance(string[]? args = null)
+  {
+    lock (_lock)
+    {
+      if (_instance == null)
+      {
+        if (args == null)
+        {
+          throw new InvalidOperationException("Configuration must be instantiated with a valid string array.");
+        }
+        _instance = new(args);
+      }
+      return _instance;
+    }
+  }
+  private Configuration(string[] args)
   {
     foreach (var arg in args)
     {
+      if(System.IO.File.Exists(arg)) continue;
       if(arg.StartsWith("--sap-instancia"))
       {
-        if(Int32.TryParse(arg.Split("=")[1], out int instancia)) INSTANCIA = instancia;
+        if(Int32.TryParse(arg.Split("=")[1], out int instancia)) SAP_INSTANCIA = instancia;
         else throw new InvalidOperationException("Argumento 'instancia' não está no formato correto! Use the format: '--sap-instancia=<numInstancia>'");
         continue;
       }
       if(arg.StartsWith("--sap-espera"))
       { 
-        if(Int32.TryParse(arg.Split("=")[1], out int espera)) ESPERA = espera * 1000;
+        if(Int32.TryParse(arg.Split("=")[1], out int espera)) SAP_ESPERA = espera * 1000;
         else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
         continue;
       }
@@ -59,23 +63,14 @@ public class Configuration
       }
       switch (arg)
       {
-        case "--sem-faturas": GERAR_FATURAS = false; break;
-        case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
-        case "--sap-restrito": SAP_RESTRITO = true; break;
         case "--sap-vencimento": SAP_VENCIMENTO = true; break;
         case "--sap-bandeirada": SAP_BANDEIRADA = true; break;
         case "--ofs-monitorador": OFS_MONITORAMENTO = true; break;
-        case "--ofs-finalizador": OFS_FINALIZACAO = true; break;
         case "--prl-subsistema": PRL_SUBSISTEMA = true; break;
         default: Ajuda(arg); break;
       }
     }
-    if(SAP_OFFLINE && (SAP_VENCIMENTO || SAP_BANDEIRADA))
-      throw new InvalidOperationException("Não é possível usar os argumentos '--sap-offline' e '--sap-vencimento' ou --sap-bandeirada ao mesmo tempo");
-    if(OFS_FINALIZACAO && !OFS_MONITORAMENTO)
-      throw new InvalidOperationException("Não é possível usar o argumento '--ofs-finalizacao' sem usar o argumento '--ofs-monitorador'.");
-
 
     if(IS_DEVELOPMENT == true) DotEnv.Load();
 
@@ -96,31 +91,15 @@ public class Configuration
     if(DateTime.Now > prazo) throw new InvalidOperationException("O período de licença de uso expirou!");
 
     ID_ADM_BOT = AUTHORIZATION.adm_id_bot;
-    CURRENT_PATH = System.IO.Directory.GetCurrentDirectory();
-    TEMP_FOLDER = CURRENT_PATH + @"\tmp\";
+    TEMP_FOLDER = System.IO.Path.Combine(System.AppContext.BaseDirectory, "tmp");
     if(!System.IO.Directory.Exists(TEMP_FOLDER))
       System.IO.Directory.CreateDirectory(TEMP_FOLDER);
-    SAP_SCRIPT = CURRENT_PATH + @"\sap.exe";
-    IMG_SCRIPT = CURRENT_PATH + @"\img.exe";
-    OFS_SCRIPT = "ofs.exe";
-    PRL_SCRIPT = "prl.exe";
-    UPDATE_PATH = @$"\\{SERVER_NAME}\chatbot\";
-    if(!System.IO.Directory.Exists(OFS_LOCKFILE))
-      System.IO.File.Create(OFS_LOCKFILE).Close();
-
-    this.CONFIGURACAO = ArquivoConfiguracao("bot.conf");
-    foreach(var channel in this.CONFIGURACAO["BOT_CHANNEL"].Split(",").ToList())
-    {
-      var channel_args = channel.Split('|');
-      if(channel_args.Length != 2) continue;
-      this.BOT_CHANNELS.Add(channel_args.First(), Int64.Parse(channel_args.Last()));
-    }
-
   }
-  public Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
+  public static Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
   {
     var parametros = new Dictionary<string,string>();
-    var file = System.IO.File.ReadAllLines(filename);
+    var filepath = System.IO.Path.Combine(System.AppContext.BaseDirectory, filename);
+    var file = System.IO.File.ReadAllLines(filepath);
     foreach (var line in file)
     {
       if(String.IsNullOrEmpty(line)) continue;
@@ -130,22 +109,20 @@ public class Configuration
     }
     return parametros;
   }
-  public void Ajuda(String arg)
+  public static void Ajuda(String arg)
   {
     var ajuda = @$"
     O argumento {arg} é inválido!
 
-    Instruções de uso: telbot.exe [options]
+    Instruções de uso: bot.exe [options]
     --em-desenvolvimento   Usado para testes na aplicação;
     --sap-offline          Sinaliza ao usuários se o sistema SAP estiver fora do ar;
-    --sap-restrito         Substituí o uso do ZARC140 pelo FPL09 no sistema SAP;
     --sem-faturas          Sinalizar ao usuários se o sistema SAP não estiver enviando faturas;
-    --sap-instancia=60     Altera a instancia SAP a ser usada pelo chatbot;
+    --sap-instancia=0      Altera a instancia SAP a ser usada pelo chatbot;
     --sap-vencimento       Iniciar o subsistema de monitoramento de notas de vencimentos pelo SAP;
     --sap-bandeirada       Iniciar o subsistema de monitoramento de notas pendentes de bandeiradas pelo SAP;
-    --ofs-monitorador      Iniciar o subsistema de monitoramento dos ofensores do IDG pelo OFS;
-    --ofs-finalizador      Iniciar o subsistema de envio do relatório de análise do IDG pelo OFS;
     --sap-crossover=oeste  Permite o sistema SAP trabalhar com mais de uma regional;
+    --ofs-monitorador      Iniciar o subsistema de monitoramento dos ofensores do IDG pelo OFS;
     --prl-subsistema       Permite o gerenciamento automático das janelas do subsistema do PRL;
     ";
     telbot.Helpers.ConsoleWrapper.Write(telbot.Helpers.Entidade.Chatbot, ajuda);

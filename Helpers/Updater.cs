@@ -1,43 +1,53 @@
+using telbot.Services;
 namespace telbot.Helpers;
 public static class Updater
 {
-  public static void Update(Configuration cfg)
+  private static readonly String UPDATE_PATH = @"\\192.168.10.213\chatbot\";
+  private static readonly String TEMPORARY_PATH = System.IO.Path.GetTempPath();
+  public static void Update()
   {
     try
     {
-    ClearTemp(cfg);
-    if(!System.IO.Directory.Exists(cfg.UPDATE_PATH))
+    if(!System.IO.Directory.Exists(UPDATE_PATH))
       throw new DirectoryNotFoundException();
-    var version = CurrentVersion(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Versão atual do sistema chatbot: {version.ToString("yyyyMMdd")}");
-    var updates = ListUpdates(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Verificando se há novas versões do sistema chatbot...");
+    var version = CurrentVersion();
+    ConsoleWrapper.Write(Entidade.Updater,
+      $"Versão atual do sistema chatbot: {version.ToString("yyyyMMdd")}");
+    var updates = ListUpdates();
+    ConsoleWrapper.Write(Entidade.Updater,
+      "Verificando se há novas versões do sistema chatbot...");
     var update = HasUpdate(updates, version);
     if(update == null)
     {
-      Console.WriteLine($"< {DateTime.Now} Manager: Não foram encontradas atualizações para o sistema.");
+      ConsoleWrapper.Write(Entidade.Updater,
+        "Não foram encontradas atualizações para o sistema.");
       return;
     }
-    Console.WriteLine($"< {DateTime.Now} Manager: Nova versão {update} do sistema chatbot encontrada! Baixando...");
-    Download(cfg, update);
-    Console.WriteLine($"< {DateTime.Now} Manager: Download concluído! Descompactando arquivo de atualização...");
-    Unzip(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Fechando programas aninhados ao sistema do chatbot...");
-    Terminate("sap");
-    Terminate("ofs");
-    Console.WriteLine($"< {DateTime.Now} Manager: Aplicando atualização do sistema chatbot, por favor aguarde...");
-    Replace(cfg);
-    Console.WriteLine($"< {DateTime.Now} Manager: Sistema chatbot atualizado com sucesso! Reiniciando...");
-    Restart(cfg);
+    ConsoleWrapper.Write(Entidade.Updater,
+      "Nova versão {update} do sistema chatbot encontrada! Baixando...");
+    Download(update);
+    ConsoleWrapper.Write(Entidade.Updater,
+      "Download concluído! Descompactando arquivo de atualização...");
+    Unzip(update);
+    ConsoleWrapper.Write(Entidade.Updater,
+      "Fechando programas aninhados ao sistema do chatbot...");
+    TerminateAll();
+    ConsoleWrapper.Write(Entidade.Updater,
+      "Aplicando atualização do sistema chatbot, por favor aguarde...");
+    Replace(update);
+    ConsoleWrapper.Write(Entidade.Updater,
+      "Sistema chatbot atualizado com sucesso! Reiniciando...");
+    ClearTemp(update);
+    Restart();
     }
     catch (Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Updater, erro);
     }
   }
-  public static DateTime CurrentVersion(Configuration cfg)
+  public static DateTime CurrentVersion()
   {
-    var VersionFilepath = @"./version";
+    var VersionFilepath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "version");
     if(!System.IO.File.Exists(VersionFilepath))
       throw new FileNotFoundException();
     var version = System.IO.File.ReadAllText(VersionFilepath);
@@ -45,9 +55,9 @@ public static class Updater
     var version_date = DateTime.ParseExact(re.Match(version).Value, "yyyyMMdd", null);
     return version_date;
   }
-  public static List<DateTime> ListUpdates(Configuration cfg)
+  public static List<DateTime> ListUpdates()
   {
-    var updates = System.IO.Directory.GetFiles(cfg.UPDATE_PATH);
+    var updates = System.IO.Directory.GetFiles(UPDATE_PATH);
     var files_without_path = updates.Select(file => { return System.IO.Path.GetFileNameWithoutExtension(file); });
     var updates_date = files_without_path.Select(update => DateTime.ParseExact(update, "yyyyMMdd", null)).ToList();
     updates_date.Sort();
@@ -60,82 +70,89 @@ public static class Updater
     var update_string = update.ToString("yyyyMMdd");
     return update_string;
   }
-  public static void ClearTemp(Configuration cfg)
+  public static void ClearTemp(String update)
   {
-    var path = new System.IO.DirectoryInfo(cfg.TEMP_FOLDER);
-    foreach (var file in path.GetFiles())
-    {
-      file.Delete();
-    }
-    foreach (var dir in path.GetDirectories())
-    {
-      dir.Delete(true);
-    }
+    var zip_path =
+      System.IO.Path.Combine(
+        TEMPORARY_PATH,
+        update + ".zip"
+    );
+    System.IO.File.Delete(zip_path);
+    var dir_path =
+      System.IO.Path.Combine(
+        TEMPORARY_PATH,
+        update
+    );
+    System.IO.Directory.Delete(dir_path, true);
   }
-  public static void Download(Configuration cfg, String update)
+  public static void Download(String update)
   {
     var update_file = update + ".zip";
-    var update_filepath = System.IO.Path.Combine(cfg.UPDATE_PATH, update_file);
-    var update_destpath = System.IO.Path.Combine(cfg.TEMP_FOLDER, "update.zip");
+    var update_filepath = System.IO.Path.Combine(UPDATE_PATH, update_file);
+    var update_destpath = System.IO.Path.Combine(TEMPORARY_PATH, update_file);
     System.IO.File.Copy(update_filepath, update_destpath);
   }
-  public static void Unzip(Configuration cfg)
+  public static void Unzip(String update)
   {
-    var update_filepath = System.IO.Path.Combine(cfg.TEMP_FOLDER, "update.zip");
-    System.IO.Compression.ZipFile.ExtractToDirectory(update_filepath, cfg.TEMP_FOLDER);
-    System.IO.File.Delete(update_filepath);
+    var update_destpath = System.IO.Path.Combine(TEMPORARY_PATH, update);
+    if(System.IO.Directory.Exists(update_destpath))
+      System.IO.Directory.CreateDirectory(update_destpath);
+    var update_filepath = System.IO.Path.Combine(TEMPORARY_PATH, update + ".zip");
+    System.IO.Compression.ZipFile.ExtractToDirectory(update_filepath, update_destpath);
   }
-  public static void Replace(Configuration cfg)
+  public static void Replace(String update)
   {
-    var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER).Select(file => { return System.IO.Path.GetFileName(file); });
+    var update_destpath = System.IO.Path.Combine(TEMPORARY_PATH, update);
+    var files = System.IO.Directory.GetFiles(update_destpath)
+      .Select(file => { return System.IO.Path.GetFileName(file); });
     foreach (var file in files)
     {
       if(file == "sap.conf") continue;
       if(file == "ofs.conf") continue;
-      if(file == "telbot.exe") continue;
+      if(file == "bot.exe") continue;
       if(file == "database.db") continue;
-      var new_file = System.IO.Path.Combine(cfg.TEMP_FOLDER, file);
-      var old_file = System.IO.Path.Combine(cfg.CURRENT_PATH, file);
+      var new_file = System.IO.Path.Combine(update_destpath, file);
+      var old_file = System.IO.Path.Combine(System.AppContext.BaseDirectory, file);
       System.IO.File.Copy(new_file, old_file, true);
     }
-    var new_version = System.IO.Path.Combine(cfg.TEMP_FOLDER, "telbot.exe");
+    var new_version = System.IO.Path.Combine(update_destpath, "bot.exe");
     var current_filepath = System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
     var temporary_filepath = current_filepath + ".old";
     System.IO.File.Move(current_filepath, temporary_filepath);
     System.IO.File.Copy(new_version, current_filepath, true);
   }
-  public static void Restart(Configuration cfg)
+  public static void Restart()
   {
     var arguments = System.Environment.GetCommandLineArgs();
-    var executable = System.IO.Path.Combine(cfg.CURRENT_PATH, "telbot.exe");
+    var executable = System.IO.Path.Combine(System.AppContext.BaseDirectory, "bot.exe");
     System.Diagnostics.Process.Start(executable, String.Join(' ', arguments.Skip(1).ToArray()));
     System.Environment.Exit(0);
   }
-  public static void Terminate(String sistema)
+  public static void Terminate(String[] applications)
   {
-    var processos = new String[5];
-    if(sistema == "sap")
-      processos = new String[] {"sap.exe", "saplpd.exe", "saplogon.exe"};
-    if(sistema == "ofs")
-      processos = new String[] {"chrome.exe", "chromedriver.exe", "ofs.exe"};
-    if(sistema == "prl")
-      processos = new String[] {"chrome.exe", "chromedriver.exe", "prl.exe"};
-    foreach (var process_name in processos)
+    foreach (var process_name in applications)
     {
       if(String.IsNullOrEmpty(process_name)) continue;
-      Temporary.executar("taskkill", $"/F /T /IM {process_name}", true);
+      var argumentos = new String[] {"/F", "/T", "/IM", process_name};
+      Executor.Executar("taskkill", argumentos, true);
     }
   }
-  public static Boolean IsChangedVersionFile(Configuration configuration)
+  public static void TerminateAll()
   {
-    var version_filepath = System.IO.Path.Combine(configuration.CURRENT_PATH, "version");
+    Terminate(new String[] {"sap.exe", "saplpd.exe", "saplogon.exe"});
+    Terminate(new String[] {"chrome.exe", "chromedriver.exe", "ofs.exe"});
+    Terminate(new String[] {"chrome.exe", "chromedriver.exe", "prl.exe"});
+  }
+  public static Boolean IsChangedVersionFile()
+  {
+    var version_filepath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "version");
     var version_fileinfo = new System.IO.FileInfo(version_filepath);
     var version_filediff = DateTime.Now - version_fileinfo.LastWriteTime;
     return version_filediff.TotalMinutes < 5;
   }
-  public static void UpdateVersionFile(Configuration configuration, DateTime datetime)
+  public static void UpdateVersionFile(DateTime datetime)
   {
-    var version_filepath = System.IO.Path.Combine(configuration.CURRENT_PATH, "version");
+    var version_filepath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "version");
     System.IO.File.WriteAllText(version_filepath, datetime.ToString("yyyyMMdd"));
   }
 }

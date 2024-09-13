@@ -17,7 +17,7 @@ public static class Validador
   {
     return Int64.TryParse(informacao, out long a);
   }
-  public static TypeRequest? isAplicacaoOption (string aplicacao)
+  public static TypeRequest isAplicacaoOption (string aplicacao)
   {
     if(aplicacao == "telefone") return TypeRequest.txtInfo;
     if(aplicacao == "coordenada") return TypeRequest.xyzInfo;
@@ -38,7 +38,6 @@ public static class Validador
     if(aplicacao == "medidor") return TypeRequest.txtInfo;
     if(aplicacao == "informacao") return TypeRequest.txtInfo;
     if(aplicacao == "cruzamento") return TypeRequest.picInfo;
-    if(aplicacao == "acesso") return TypeRequest.anyInfo;
     if(aplicacao == "consumo") return TypeRequest.picInfo;
     if(aplicacao == "abertura") return TypeRequest.txtInfo;
     if(aplicacao == "ren360") return TypeRequest.picInfo;
@@ -53,7 +52,7 @@ public static class Validador
     if(aplicacao == "codbarra") return TypeRequest.txtInfo;
     if(aplicacao == "fuga") return TypeRequest.picInfo;
     if(aplicacao == "zona") return TypeRequest.picInfo;
-    return null;
+    return TypeRequest.nullInfo;
   }
   public static bool? orderOperandos (string info1, string info2)
   {
@@ -66,19 +65,17 @@ public static class Validador
     var regex = new Regex("^[0-9]{8,10}:[a-zA-Z0-9_-]{35}$");
     return regex.IsMatch(token);
   }
-  public static Request? isRequest(string text, DateTime agora, int reply_to)
+  public static logsModel? isRequest(string text)
   {
     text = text.ToLower();
-    var request = new Request();
-    request.received_at = agora;
-    request.reply_to = reply_to;
+    var request = new logsModel();
     if(!isValidArguments(text)) return null;
     var args = text.Split(" ");
     if (args[0].StartsWith("/"))
     {
-      request.aplicacao = args[0];
-      request.informacao = 0;
-      request.tipo = TypeRequest.comando;
+      request.application = args[0];
+      request.information = 0;
+      request.typeRequest = TypeRequest.comando;
       return request;
     }
     else
@@ -86,10 +83,10 @@ public static class Validador
       if(args.Length == 1) return null;
       var estaNaNaOrdemCerta = Validador.orderOperandos(args[0], args[1]);
       if(estaNaNaOrdemCerta is null) return null;
-      request.aplicacao = ((bool)estaNaNaOrdemCerta) ? args[0] : args[1];
-      request.informacao = ((bool)estaNaNaOrdemCerta) ? Int64.Parse(args[1]) : Int64.Parse(args[0]);
-      request.tipo = isAplicacaoOption(request.aplicacao);
-      if(request.tipo is null) return null;
+      request.application = ((bool)estaNaNaOrdemCerta) ? args[0] : args[1];
+      request.information = ((bool)estaNaNaOrdemCerta) ? Int64.Parse(args[1]) : Int64.Parse(args[0]);
+      request.typeRequest = isAplicacaoOption(request.application);
+      if(request.typeRequest == TypeRequest.nullInfo) return null;
       return request;
     }
   }

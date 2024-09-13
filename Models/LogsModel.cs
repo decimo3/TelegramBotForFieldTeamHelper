@@ -1,28 +1,19 @@
-namespace telbot;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace telbot.models;
 public class logsModel
 {
-  public long id {get; set;}
-  public string solicitacao {get; set;}
-  public long informacao {get; set;}
-  public DateTime create_at {get; set;}
+  [Key]
+  [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+  public Int64 rowid { get; set; }
+  public Int64 identifier { get; set; }
+  public String application { get; set; } = String.Empty;
+  public Int64 information { get; set; }
+  public TypeRequest typeRequest { get; set; }
   public DateTime received_at { get; set; }
-  public bool is_sucess {get; set;}
-  public logsModel(long id, string solicitacao, long informacao, bool is_sucess, DateTime received_at)
-  {
-    this.id = id;
-    this.solicitacao = solicitacao;
-    this.informacao = informacao;
-    this.create_at = DateTime.Now;
-    this.is_sucess = is_sucess;
-    this.received_at = received_at;
-  }
-  public logsModel(long id, string solicitacao, long informacao, bool is_sucess, DateTime received_at, DateTime create_at)
-  {
-    this.id = id;
-    this.solicitacao = solicitacao;
-    this.informacao = informacao;
-    this.is_sucess = is_sucess;
-    this.received_at = received_at;
-    this.create_at = create_at;
-  }
+  public DateTime response_at { get; set; }
+  public Int32 instance { get; set; }
+  public Int32 status { get; set; }
 }
+public enum TypeRequest {nullInfo, gestao, comando, txtInfo, pdfInfo, picInfo, xlsInfo, prlInfo, xyzInfo, ofsInfo, gpsInfo}

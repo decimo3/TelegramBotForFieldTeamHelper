@@ -1,31 +1,24 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 namespace telbot;
 public class UsersModel : IValidatableObject
 {
+  [Key]
+  [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+  public Int64 rowid { get; set; }
   [Required]
-  public long id {get; set;}
+  public long identifier {get; set;}
   [Required]
   public DateTime create_at {get; set;} = DateTime.Now;
   [Required]
   public DateTime update_at {get; set;} =  DateTime.MinValue;
   [Required]
-  public userLevel has_privilege {get; set;} = userLevel.desautorizar;
+  public userLevel privilege {get; set;} = userLevel.desautorizar;
   [Required]
   public long inserted_by {get; set;} = 0;
   [Required]
   public long phone_number {get; set;} = 0;
-  public UsersModel() {}
-  public UsersModel(long id, long inserted_by)
-  {
-    this.id = id;
-    this.inserted_by = inserted_by;
-    this.update_at = DateTime.Now;
-    this.has_privilege = userLevel.eletricista;
-  }
-  public UsersModel(long id)
-  {
-    this.id = id;
-  }
+  public String username { get; set; } = String.Empty;
   public IEnumerable<ValidationResult> Validate (ValidationContext context)
   {
     var results = new List<ValidationResult>();
@@ -43,36 +36,52 @@ public class UsersModel : IValidatableObject
   }
   public bool pode_autorizar()
   {
-    if(this.has_privilege == userLevel.supervisor) return true;
-    if(this.has_privilege == userLevel.administrador) return true;
-    if(this.has_privilege == userLevel.proprietario) return true;
+    if(this.privilege == userLevel.supervisor) return true;
+    if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
   public bool pode_promover()
   {
-    if(this.has_privilege == userLevel.administrador) return true;
-    if(this.has_privilege == userLevel.proprietario) return true;
+    if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
   public bool pode_transmitir()
   {
-    if(this.has_privilege == userLevel.comunicador) return true;
-    if(this.has_privilege == userLevel.administrador) return true;
-    if(this.has_privilege == userLevel.proprietario) return true;
+    if(this.privilege == userLevel.comunicador) return true;
+    if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
   public bool pode_consultar()
   {
-    if(this.has_privilege == userLevel.comunicador) return false;
-    if(this.has_privilege == userLevel.desautorizar) return false;
+    if(this.privilege == userLevel.comunicador) return false;
+    if(this.privilege == userLevel.desautorizar) return false;
     return true;
   }
   public bool pode_relatorios()
   {
-    if(this.has_privilege == userLevel.controlador) return true;
-    if(this.has_privilege == userLevel.supervisor) return true;
-    if(this.has_privilege == userLevel.administrador) return true;
-    if(this.has_privilege == userLevel.proprietario) return true;
+    if(this.privilege == userLevel.controlador) return true;
+    if(this.privilege == userLevel.supervisor) return true;
+    if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.proprietario) return true;
     return false;
+  }
+  public Int32 dias_vencimento()
+  {
+    if(this.privilege == userLevel.eletricista)
+      return (this.update_at.AddDays(30) - DateTime.Now).Days;
+    if(this.privilege == userLevel.controlador)
+      return (this.update_at.AddDays(30) - DateTime.Now).Days;
+    if(this.privilege == userLevel.supervisor)
+      return (this.update_at.AddDays(90) - DateTime.Now).Days;
+    if(this.privilege == userLevel.comunicador)
+      return 99;
+    if(this.privilege == userLevel.administrador)
+      return 99;
+    if(this.privilege == userLevel.proprietario)
+      return 99;
+    return -1;
   }
 }

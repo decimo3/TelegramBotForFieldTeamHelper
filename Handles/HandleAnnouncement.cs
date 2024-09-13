@@ -1,108 +1,93 @@
 using System.Data;
+using telbot.Services;
 using telbot.Helpers;
+using telbot.models;
 namespace telbot.handle;
 public static class HandleAnnouncement
 {
-  private static int CINCO_MINUTOS = 1_000 * 60 * 5;
-  public static async void Vencimento(HandleMessage msg, Configuration cfg, String aplicacao, Int32 prazo)
+  public static async void Vencimento(String aplicacao, Int32 prazo)
   {
-    String? regional = null;
+    ConsoleWrapper.Debug(Entidade.SoireeAsync, $"Monitor de {aplicacao} iniciado!");
+    var cfg = Configuration.GetInstance();
     var contador_de_regionais = 0;
     while(true)
     {
-    var tempo = cfg.IS_DEVELOPMENT ?  new TimeSpan(0, 5, 0) : new TimeSpan(1, 0, 0);
-    if(cfg.REGIONAIS.Any())
-    {
-      tempo = cfg.IS_DEVELOPMENT ? new TimeSpan(0, 5, 0) : new TimeSpan(0, 30, 0);
-      regional = cfg.REGIONAIS[contador_de_regionais];
+      var tempo = cfg.IS_DEVELOPMENT ?  new TimeSpan(0, 5, 0) : new TimeSpan(1, 0, 0);
+      if(cfg.REGIONAIS.Any()) tempo /= cfg.REGIONAIS.Count;
+      await Task.Delay(tempo);
+      if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
+      if(DateTime.Now.Hour <= 7 || DateTime.Now.Hour >= 22) continue;
+      var solicitacao = new logsModel() {
+        identifier = contador_de_regionais,
+        application = aplicacao,
+        information = prazo,
+        received_at = DateTime.Now.ToUniversalTime(),
+        typeRequest = TypeRequest.xlsInfo
+      };
+      Database.GetInstance().InserirSolicitacao(solicitacao);
+      contador_de_regionais = (contador_de_regionais + 1) % cfg.REGIONAIS.Count;
     }
-    Thread.Sleep(tempo);
-    if(DateTime.Now.DayOfWeek == DayOfWeek.Sunday) continue;
-    if(DateTime.Now.Hour <= 7 || DateTime.Now.Hour >= 22) continue;
-    while(true)
-    {
-      if(!System.IO.File.Exists(cfg.SAP_LOCKFILE)) break;
-      else System.Threading.Thread.Sleep(1_000);
-    }
+  }
+  public static async void Vencimento(String relatorio, logsModel solicitacao)
+  {
     try
     {
-    ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado de {aplicacao} para todos!");
-    System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
-    var relatorio_resultado = Temporary.executar(cfg, aplicacao, prazo, regional: regional);
-    var relatorio_caminho = cfg.CURRENT_PATH + "\\tmp\\temporario.csv";
-    if(!relatorio_resultado.Any())
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
-      continue;
-    }
-    if(relatorio_resultado.First().StartsWith("ERRO:"))
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
-      continue;
-    }
-    if(!System.IO.File.Exists(relatorio_caminho))
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
-      continue;
-    }
-    Stream relatorio_arquivo = System.IO.File.OpenRead(relatorio_caminho);
-    if(relatorio_arquivo.Length == 0)
-    {
-      relatorio_arquivo.Close();
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao gerar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
-      continue;
-    }
-    var relatorio_mensagem = String.Join('\n', relatorio_resultado);
-    var padrao = @"([0-9]{2})/([0-9]{2})/([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2})";
-    var relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Match(relatorio_mensagem).Value;
-    relatorio_filename = new System.Text.RegularExpressions.Regex(padrao).Replace(relatorio_filename, "$3-$2-$1_$4-$5-$6");
-    relatorio_filename = relatorio_arquivo != null ? $"{relatorio_filename}_{aplicacao}_{regional}.csv" : $"{relatorio_filename}_{aplicacao}.csv";
-    var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_arquivo, relatorio_filename);
-    if(relatorio_identificador == String.Empty)
-    {
-      relatorio_arquivo.Close();
-      ConsoleWrapper.Error(Entidade.Advertiser, new Exception("Erro ao enviar o relatório de notas em aberto!\nTentaremos novamente daqui a cinco minutos"));
-      System.IO.File.Delete(cfg.SAP_LOCKFILE);
-      System.Threading.Thread.Sleep(CINCO_MINUTOS);
-      continue;
-    }
-    var usuarios = Database.recuperarUsuario(u =>
-      (
-        u.has_privilege == UsersModel.userLevel.proprietario ||
-        u.has_privilege == UsersModel.userLevel.administrador ||
-        (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
-      )
-    );
-    ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
-    await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, relatorio_mensagem, null, null, relatorio_identificador);
-    relatorio_arquivo.Close();
-    System.IO.File.Delete(relatorio_caminho);
-    System.IO.File.Delete(cfg.SAP_LOCKFILE);
-    contador_de_regionais = (contador_de_regionais + 1) % cfg.REGIONAIS.Count;
+      var cfg = Configuration.GetInstance();
+      var msg = HandleMessage.GetInstance();
+      var regional = cfg.REGIONAIS[(Int32)solicitacao.identifier];
+      var relatorio_identificador = String.Empty;
+      if(String.IsNullOrEmpty(relatorio))
+      {
+        var erro = new Exception(
+          "Erro ao gerar o relatório de notas em aberto!");
+        ConsoleWrapper.Error(Entidade.Advertiser, erro);
+        return;
+      }
+      ConsoleWrapper.Write(Entidade.Advertiser,
+        $"Comunicado de {solicitacao.application}, regional {regional}!");
+      var filename = new String[] {
+        DateTime.Now.ToString("yyyyMMddHHmmss"),
+        solicitacao.application,
+        regional,
+      };
+      var relatorio_filename = String.Join('_', filename) + ".csv";
+      var bytearray = System.Text.Encoding.UTF8.GetBytes(relatorio);
+      using(var relatorio_arquivo = new MemoryStream(bytearray))
+      {
+        relatorio_identificador = await msg.SendDocumentAsyncWraper(
+          cfg.ID_ADM_BOT,
+          relatorio_arquivo,
+          relatorio_filename
+        );
+      }
+      if(String.IsNullOrEmpty(relatorio_identificador))
+      {
+          var erro = new Exception(
+            "Erro ao gerar o relatório de notas em aberto!");
+          ConsoleWrapper.Error(Entidade.Advertiser, erro);
+          return;
+      }
+      var usuarios = Database.GetInstance().RecuperarUsuario(u => u.pode_relatorios());
+      ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
+      await Comunicado(usuarios, cfg.ID_ADM_BOT, null, null, null, relatorio_identificador);
+      return;
     }
     catch (System.Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
+      return;
     }
   }
-  public static async void Comunicado(HandleMessage msg, Configuration cfg)
+  public static async void Comunicado()
   {
+    var cfg = Configuration.GetInstance();
+    var msg = HandleMessage.GetInstance();
+    var mensagem_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.txt");
+    var imagem_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.jpg");
+    var videoclipe_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.mp4");
+    var documento_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.pdf");
     try
     {
-    var mensagem_caminho = cfg.CURRENT_PATH + "\\comunicado.txt";
-    var imagem_caminho = cfg.CURRENT_PATH + "\\comunicado.jpg";
-    var videoclipe_caminho = cfg.CURRENT_PATH + "\\comunicado.mp4";
-    var documento_caminho = cfg.CURRENT_PATH + "\\comunicado.pdf";
 
     var has_txt = System.IO.File.Exists(mensagem_caminho);
     var has_jpg = System.IO.File.Exists(imagem_caminho);
@@ -110,8 +95,6 @@ public static class HandleAnnouncement
     var has_doc = System.IO.File.Exists(documento_caminho);
     
     if(!has_txt && !has_jpg && !has_mp4 && !has_doc) return;
-    
-    System.IO.File.Create(cfg.SAP_LOCKFILE).Close();
     
     var comunicado_mensagem = has_txt ? File.ReadAllText(mensagem_caminho) : null;
     if(comunicado_mensagem == null || comunicado_mensagem.Length == 0) has_txt = false;
@@ -124,21 +107,12 @@ public static class HandleAnnouncement
     
     var photo_id = has_jpg ? await msg.SendPhotoAsyncWraper(cfg.ID_ADM_BOT, comunicado_imagem) : null;
     var video_id = has_mp4 ? await msg.SendVideoAsyncWraper(cfg.ID_ADM_BOT, comunicado_video) : null;
-    var doc_id = has_doc ? await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, comunicado_documento, $"comunicado_{DateTime.Now.ToString("yyyyMMdd")}.pdf") : null;
+    var doc_id = has_doc ? await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, comunicado_documento, $"comunicado_{DateTime.Now.ToString("yyyyMMddHHmmss")}.pdf") : null;
 
-    var usuarios = Database.recuperarUsuario(u =>
-      (
-        u.has_privilege == UsersModel.userLevel.proprietario ||
-        u.has_privilege == UsersModel.userLevel.administrador ||
-        u.has_privilege == UsersModel.userLevel.comunicador ||
-        (u.has_privilege == UsersModel.userLevel.eletricista && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.has_privilege == UsersModel.userLevel.controlador && u.update_at.AddDays(cfg.DIAS_EXPIRACAO) > DateTime.Now) ||
-        (u.has_privilege == UsersModel.userLevel.supervisor && u.update_at.AddDays(cfg.DIAS_EXPIRACAO * 3) > DateTime.Now)
-      )
-    );
+    var usuarios = Database.GetInstance().RecuperarUsuario();
 
     ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
-    await Comunicado(usuarios, msg, cfg, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id, doc_id);
+    await Comunicado(usuarios, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id, doc_id);
 
     comunicado_imagem.Close();
     comunicado_video.Close();
@@ -163,27 +137,28 @@ public static class HandleAnnouncement
       ConsoleWrapper.Write(Entidade.Advertiser, "Enviado documento do comunicado!");
       System.IO.File.Delete(documento_caminho);
     }
-    System.IO.File.Delete(cfg.SAP_LOCKFILE);
     }
     catch (System.Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
     }
   }
-  public static async Task Comunicado(List<UsersModel> usuarios, HandleMessage msg, Configuration cfg, long myself, string? text, string? image_id, string? video_id, string? doc_id)
+  public static async Task Comunicado(List<UsersModel> usuarios, long myself, string? text, string? image_id, string? video_id, string? doc_id)
   {
+    var msg = HandleMessage.GetInstance();
     try
     {
     ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado para todos - Comunicado");
-    var has_media = String.IsNullOrEmpty(image_id) || String.IsNullOrEmpty(video_id) || String.IsNullOrEmpty(doc_id);
+    var has_media = !String.IsNullOrEmpty(image_id) || !String.IsNullOrEmpty(video_id) || !String.IsNullOrEmpty(doc_id);
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
     {
-      if(usuario.id == myself) continue;
-      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.id, image_id, text));
-      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.id, video_id, text));
-      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.id, doc_id, text));
-      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.id, text, true, false));
+      if(usuario.identifier == myself) continue;
+      if(usuario.dias_vencimento() < 0) continue;
+      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(usuario.identifier, image_id, text));
+      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(usuario.identifier, video_id, text));
+      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.identifier, doc_id, text));
+      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.identifier, text, true, false));
     }
     await Task.WhenAll(tasks);
     }
@@ -192,93 +167,33 @@ public static class HandleAnnouncement
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
     }
   }
-  public static async void Monitorado(HandleMessage msg, Configuration cfg)
+  public static async void Executador(String imagename, String[] arguments, String[]? children)
   {
+    var argumentos = new String[] {"/NH", "/FI", $"\"IMAGENAME eq {imagename}\""};
     while(true)
     {
-    try
-    {
-    System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
-    if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
-    ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o sistema de análise do OFS está rodando...");
-    var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq ofs.exe\"", true);
-    ConsoleWrapper.Debug(Entidade.Advertiser, String.Join(" ", result));
-    if(result.First().StartsWith("INFORMA"))
-    {
-      ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
-      Updater.Terminate("ofs");
-      Temporary.executar("ofs.exe", "slower", false);
-      continue;
-    }
-      ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando relatórios de análise do OFS...");
-      var mensagem_caminho = cfg.CURRENT_PATH + "\\relatorio_ofs.txt";
-      if(!System.IO.File.Exists(mensagem_caminho)) 
-      {
-        ConsoleWrapper.Debug(Entidade.Advertiser, "Não foi encontrado relatórios do OFS.");
-        continue;
-      }
-      var comunicado_linhas = File.ReadAllLines(mensagem_caminho);
-      if(!comunicado_linhas.Any() || comunicado_linhas.Length < 2) 
-      {
-        ConsoleWrapper.Debug(Entidade.Advertiser, "O relatório do OFS é inválido.");
-        System.IO.File.Delete(mensagem_caminho);
-        continue;
-      }
-      var segunda_linha = comunicado_linhas[1];
-      var i1 = segunda_linha.IndexOf('*') + 1;
-      var i2 = segunda_linha.LastIndexOf('*');
-      var balde_nome = segunda_linha[i1..i2];
-      if(!cfg.BOT_CHANNELS.TryGetValue(balde_nome, out long channel))
-        throw new InvalidOperationException("O balde encontrado não tem canal configurado!");
-      var comunicado_mensagem = String.Join('\n', comunicado_linhas);
-      ConsoleWrapper.Write(Entidade.Advertiser, "Comunicado de offensores do IDG:");
-      await Comunicado(channel, msg, cfg, comunicado_mensagem, null, null, null);
-      ConsoleWrapper.Write(Entidade.Advertiser, comunicado_mensagem);
-      System.IO.File.Delete(mensagem_caminho);
-    }
-    catch (System.Exception erro)
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
-    }
-  }
-  public static async void Finalizacao(HandleMessage msg, Configuration cfg)
-  {
       try
       {
-        var diretorio_ofs = cfg.CURRENT_PATH + @"\odl\";
-        var lista_de_relatorios = System.IO.Directory.GetFiles(diretorio_ofs).Where(f => f.EndsWith(".done.csv")).ToList();
-        foreach (var relatorio_filepath in lista_de_relatorios)
+        await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
+        if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
+        ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
+        var result = Executor.Executar("tasklist", argumentos, true);
+        if(String.IsNullOrEmpty(result) || result.StartsWith("INFORMA"))
         {
-          Stream relatorio_conteudo = System.IO.File.OpenRead(relatorio_filepath);
-          if(relatorio_conteudo.Length == 0)
-          {
-            relatorio_conteudo.Close();
-            continue;
-          }
-          var relatorio_filename = relatorio_filepath.Split('\\').Last();
-          var relatorio_identificador = await msg.SendDocumentAsyncWraper(cfg.ID_ADM_BOT, relatorio_conteudo, relatorio_filename);
-          relatorio_conteudo.Close();
-          if(relatorio_identificador == String.Empty) return;
-
-          var i1 = relatorio_filename.IndexOf('_') + 1;
-          var i2 = relatorio_filename.IndexOf('.');
-          var balde_nome = relatorio_filename[i1..i2];
-          if(!cfg.BOT_CHANNELS.TryGetValue(balde_nome, out long channel))
-            throw new InvalidOperationException("O balde encontrado não tem canal configurado!");
-
-          await Comunicado(channel, msg, cfg, null, null, null, relatorio_identificador);
-          ConsoleWrapper.Write(Entidade.Advertiser, $"Enviado relatorio final {relatorio_filename}!");
-          System.IO.File.Move(relatorio_filepath, relatorio_filepath.Replace("done", "send"));
+          ConsoleWrapper.Debug(Entidade.Advertiser, $"Sistema {imagename} não está em execução. Iniciando...");
+          if(children != null) Updater.Terminate(children);
+          Executor.Executar(imagename, arguments, false);
         }
       }
       catch (System.Exception erro)
       {
         ConsoleWrapper.Error(Entidade.Advertiser, erro);
       }
+    }
   }
-  public static async Task Comunicado(Int64 canal, HandleMessage msg, Configuration cfg, string? text, string? image_id, string? video_id, string? doc_id)
+  public static async Task Comunicado(Int64 canal, string? text, string? image_id, string? video_id, string? doc_id)
   {
+    var msg = HandleMessage.GetInstance();
     try
     {
       var tasks = new List<Task>();
@@ -292,29 +207,6 @@ public static class HandleAnnouncement
     catch (System.Exception erro)
     {
       ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
-  }
-  public static void Faturamento(HandleMessage msg, Configuration cfg)
-  {
-    while(true)
-    {
-      try
-      {
-        System.Threading.Thread.Sleep(new TimeSpan(0, 1, 0));
-        ConsoleWrapper.Debug(Entidade.Advertiser, "Verificando se o subsistema do PRL está rodando...");
-        var result = Temporary.executar("tasklist", "/NH /FI \"IMAGENAME eq prl.exe\"", true);
-        if(result.First().StartsWith("INFORMA"))
-        {
-          ConsoleWrapper.Debug(Entidade.Advertiser, "Sistema não está em execução. Iniciando...");
-          Updater.Terminate("prl");
-          Temporary.executar(cfg.PRL_SCRIPT, "slower", false);
-          continue;
-        }
-      }
-      catch (System.Exception erro)
-      {
-        ConsoleWrapper.Error(Entidade.Advertiser, erro);
-      }
     }
   }
 }
