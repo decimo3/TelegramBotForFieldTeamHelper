@@ -184,9 +184,19 @@ public static class HandleAsynchronous
               solicitacao.information,
               instance
             );
-            await bot.SendCoordinateAsyncWraper(solicitacao.identifier, resposta_txt);
-            ConsoleWrapper.Write(Entidade.Messenger,
-              $"Enviada coordenadas da instalação: {resposta_txt}");
+            var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
+            var matches = re.Matches(resposta_txt);
+            if(matches.Count != 2)
+            {
+              solicitacao.status = 500;
+              var erro = new Exception(
+                "A resposta recebida do SAP não é uma coordenada válida!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
+            var lat = Double.Parse(matches[0].Value.Replace('.', ','));
+            var lon = Double.Parse(matches[1].Value.Replace('.', ','));
+            await bot.SendCoordinateAsyncWraper(solicitacao.identifier, lat, lon);
             bot.SucessReport(solicitacao);
             break;
           }
