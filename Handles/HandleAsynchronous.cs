@@ -270,12 +270,33 @@ public static class HandleAsynchronous
         case TypeRequest.ofsInfo:
           try
           {
+            if(!user.pode_relatorios())
+            {
+              solicitacao.status = 403;
+              var erro = new Exception(
+                "Você não tem permissão para receber esse tipo de informação!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
+            if(!cfg.OFS_MONITORAMENTO)
+            {
+              solicitacao.status = 404;
+              var erro = new Exception(
+                "O sistema monitor do OFS não está ativo no momento!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
             var agora = DateTime.Now;
-            OfsHandle.Enrol(
-              solicitacao.application,
-              solicitacao.information,
-              solicitacao.received_at
-            );
+            while (true)
+            {
+              await Task.Delay(cfg.TASK_DELAY_LONG);
+              OfsHandle.Enrol(
+                solicitacao.application,
+                solicitacao.information,
+                solicitacao.received_at
+              );
+              if(agora.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now) break;
+            }
             break;
           }
           catch (System.Exception erro)
@@ -283,6 +304,14 @@ public static class HandleAsynchronous
             await bot.ErrorReport(erro, solicitacao);
             break;
           }
+        default:
+        {
+          solicitacao.status = 400;
+          var erro = new Exception(
+            "Esse tipo de solicitação não está disponível no momento!");
+          await bot.ErrorReport(erro, solicitacao);
+          break;
+        }
       }
     }
   }
