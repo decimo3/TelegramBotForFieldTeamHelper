@@ -77,12 +77,15 @@ public static class HandleAsynchronous
       solicitacao.instance = instance;
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
-      if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+      if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
       {
-        solicitacao.status = 408;
-        var erro = new Exception("A sua solicitação expirou!");
-        await bot.ErrorReport(erro, solicitacao);
-        continue;
+        if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+        {
+          solicitacao.status = 408;
+          var erro = new Exception("A sua solicitação expirou!");
+          await bot.ErrorReport(erro, solicitacao);
+          continue;
+        }
       }
       var user = database.RecuperarUsuario(solicitacao.identifier) ??
         throw new NullReferenceException("Usuario não foi encontrado!");
