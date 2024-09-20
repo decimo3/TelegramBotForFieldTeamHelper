@@ -200,8 +200,11 @@ public static class HandleAsynchronous
             );
             if(!Int64.TryParse(resposta_txt, out Int64 instalation))
             {
-              throw new InvalidOperationException(
-                "500: Não foi recebido o número da instalação!");
+              solicitacao.status = 500;
+              var erro = new Exception(
+                "Não foi recebido o número da instalação!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
             }
             resposta_txt = ExecutarSap(
               solicitacao.application,
@@ -210,8 +213,11 @@ public static class HandleAsynchronous
             );
             if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
             {
-              throw new InvalidOperationException(
-                "500: Quantidade de faturas desconhecida!");
+              solicitacao.status = 500;
+              var erro = new Exception(
+                "Quantidade de faturas desconhecida!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
             }
             var faturas = new List<pdfsModel>();
             var tasks = new List<Task>();
