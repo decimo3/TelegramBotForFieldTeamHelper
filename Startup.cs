@@ -147,6 +147,16 @@ class Startup
         );
         break;
       }
+      case MessageType.Location:
+      {
+        await HandleTypeMessage.CoordinatesType(
+          usuario: usuario,
+          recebido_em: update.Message.Date.ToUniversalTime(),
+          lat: update.Message.Location!.Latitude,
+          lon: update.Message.Location!.Longitude
+        );
+        break;
+      }
       default:
       {
         var erroMessage = "O formato da mensagem não é reconhecido!";
