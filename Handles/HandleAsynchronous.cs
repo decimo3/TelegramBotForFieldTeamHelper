@@ -128,6 +128,8 @@ public static class HandleAsynchronous
             using(var image = ExecutarImg(resposta_txt))
             {
               await bot.SendPhotoAsyncWraper(solicitacao.identifier, image);
+              ConsoleWrapper.Write(Entidade.CookerAsync,
+                $"Enviado relatorio de {solicitacao.application}");
               bot.SucessReport(solicitacao);
               break;
             }
@@ -163,6 +165,8 @@ public static class HandleAsynchronous
                 memstream,
                 String.Join('_', filename) + ".csv"
               );
+              ConsoleWrapper.Write(Entidade.CookerAsync,
+                $"Enviado planilha do relatório de {solicitacao.application}");
               bot.SucessReport(solicitacao);
               break;
             }
@@ -181,6 +185,8 @@ public static class HandleAsynchronous
               instance
             );
             await bot.SendCoordinateAsyncWraper(solicitacao.identifier, resposta_txt);
+            ConsoleWrapper.Write(Entidade.Messenger,
+              $"Enviada coordenadas da instalação: {resposta_txt}");
             bot.SucessReport(solicitacao);
             break;
           }
@@ -261,11 +267,14 @@ public static class HandleAsynchronous
               ));
               fatura.status = pdfsModel.Status.sent;
               database.AlterarFatura(fatura);
-              fluxo_atual++;
+              ConsoleWrapper.Write(Entidade.Messenger,
+                $"Enviada fatura ({++fluxo_atual}/{quantidade_experada}): {fatura.filename}");
             }
             await Task.WhenAll(tasks);
             foreach(var fluxo in fluxos) fluxo.Close();
             bot.SucessReport(solicitacao);
+            ConsoleWrapper.Write(Entidade.Messenger,
+              $"Enviadas faturas para a instalação {instalation}");
             break;
           }
           catch (System.Exception erro)
