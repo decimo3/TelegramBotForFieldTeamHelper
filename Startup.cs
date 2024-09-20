@@ -56,6 +56,15 @@ class Startup
         HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
       HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
+      {
+        var filhos = new String[] {"saplogon.exe", "sapldp.exe"};
+        var sap_instance_check_args = new String[] {
+          "instancia",
+          config.SAP_INSTANCIA.ToString(),
+          "0"
+        };
+        HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, filhos);
+      }
       // A new cook is instantiated for each reported instance
       for (var i = 1; i <= config.SAP_INSTANCIA; i++)
       {
