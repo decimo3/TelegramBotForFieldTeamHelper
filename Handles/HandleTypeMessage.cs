@@ -1,3 +1,4 @@
+using telbot.models;
 using telbot.Services;
 namespace telbot.handle;
 public static class HandleTypeMessage
@@ -36,13 +37,47 @@ public static class HandleTypeMessage
   }
   public static async Task CoordinatesType(UsersModel usuario, DateTime recebido_em, Double lat, Double lon)
   {
+    var solicatacao = new logsModel()
+    {
+      identifier = usuario.identifier,
+      application = "localizacao",
+      received_at = recebido_em,
+      typeRequest = TypeRequest.gpsInfo,
+    };
     var bot = HandleMessage.GetInstance();
     var argumentos = new String[] {
       lat.ToString(System.Globalization.CultureInfo.InvariantCulture),
       lon.ToString(System.Globalization.CultureInfo.InvariantCulture),
+      "--json"
     };
     var respostas = Executor.Executar("gps.exe", argumentos, true);
-    await bot.sendTextMesssageWraper(usuario.identifier, String.Join("\n", respostas));
+    if(String.IsNullOrEmpty(respostas))
+    {
+      await bot.ErrorReport(
+        new InvalidOperationException(
+          "Não foi recebida resposta do `GPS2ZNA`"),
+        solicatacao);
+      return;
+    }
+    var listaDeLocalizacoes = System.Text.Json.JsonSerializer.Deserialize<List<ZoneModel>>(respostas);
+    if(listaDeLocalizacoes == null)
+    {
+      await bot.ErrorReport(
+        new NullReferenceException(
+          "Não foi recebida resposta do `GPS2ZNA`"),
+        solicatacao);
+      return;
+    }
+    foreach (var localizacao in listaDeLocalizacoes)
+    {
+      var texto = $"Zona: {localizacao.Nome} (~{Math.Round(localizacao.Mts)}mts)";
+      var coord = localizacao.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture) + 
+        "," + localizacao.Lon.ToString(System.Globalization.CultureInfo.InvariantCulture);
+      await bot.sendTextMesssageWraper(usuario.identifier, texto);
+      await bot.SendCoordinateAsyncWraper(usuario.identifier, coord);
+    }
+    await bot.sendTextMesssageWraper(usuario.identifier,
+      "Créditos e agradecimento ao Jean Robocopy (4005767) pelas localizações dos equipamentos na regional oeste!");
     return;
   }
   public static async Task PhotographType(UsersModel usuario, DateTime recebido_em, String photograph, String? caption)
