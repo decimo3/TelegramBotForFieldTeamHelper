@@ -71,10 +71,8 @@ public static class HandleTypeMessage
     foreach (var localizacao in listaDeLocalizacoes)
     {
       var texto = $"Zona: {localizacao.Nome} (~{Math.Round(localizacao.Mts)}mts)";
-      var coord = localizacao.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture) + 
-        "," + localizacao.Lon.ToString(System.Globalization.CultureInfo.InvariantCulture);
       await bot.sendTextMesssageWraper(usuario.identifier, texto);
-      await bot.SendCoordinateAsyncWraper(usuario.identifier, coord);
+      await bot.SendCoordinateAsyncWraper(usuario.identifier, localizacao.Lat, localizacao.Lon);
     }
     await bot.sendTextMesssageWraper(usuario.identifier,
       "Créditos e agradecimento ao Jean Robocopy (4005767) pelas localizações dos equipamentos na regional oeste!");
