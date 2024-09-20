@@ -84,16 +84,18 @@ public static class HandleAsynchronous
         await bot.ErrorReport(erro, solicitacao);
         continue;
       }
+      var user = database.RecuperarUsuario(solicitacao.identifier) ??
+        throw new NullReferenceException("Usuario não foi encontrado!");
       switch (solicitacao.typeRequest)
       {
         case TypeRequest.gestao:
         {
-          await Manager.HandleManager(solicitacao);
+          await Manager.HandleManager(solicitacao, user);
           break;
         }
         case TypeRequest.comando:
         {
-          await Command.HandleCommand(solicitacao);
+          await Command.HandleCommand(solicitacao, user);
           break;
         }
         case TypeRequest.txtInfo:

@@ -4,12 +4,10 @@ using telbot.Services;
 namespace telbot.handle;
 public static class Command
 {
-  public async static Task HandleCommand(logsModel request)
+  public async static Task HandleCommand(logsModel request, UsersModel user)
   {
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
-    var user = Database.GetInstance().RecuperarUsuario(request.identifier) ??
-      throw new NullReferenceException("Usuario não foi encontrado!");
     try
     {
     switch (request.application)
