@@ -83,6 +83,8 @@ public static class HandleAsynchronous
       var bot = HandleMessage.GetInstance();
       var cfg = Configuration.GetInstance();
       var database = Database.GetInstance();
+    try
+    {
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
@@ -110,7 +112,6 @@ public static class HandleAsynchronous
           break;
         }
         case TypeRequest.txtInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
@@ -123,13 +124,7 @@ public static class HandleAsynchronous
             bot.SucessReport(solicitacao);
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.picInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
@@ -145,13 +140,7 @@ public static class HandleAsynchronous
               break;
             }
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.xlsInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
@@ -182,13 +171,7 @@ public static class HandleAsynchronous
               break;
             }
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.xyzInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
@@ -211,13 +194,7 @@ public static class HandleAsynchronous
             bot.SucessReport(solicitacao);
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.pdfInfo:
-          try
           {
             var fluxo_atual = 0;
             var resposta_txt = ExecutarSap(
@@ -298,13 +275,7 @@ public static class HandleAsynchronous
               $"Enviadas faturas para a instalação {instalation}");
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.ofsInfo:
-          try
           {
             if(!user.pode_relatorios())
             {
@@ -335,11 +306,6 @@ public static class HandleAsynchronous
             }
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         default:
         {
           solicitacao.status = 400;
@@ -349,5 +315,10 @@ public static class HandleAsynchronous
           break;
         }
       }
+      }
+    catch (System.Exception erro)
+    {
+      await bot.ErrorReport(erro, solicitacao);
+    }
   }
 }
