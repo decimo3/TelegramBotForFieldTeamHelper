@@ -58,7 +58,7 @@ public static class HandleAsynchronous
     request.received_at = received_at;
     database.InserirSolicitacao(request);
   }
-  public static async void Chief()
+  public static async Task Chief()
   {
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
@@ -70,15 +70,17 @@ public static class HandleAsynchronous
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<List<logsModel>>(solicitacoes);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(!solicitacoes.Any()) continue;
+      var tasks = new List<Task>();
       for (var i = 0; i < cfg.SAP_INSTANCIA; i++)
       {
         if(i >= solicitacoes.Count) continue;
         solicitacoes[i].instance = i + 1;
-        HandleAsynchronous.Cooker(solicitacoes[i]); // TODO - Make assync
+        tasks.Add(Cooker(solicitacoes[i]));
       }
+      await Task.WhenAll(tasks);
     }
   }
-  public static async void Cooker(logsModel solicitacao)
+  public static async Task Cooker(logsModel solicitacao)
   {
       var bot = HandleMessage.GetInstance();
       var cfg = Configuration.GetInstance();
