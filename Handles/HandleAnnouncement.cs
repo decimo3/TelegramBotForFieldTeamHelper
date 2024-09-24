@@ -172,10 +172,10 @@ public static class HandleAnnouncement
     var argumentos = new String[] {"/NH", "/FI", $"\"IMAGENAME eq {imagename}\""};
     while(true)
     {
+      if(DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
+      {
       try
       {
-        await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
-        if(DateTime.Now.DayOfWeek == DayOfWeek.Saturday) continue;
         ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
         var result = Executor.Executar("tasklist", argumentos, true);
         if(String.IsNullOrEmpty(result) || result.StartsWith("INFORMA"))
@@ -189,6 +189,8 @@ public static class HandleAnnouncement
       {
         ConsoleWrapper.Error(Entidade.Advertiser, erro);
       }
+      }
+      await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
     }
   }
   public static async Task Comunicado(Int64 canal, string? text, string? image_id, string? video_id, string? doc_id)

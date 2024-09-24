@@ -16,7 +16,7 @@ public class Database
           throw new InvalidOperationException(
             "Database must be instantiated with a valid Configuration object.");
         }
-        _instance = new PostgreSQL(cfg); // TODO - Change to IDatabase that you want
+        _instance = cfg.IS_DEVELOPMENT ? new SQLite(cfg) : new PostgreSQL(cfg);
       }
       return _instance;
     }

@@ -61,17 +61,12 @@ public class HandleMessage
       return String.Empty;
     }
   }
-  public async Task SendCoordinateAsyncWraper(long id, string mapLink)
+  public async Task SendCoordinateAsyncWraper(Int64 id, Double latitude, Double longitude)
   {
-    ConsoleWrapper.Debug(Entidade.Messenger, mapLink);
     try
     {
-      var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
-      var loc = re.Matches(mapLink);
-      var lat = Double.Parse(loc[0].Value.Replace('.', ','));
-      var lon = Double.Parse(loc[1].Value.Replace('.', ','));
-      await bot.SendLocationAsync(id, lat, lon);
-      ConsoleWrapper.Write(Entidade.Messenger, $"Enviada coordenadas da instalação: {lat},{lon}");
+      await bot.SendLocationAsync(id, latitude, longitude);
+      ConsoleWrapper.Write(Entidade.Messenger, $"Enviada coordenadas: {latitude},{longitude}");
     }
     catch (Exception erro)
     {
@@ -87,7 +82,7 @@ public class HandleMessage
     if(match.Success)
     {
       texto = error.Message[5..];
-      request.status = Int32.Parse(match.Value[..2]);
+      request.status = Int32.Parse(match.Value[..3]);
     }
     else
     {

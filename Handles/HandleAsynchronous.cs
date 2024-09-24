@@ -77,23 +77,28 @@ public static class HandleAsynchronous
       solicitacao.instance = instance;
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
-      if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+      if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
       {
-        solicitacao.status = 408;
-        var erro = new Exception("A sua solicitação expirou!");
-        await bot.ErrorReport(erro, solicitacao);
-        continue;
+        if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+        {
+          solicitacao.status = 408;
+          var erro = new Exception("A sua solicitação expirou!");
+          await bot.ErrorReport(erro, solicitacao);
+          continue;
+        }
       }
+      var user = database.RecuperarUsuario(solicitacao.identifier) ??
+        throw new NullReferenceException("Usuario não foi encontrado!");
       switch (solicitacao.typeRequest)
       {
         case TypeRequest.gestao:
         {
-          await Manager.HandleManager(solicitacao);
+          await Manager.HandleManager(solicitacao, user);
           break;
         }
         case TypeRequest.comando:
         {
-          await Command.HandleCommand(solicitacao);
+          await Command.HandleCommand(solicitacao, user);
           break;
         }
         case TypeRequest.txtInfo:
@@ -126,6 +131,8 @@ public static class HandleAsynchronous
             using(var image = ExecutarImg(resposta_txt))
             {
               await bot.SendPhotoAsyncWraper(solicitacao.identifier, image);
+              ConsoleWrapper.Write(Entidade.CookerAsync,
+                $"Enviado relatorio de {solicitacao.application}");
               bot.SucessReport(solicitacao);
               break;
             }
@@ -161,6 +168,8 @@ public static class HandleAsynchronous
                 memstream,
                 String.Join('_', filename) + ".csv"
               );
+              ConsoleWrapper.Write(Entidade.CookerAsync,
+                $"Enviado planilha do relatório de {solicitacao.application}");
               bot.SucessReport(solicitacao);
               break;
             }
@@ -178,7 +187,19 @@ public static class HandleAsynchronous
               solicitacao.information,
               instance
             );
-            await bot.SendCoordinateAsyncWraper(solicitacao.identifier, resposta_txt);
+            var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
+            var matches = re.Matches(resposta_txt);
+            if(matches.Count != 2)
+            {
+              solicitacao.status = 500;
+              var erro = new Exception(
+                "A resposta recebida do SAP não é uma coordenada válida!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
+            var lat = Double.Parse(matches[0].Value.Replace('.', ','));
+            var lon = Double.Parse(matches[1].Value.Replace('.', ','));
+            await bot.SendCoordinateAsyncWraper(solicitacao.identifier, lat, lon);
             bot.SucessReport(solicitacao);
             break;
           }
@@ -198,8 +219,11 @@ public static class HandleAsynchronous
             );
             if(!Int64.TryParse(resposta_txt, out Int64 instalation))
             {
-              throw new InvalidOperationException(
-                "500: Não foi recebido o número da instalação!");
+              solicitacao.status = 500;
+              var erro = new Exception(
+                "Não foi recebido o número da instalação!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
             }
             resposta_txt = ExecutarSap(
               solicitacao.application,
@@ -208,8 +232,11 @@ public static class HandleAsynchronous
             );
             if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
             {
-              throw new InvalidOperationException(
-                "500: Quantidade de faturas desconhecida!");
+              solicitacao.status = 500;
+              var erro = new Exception(
+                "Quantidade de faturas desconhecida!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
             }
             var faturas = new List<pdfsModel>();
             var tasks = new List<Task>();
@@ -253,11 +280,14 @@ public static class HandleAsynchronous
               ));
               fatura.status = pdfsModel.Status.sent;
               database.AlterarFatura(fatura);
-              fluxo_atual++;
+              ConsoleWrapper.Write(Entidade.Messenger,
+                $"Enviada fatura ({++fluxo_atual}/{quantidade_experada}): {fatura.filename}");
             }
             await Task.WhenAll(tasks);
             foreach(var fluxo in fluxos) fluxo.Close();
             bot.SucessReport(solicitacao);
+            ConsoleWrapper.Write(Entidade.Messenger,
+              $"Enviadas faturas para a instalação {instalation}");
             break;
           }
           catch (System.Exception erro)
@@ -268,12 +298,33 @@ public static class HandleAsynchronous
         case TypeRequest.ofsInfo:
           try
           {
+            if(!user.pode_relatorios())
+            {
+              solicitacao.status = 403;
+              var erro = new Exception(
+                "Você não tem permissão para receber esse tipo de informação!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
+            if(!cfg.OFS_MONITORAMENTO)
+            {
+              solicitacao.status = 404;
+              var erro = new Exception(
+                "O sistema monitor do OFS não está ativo no momento!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
             var agora = DateTime.Now;
-            OfsHandle.Enrol(
-              solicitacao.application,
-              solicitacao.information,
-              solicitacao.received_at
-            );
+            while (true)
+            {
+              await Task.Delay(cfg.TASK_DELAY_LONG);
+              OfsHandle.Enrol(
+                solicitacao.application,
+                solicitacao.information,
+                solicitacao.received_at
+              );
+              if(agora.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now) break;
+            }
             break;
           }
           catch (System.Exception erro)
@@ -281,6 +332,14 @@ public static class HandleAsynchronous
             await bot.ErrorReport(erro, solicitacao);
             break;
           }
+        default:
+        {
+          solicitacao.status = 400;
+          var erro = new Exception(
+            "Esse tipo de solicitação não está disponível no momento!");
+          await bot.ErrorReport(erro, solicitacao);
+          break;
+        }
       }
     }
   }

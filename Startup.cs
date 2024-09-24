@@ -56,6 +56,8 @@ class Startup
         HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
       HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
+      var sap_instance_check_args = new String[] { "instancia", "5", "0"};
+      HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
       // A new cook is instantiated for each reported instance
       for (var i = 1; i <= config.SAP_INSTANCIA; i++)
       {
@@ -144,6 +146,16 @@ class Startup
           recebido_em: update.Message.Date.ToUniversalTime(),
           videoclip: update.Message.Video!.FileId,
           caption: update.Message.Caption
+        );
+        break;
+      }
+      case MessageType.Location:
+      {
+        await HandleTypeMessage.CoordinatesType(
+          usuario: usuario,
+          recebido_em: update.Message.Date.ToUniversalTime(),
+          lat: update.Message.Location!.Latitude,
+          lon: update.Message.Location!.Longitude
         );
         break;
       }

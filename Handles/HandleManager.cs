@@ -3,12 +3,10 @@ using telbot.Services;
 namespace telbot.handle;
 public static class Manager
 {
-  public async static Task HandleManager(logsModel request)
+  public async static Task HandleManager(logsModel request, UsersModel user)
   {
     var database = Database.GetInstance();
     var bot = HandleMessage.GetInstance();
-    var user = database.RecuperarUsuario(request.identifier) ??
-      throw new NullReferenceException("Usuario não foi encontrado!");
     if(!user.pode_autorizar())
     {
       request.status = 400;
