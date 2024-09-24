@@ -58,33 +58,41 @@ public static class HandleAsynchronous
     request.received_at = received_at;
     database.InserirSolicitacao(request);
   }
-  public static async void Cooker(Int32 instance)
+  public static async void Chief()
   {
-    ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} iniciada!");
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
-      var solicitacao = database.RecuperarSolicitacao(
-        s => s.status == 0 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
-      ).FirstOrDefault();
-      if (solicitacao == null)
+      var solicitacoes = database.RecuperarSolicitacao();
+      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<List<logsModel>>(solicitacoes);
+      ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
+      if(!solicitacoes.Any()) continue;
+      for (var i = 0; i < cfg.SAP_INSTANCIA; i++)
       {
-        continue;
+        if(i >= solicitacoes.Count) continue;
+        solicitacoes[i].instance = i + 1;
+        HandleAsynchronous.Cooker(solicitacoes[i]); // TODO - Make assync
       }
-      solicitacao.instance = instance;
+    }
+  }
+  public static async void Cooker(logsModel solicitacao)
+  {
+      var bot = HandleMessage.GetInstance();
+      var cfg = Configuration.GetInstance();
+      var database = Database.GetInstance();
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
       {
-        if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+        if(!cfg.IS_DEVELOPMENT && solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
         {
           solicitacao.status = 408;
           var erro = new Exception("A sua solicitação expirou!");
           await bot.ErrorReport(erro, solicitacao);
-          continue;
+          return;
         }
       }
       var user = database.RecuperarUsuario(solicitacao.identifier) ??
@@ -107,7 +115,7 @@ public static class HandleAsynchronous
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             await bot.sendTextMesssageWraper(
               solicitacao.identifier,
@@ -126,7 +134,7 @@ public static class HandleAsynchronous
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             using(var image = ExecutarImg(resposta_txt))
             {
@@ -148,7 +156,7 @@ public static class HandleAsynchronous
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             if(solicitacao.identifier < 10)
             {
@@ -185,7 +193,7 @@ public static class HandleAsynchronous
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
             var matches = re.Matches(resposta_txt);
@@ -215,7 +223,7 @@ public static class HandleAsynchronous
             var resposta_txt = ExecutarSap(
               "instalacao",
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             if(!Int64.TryParse(resposta_txt, out Int64 instalation))
             {
@@ -228,7 +236,7 @@ public static class HandleAsynchronous
             resposta_txt = ExecutarSap(
               solicitacao.application,
               instalation,
-              instance
+              solicitacao.instance
             );
             if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
             {
@@ -341,6 +349,5 @@ public static class HandleAsynchronous
           break;
         }
       }
-    }
   }
 }
