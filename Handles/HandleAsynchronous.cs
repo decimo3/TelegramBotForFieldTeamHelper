@@ -63,6 +63,7 @@ public static class HandleAsynchronous
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
+    var instanceControl = new bool[cfg.SAP_INSTANCIA];
     var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA);
     while (true)
     {
@@ -75,7 +76,29 @@ public static class HandleAsynchronous
       foreach (var solicitacao in solicitacoes)
       {
         await semaphore.WaitAsync();
-        solicitacao.instance = semaphore.CurrentCount;
+        int instanceNumber = -1;
+        lock (instanceControl)
+        {
+          for (int i = 0; i < instanceControl.Length; i++)
+          {
+            // If the instance is available
+            if (!instanceControl[i])
+            {
+              // Mark it as occupied
+              instanceControl[i] = true;
+              // Set the instance number (1-based index)
+              instanceNumber = i + 1;
+              break;
+            }
+          }
+        }
+        // In case no instance was found
+        if (instanceNumber == -1)
+        {
+          semaphore.Release();
+          continue;
+        }
+        solicitacao.instance = instanceNumber;
         tasks.Add(Task.Run(async () =>
                     {
                         try
@@ -84,10 +107,15 @@ public static class HandleAsynchronous
                         }
                         finally
                         {
+                          lock (instanceControl)
+                          {
+                            // Mark the instance as available again (1-based index)
+                            instanceControl[instanceNumber - 1] = false;
+                          }
+                          // Release the semaphore slot
                             semaphore.Release();
                         }
                     }));
-        tasks.Add(Cooker(solicitacao));
       }
       await Task.WhenAll(tasks);
     }
