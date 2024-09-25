@@ -63,6 +63,7 @@ public static class HandleAsynchronous
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
+    var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA);
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
@@ -71,11 +72,22 @@ public static class HandleAsynchronous
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(!solicitacoes.Any()) continue;
       var tasks = new List<Task>();
-      for (var i = 0; i < cfg.SAP_INSTANCIA; i++)
+      foreach (var solicitacao in solicitacoes)
       {
-        if(i >= solicitacoes.Count) continue;
-        solicitacoes[i].instance = i + 1;
-        tasks.Add(Cooker(solicitacoes[i]));
+        await semaphore.WaitAsync();
+        solicitacao.instance = semaphore.CurrentCount;
+        tasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await Cooker(solicitacao);
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    }));
+        tasks.Add(Cooker(solicitacao));
       }
       await Task.WhenAll(tasks);
     }
