@@ -238,6 +238,14 @@ public static class HandleAsynchronous
           }
         case TypeRequest.pdfInfo:
           {
+            if(!cfg.GERAR_FATURAS)
+            {
+              solicitacao.status = 503;
+              var erro = new Exception(
+                "O sistema SAP não está gerando faturas no momento!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
             var fluxo_atual = 0;
             var resposta_txt = ExecutarSap(
               "instalacao",
