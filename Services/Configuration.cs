@@ -5,6 +5,8 @@ public class Configuration
   public readonly string BOT_TOKEN = String.Empty;
   public readonly long ID_ADM_BOT = 0;
   public readonly bool IS_DEVELOPMENT = false;
+  public readonly bool GERAR_FATURAS = true;
+  public readonly bool SAP_OFFLINE = false;
   public readonly int SAP_INSTANCIA = 1;
   public readonly string? CURRENT_PC;
   public readonly string? LICENCE;
@@ -13,6 +15,7 @@ public class Configuration
   public readonly bool SAP_VENCIMENTO = false;
   public readonly bool SAP_BANDEIRADA = false;
   public readonly bool OFS_MONITORAMENTO = false;
+  public readonly bool USE_SQLITE = false;
   public readonly string TEMP_FOLDER = String.Empty;
   public readonly Int32 TASK_DELAY = 1_000;
   public readonly Int32 TASK_DELAY_LONG = 10_000;
@@ -63,6 +66,9 @@ public class Configuration
       }
       switch (arg)
       {
+        case "--use-sqlite": USE_SQLITE = true; break;
+        case "--sem-faturas": GERAR_FATURAS = false; break;
+        case "--sap-offline": SAP_OFFLINE = true; break;
         case "--em-desenvolvimento": IS_DEVELOPMENT = true; break;
         case "--sap-vencimento": SAP_VENCIMENTO = true; break;
         case "--sap-bandeirada": SAP_BANDEIRADA = true; break;
