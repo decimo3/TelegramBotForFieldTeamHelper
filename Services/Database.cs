@@ -5,6 +5,7 @@ public class Database
   private static IDatabase _instance;
   private static readonly Object _lock = new();
   private bool _disposed = false; // To detect redundant calls
+  private Database() {}
   public static IDatabase GetInstance(Configuration? cfg = null)
   {
     lock (_lock)
@@ -16,7 +17,7 @@ public class Database
           throw new InvalidOperationException(
             "Database must be instantiated with a valid Configuration object.");
         }
-        _instance = cfg.IS_DEVELOPMENT ? new SQLite(cfg) : new PostgreSQL(cfg);
+        _instance = cfg.USE_SQLITE ? new SQLite(cfg) : new PostgreSQL(cfg);
       }
       return _instance;
     }

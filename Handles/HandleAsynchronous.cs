@@ -58,33 +58,85 @@ public static class HandleAsynchronous
     request.received_at = received_at;
     database.InserirSolicitacao(request);
   }
-  public static async void Cooker(Int32 instance)
+  public static async Task Chief()
   {
-    ConsoleWrapper.Debug(Entidade.CookerAsync, $"Instância {instance} iniciada!");
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
+    var instanceControl = new bool[cfg.SAP_INSTANCIA];
+    var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA);
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
-      var solicitacao = database.RecuperarSolicitacao(
-        s => s.status == 0 && (s.rowid - instance) % cfg.SAP_INSTANCIA == 0
-      ).FirstOrDefault();
-      if (solicitacao == null)
+      var solicitacoes = database.RecuperarSolicitacao();
+      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<List<logsModel>>(solicitacoes);
+      ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
+      if(!solicitacoes.Any()) continue;
+      var tasks = new List<Task>();
+      foreach (var solicitacao in solicitacoes)
       {
-        continue;
+        await semaphore.WaitAsync();
+        int instanceNumber = -1;
+        lock (instanceControl)
+        {
+          for (int i = 0; i < instanceControl.Length; i++)
+          {
+            // If the instance is available
+            if (!instanceControl[i])
+            {
+              // Mark it as occupied
+              instanceControl[i] = true;
+              // Set the instance number (1-based index)
+              instanceNumber = i + 1;
+              break;
+            }
+          }
+        }
+        // In case no instance was found
+        if (instanceNumber == -1)
+        {
+          semaphore.Release();
+          continue;
+        }
+        solicitacao.instance = instanceNumber;
+        tasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await Cooker(solicitacao);
+                        }
+                        finally
+                        {
+                          lock (instanceControl)
+                          {
+                            // Mark the instance as available again (1-based index)
+                            instanceControl[instanceNumber - 1] = false;
+                          }
+                          // Release the semaphore slot
+                            semaphore.Release();
+                        }
+                    }));
       }
-      solicitacao.instance = instance;
+      await Task.WhenAll(tasks);
+    }
+  }
+  public static async Task Cooker(logsModel solicitacao)
+  {
+      var bot = HandleMessage.GetInstance();
+      var cfg = Configuration.GetInstance();
+      var database = Database.GetInstance();
+    try
+    {
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
       if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
       {
-        if(solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+        if(!cfg.IS_DEVELOPMENT && solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
         {
           solicitacao.status = 408;
           var erro = new Exception("A sua solicitação expirou!");
           await bot.ErrorReport(erro, solicitacao);
-          continue;
+          return;
         }
       }
       var user = database.RecuperarUsuario(solicitacao.identifier) ??
@@ -102,12 +154,11 @@ public static class HandleAsynchronous
           break;
         }
         case TypeRequest.txtInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             await bot.sendTextMesssageWraper(
               solicitacao.identifier,
@@ -115,18 +166,12 @@ public static class HandleAsynchronous
             bot.SucessReport(solicitacao);
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.picInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             using(var image = ExecutarImg(resposta_txt))
             {
@@ -137,18 +182,12 @@ public static class HandleAsynchronous
               break;
             }
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.xlsInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             if(solicitacao.identifier < 10)
             {
@@ -174,18 +213,12 @@ public static class HandleAsynchronous
               break;
             }
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.xyzInfo:
-          try
           {
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             var re = new System.Text.RegularExpressions.Regex(@"-[0-9]{1,2}[\.|,][0-9]{5,}");
             var matches = re.Matches(resposta_txt);
@@ -203,19 +236,21 @@ public static class HandleAsynchronous
             bot.SucessReport(solicitacao);
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.pdfInfo:
-          try
           {
+            if(!cfg.GERAR_FATURAS)
+            {
+              solicitacao.status = 503;
+              var erro = new Exception(
+                "O sistema SAP não está gerando faturas no momento!");
+              await bot.ErrorReport(erro, solicitacao);
+              break;
+            }
             var fluxo_atual = 0;
             var resposta_txt = ExecutarSap(
               "instalacao",
               solicitacao.information,
-              instance
+              solicitacao.instance
             );
             if(!Int64.TryParse(resposta_txt, out Int64 instalation))
             {
@@ -228,7 +263,7 @@ public static class HandleAsynchronous
             resposta_txt = ExecutarSap(
               solicitacao.application,
               instalation,
-              instance
+              solicitacao.instance
             );
             if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
             {
@@ -290,13 +325,7 @@ public static class HandleAsynchronous
               $"Enviadas faturas para a instalação {instalation}");
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         case TypeRequest.ofsInfo:
-          try
           {
             if(!user.pode_relatorios())
             {
@@ -327,11 +356,6 @@ public static class HandleAsynchronous
             }
             break;
           }
-          catch (System.Exception erro)
-          {
-            await bot.ErrorReport(erro, solicitacao);
-            break;
-          }
         default:
         {
           solicitacao.status = 400;
@@ -341,6 +365,10 @@ public static class HandleAsynchronous
           break;
         }
       }
+      }
+    catch (System.Exception erro)
+    {
+      await bot.ErrorReport(erro, solicitacao);
     }
   }
 }

@@ -58,11 +58,7 @@ class Startup
       HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
       var sap_instance_check_args = new String[] { "instancia", "5", "0"};
       HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
-      // A new cook is instantiated for each reported instance
-      for (var i = 1; i <= config.SAP_INSTANCIA; i++)
-      {
-        HandleAsynchronous.Cooker(i);
-      }
+      HandleAsynchronous.Chief();
       PdfHandle.Watch();
       Console.ReadLine();
       cts.Cancel();
