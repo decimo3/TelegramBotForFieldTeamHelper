@@ -163,46 +163,35 @@ public class HandleAnnouncement
   }
   public static async void Executador(String imagename, String[] arguments, String[]? children)
   {
-    var argumentos = new String[] {"/NH", "/FI", $"\"IMAGENAME eq {imagename}\""};
+    var logger = Logger.GetInstance<HandleAnnouncement>();
     while(true)
     {
       if(DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
       {
-      try
-      {
-        ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
-        var result = Executor.Executar("tasklist", argumentos, true);
-        if(String.IsNullOrEmpty(result) || result.StartsWith("INFORMA"))
+        logger.LogDebug("Verificando se o sistema {imagename} está rodando...", imagename);
+        if(Executador(imagename) == 0)
         {
-          ConsoleWrapper.Debug(Entidade.Advertiser, $"Sistema {imagename} não está em execução. Iniciando...");
+          logger.LogDebug("Tentando iniciar o subsistema {imagename}...", imagename);
           if(children != null) Updater.Terminate(children);
           Executor.Executar(imagename, arguments, false);
         }
       }
-      catch (System.Exception erro)
-      {
-        ConsoleWrapper.Error(Entidade.Advertiser, erro);
-      }
-      }
       await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
     }
   }
-  public static async Task Comunicado(Int64 canal, string? text, string? image_id, string? video_id, string? doc_id)
+  public static Int32 Executador(String imagename)
   {
-    var msg = HandleMessage.GetInstance();
-    try
+    var logger = Logger.GetInstance<HandleAnnouncement>();
+    var argumentos = new String[] {"/NH", "/FI", $"\"IMAGENAME eq {imagename}\""};
+    var result = Executor.Executar("tasklist", argumentos, true);
+    if(String.IsNullOrEmpty(result))
     {
-      var tasks = new List<Task>();
-      var has_media = String.IsNullOrEmpty(image_id) || String.IsNullOrEmpty(video_id) || String.IsNullOrEmpty(doc_id);
-      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(canal, image_id, text));
-      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(canal, video_id, text));
-      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(canal, doc_id, text));
-      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(canal, text, true, false));
-      await Task.WhenAll(tasks);
+      logger.LogDebug("O subsistema {imagename} não está em execução.", imagename);
+      return 0;
     }
-    catch (System.Exception erro)
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
+    // Count how many times the 'imagename' apears on output
+    var vezes = (result.Length - result.Replace(imagename, "").Length) / imagename.Length;
+    logger.LogDebug("O subsistema {imagename} tem {contagem} instâncias em execução.", imagename, vezes);
+    return vezes;
   }
 }
