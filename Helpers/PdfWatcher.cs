@@ -26,6 +26,11 @@ public partial class PdfHandle
           if(registry == null)
           {
             var instalation = PdfHandle.Check(file);
+            if(instalation == 0)
+            {
+              System.IO.File.Delete(file);
+              continue;
+            }
             var timestamp = System.IO.File.GetLastWriteTime(file);
             var fatura = new pdfsModel() {
               filename = filename,
