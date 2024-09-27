@@ -18,13 +18,7 @@ class Startup
     logger.LogInformation("# Repository: TelegramBotForFieldTeamHelper #");
     logger.LogInformation("#############################################");
     var config = Configuration.GetInstance(System.Environment.GetCommandLineArgs());
-    var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq bot.exe\""};
-    var result = Executor.Executar("tasklist", argumentos, true);
-    // DONE - Counts how many times the executable name appears to check the number of instances
-    if(((
-      result.Length - 
-      result.Replace("bot.exe", "").Length) /
-      "bot.exe".Length) > 1)
+    if(HandleAnnouncement.Executador("bot.exe") > 1)
     {
       logger.LogError("Já tem uma instância do chatbot rodando!");
       logger.LogInformation("Aperte qualquer tecla para sair.");
