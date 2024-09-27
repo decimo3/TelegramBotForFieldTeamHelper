@@ -135,6 +135,13 @@ public class HandleAsynchronous
       logger.LogDebug(solicitacao_texto);
       if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
       {
+        if(cfg.SAP_OFFLINE)
+        {
+          solicitacao.status = 503;
+          var erro = new Exception("O sistema SAP está fora do ar!");
+          await bot.ErrorReport(erro, solicitacao);
+          return;
+        }
         if(!cfg.IS_DEVELOPMENT && solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
         {
           solicitacao.status = 408;
