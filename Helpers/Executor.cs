@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using telbot.Helpers;
+using Microsoft.Extensions.Logging;
 using telbot.Services;
-namespace telbot;
-public static class Executor
+namespace telbot.Helpers;
+public class Executor
 {
-  private static IEnumerable<Process> GetChildProcesses(this Process process)
+  private static IEnumerable<Process> GetChildProcesses(Process process)
   {
     var children = new List<Process>();
     var queryProcess = $"Select * From Win32_Process Where ParentProcessID={process.Id}";
@@ -18,8 +18,9 @@ public static class Executor
   public static String? Executar(String aplicacao, String[] argumentos, Boolean expect_return)
   {
     var cfg = Configuration.GetInstance();
+    var logger = Logger.GetInstance<Executor>();
     var argumentos_texto = String.Join(' ', argumentos);
-    ConsoleWrapper.Debug(Entidade.Executor, aplicacao + " " + argumentos_texto);
+    logger.LogDebug("Executando {application} {arguments}", aplicacao, argumentos_texto);
     using var processo = new System.Diagnostics.Process();
     var startInfo = new System.Diagnostics.ProcessStartInfo()
     {
@@ -49,13 +50,13 @@ public static class Executor
       processo.WaitForExit();
       if(processo.ExitCode == 0)
       {
-        ConsoleWrapper.Debug(Entidade.Executor, output);
+        logger.LogDebug(output);
         return output;
       }
       else
       {
         var erro = new Exception(errput);
-        ConsoleWrapper.Error(Entidade.Executor, erro);
+        logger.LogError(erro, "Falha ao executar a aplicação {application}", aplicacao);
         return errput;
       }
     }

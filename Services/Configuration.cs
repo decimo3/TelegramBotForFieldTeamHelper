@@ -1,4 +1,5 @@
 using dotenv.net;
+using Microsoft.Extensions.Logging;
 namespace telbot.Services;
 public class Configuration
 {
@@ -131,7 +132,7 @@ public class Configuration
     --ofs-monitorador      Iniciar o subsistema de monitoramento dos ofensores do IDG pelo OFS;
     --prl-subsistema       Permite o gerenciamento automático das janelas do subsistema do PRL;
     ";
-    telbot.Helpers.ConsoleWrapper.Write(telbot.Helpers.Entidade.Chatbot, ajuda);
+    Logger.GetInstance<Configuration>().LogError("Foi informado o argumento {argumento} inválido", arg);
     System.Environment.Exit(1);
   }
 }

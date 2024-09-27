@@ -1,5 +1,5 @@
 namespace telbot.Helpers;
-public static partial class PdfHandle
+public partial class PdfHandle
 {
   public static Int64 Check(String filepath)
   {
