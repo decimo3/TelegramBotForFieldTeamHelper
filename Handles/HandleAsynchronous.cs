@@ -331,6 +331,7 @@ public class HandleAsynchronous
             }
             await Task.WhenAll(tasks);
             foreach(var fluxo in fluxos) fluxo.Close();
+            PdfHandle.Remove(faturas);
             bot.SucessReport(solicitacao);
             logger.LogInformation("Enviadas faturas para a instalação {instalation}", instalation);
             break;
