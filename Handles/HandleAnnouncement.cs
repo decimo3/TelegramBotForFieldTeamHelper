@@ -187,22 +187,4 @@ public class HandleAnnouncement
       await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
     }
   }
-  public static async Task Comunicado(Int64 canal, string? text, string? image_id, string? video_id, string? doc_id)
-  {
-    var msg = HandleMessage.GetInstance();
-    try
-    {
-      var tasks = new List<Task>();
-      var has_media = String.IsNullOrEmpty(image_id) || String.IsNullOrEmpty(video_id) || String.IsNullOrEmpty(doc_id);
-      if(image_id != null) tasks.Add(msg.SendPhotoAsyncWraper(canal, image_id, text));
-      if(video_id != null) tasks.Add(msg.SendVideoAsyncWraper(canal, video_id, text));
-      if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(canal, doc_id, text));
-      if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(canal, text, true, false));
-      await Task.WhenAll(tasks);
-    }
-    catch (System.Exception erro)
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
-  }
 }
