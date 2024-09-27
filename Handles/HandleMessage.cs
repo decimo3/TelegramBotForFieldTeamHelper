@@ -35,22 +35,56 @@ public class HandleMessage
   }
   public async Task sendTextMesssageWraper(long userId, string message, bool enviar=true, bool exibir=true, bool markdown=true)
   {
+    try
+    {
       logger.LogDebug(message);
       ParseMode? parsemode = markdown ? ParseMode.Markdown : null;
       if(enviar) await bot.SendTextMessageAsync(chatId: userId, text: message, parseMode: parsemode);
       if(exibir) logger.LogInformation(message);
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", userId);
+    }
+    catch
+    {
+      throw;
+    }
   }
-  public async Task<string> SendDocumentAsyncWraper(long id, Stream stream, string filename)
+  public async Task<String?> SendDocumentAsyncWraper(long id, Stream stream, string filename)
   {
+    try
+    {
       var document = new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream, fileName: filename);
       var documento = await bot.SendDocumentAsync(id, document: document);
       if(documento.Document == null) throw new Exception(errorMensagem);
       return documento.Document.FileId;
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", id);
+      return null;
+    }
+    catch
+    {
+      throw;
+    }
   }
   public async Task SendCoordinateAsyncWraper(Int64 id, Double latitude, Double longitude)
   {
+    try
+    {
       await bot.SendLocationAsync(id, latitude, longitude);
       logger.LogInformation("Enviada coordenadas: {latitude},{longitude}", latitude, longitude);
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", id);
+    }
+    catch
+    {
+      throw;
+    }
   }
   public async Task ErrorReport(Exception error, logsModel request)
   {
@@ -84,12 +118,24 @@ public class HandleMessage
     request.status = 200;
     Database.GetInstance().AlterarSolicitacao(request);
   }
-  public async Task<string> SendPhotoAsyncWraper(long id, Stream stream)
+  public async Task<String?> SendPhotoAsyncWraper(long id, Stream stream)
   {
+    try
+    {
       var photograph = new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream);
       var photo = await bot.SendPhotoAsync(id, photo: photograph);
       if(photo.Photo is null) throw new Exception(errorMensagem);
       return photo.Photo.First().FileId;
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", id);
+      return null;
+    }
+    catch
+    {
+      throw;
+    }
   }
   public async Task RequestContact(long id)
   {
@@ -108,23 +154,68 @@ public class HandleMessage
       await bot.SendTextMessageAsync(chatId: id, text: msg, replyMarkup: requestReplyKeyboard);
       logger.LogInformation(msg);
   }
-  public async Task<string> SendVideoAsyncWraper(long id, Stream stream)
+  public async Task<String?> SendVideoAsyncWraper(long id, Stream stream)
   {
+    try
+    {
       var videoclip = new Telegram.Bot.Types.InputFiles.InputOnlineFile(content: stream);
       var video = await bot.SendVideoAsync(id, video: videoclip);
       if(video.Video is null) throw new Exception(errorMensagem);
       return video.Video.FileId;
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", id);
+      return null;
+    }
+    catch
+    {
+      throw;
+    }
   }
   public async Task SendVideoAsyncWraper(long id, string media_id, string? legenda = null)
   {
+    try
+    {
       await bot.SendVideoAsync(id, video: media_id, caption: legenda);
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", id);
+    }
+    catch
+    {
+      throw;
+    }
   }
   public async Task SendPhotoAsyncWraper(long id, string media_id, string? legenda = null)
   {
+    try
+    {
       await bot.SendPhotoAsync(id, photo: media_id, caption: legenda);
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", id);
+    }
+    catch
+    {
+      throw;
+    }
   }
   public async Task SendDocumentAsyncWraper(long id, string media_id, string? legenda = null)
   {
+    try
+    {
       await bot.SendDocumentAsync(id, document: media_id, caption: legenda);
+    }
+    catch (Telegram.Bot.Exceptions.ApiRequestException erro)
+    {
+      logger.LogError(erro, "O usuário {user}", id);
+    }
+    catch
+    {
+      throw;
+    }
   }
 }
