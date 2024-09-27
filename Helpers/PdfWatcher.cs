@@ -50,4 +50,25 @@ public partial class PdfHandle
       }
     }
   }
+  public static void Remove(List<pdfsModel> faturas)
+  {
+    var logger = Logger.GetInstance<PdfHandle>();
+    try
+    {
+      foreach (var fatura in faturas)
+      {
+        var filepath = System.IO.Path.Combine(
+          Configuration.GetInstance().TEMP_FOLDER,
+          fatura.filename
+        );
+        System.IO.File.Delete(filepath);
+        Database.GetInstance().RemoverFatura(fatura.rowid);
+        logger.LogDebug("Excluída fatura {fatura}", fatura.filename);
+      }
+    }
+    catch (System.Exception erro)
+    {
+      logger.LogError(erro, "Ocorreu uma falha ao tentar remover as faturas: ");
+    }
+  }
 }
