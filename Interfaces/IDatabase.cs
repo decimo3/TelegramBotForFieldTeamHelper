@@ -17,4 +17,6 @@ public interface IDatabase : IDisposable
   public pdfsModel? RecuperarFatura(String filename);
   public List<pdfsModel> RecuperarFatura(Expression<Func<pdfsModel, bool>>? expression = null);
   public void AlterarFatura(pdfsModel fatura);
+  public void RemoverFatura(Int64 rowid);
+  public void RemoverFatura();
 }
