@@ -42,15 +42,6 @@ public partial class PdfHandle
             logger.LogDebug(fatura_txt);
             database.InserirFatura(fatura);
           }
-          else
-          {
-            if(registry.status == pdfsModel.Status.sent)
-            {
-              System.IO.File.Delete(filename);
-              registry.status = pdfsModel.Status.done;
-              database.AlterarFatura(registry);
-            }
-          }
         }
       }
       catch (System.Exception erro)
