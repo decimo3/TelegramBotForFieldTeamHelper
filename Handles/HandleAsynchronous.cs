@@ -326,7 +326,7 @@ public class HandleAsynchronous
               fatura.status = pdfsModel.Status.sent;
               database.AlterarFatura(fatura);
               logger.LogInformation("Enviada fatura ({fluxo_atual}/{quantidade_experada}): {filename}",
-              fluxo_atual, quantidade_experada, fatura.filename
+              ++fluxo_atual, quantidade_experada, fatura.filename
               );
             }
             await Task.WhenAll(tasks);
