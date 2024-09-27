@@ -187,4 +187,19 @@ public class HandleAnnouncement
       await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
     }
   }
+  public static Int32 Executador(String imagename)
+  {
+    var logger = Logger.GetInstance<HandleAnnouncement>();
+    var argumentos = new String[] {"/NH", "/FI", $"\"IMAGENAME eq {imagename}\""};
+    var result = Executor.Executar("tasklist", argumentos, true);
+    if(String.IsNullOrEmpty(result))
+    {
+      logger.LogDebug("O subsistema {imagename} não está em execução.", imagename);
+      return 0;
+    }
+    // Count how many times the 'imagename' apears on output
+    var vezes = (result.Length - result.Replace(imagename, "").Length) / imagename.Length;
+    logger.LogDebug("O subsistema {imagename} tem {contagem} instâncias em execução.", imagename, vezes);
+    return vezes;
+  }
 }
