@@ -163,26 +163,18 @@ public class HandleAnnouncement
   }
   public static async void Executador(String imagename, String[] arguments, String[]? children)
   {
-    var argumentos = new String[] {"/NH", "/FI", $"\"IMAGENAME eq {imagename}\""};
+    var logger = Logger.GetInstance<HandleAnnouncement>();
     while(true)
     {
       if(DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
       {
-      try
-      {
-        ConsoleWrapper.Debug(Entidade.Advertiser, $"Verificando se o sistema {imagename} está rodando...");
-        var result = Executor.Executar("tasklist", argumentos, true);
-        if(String.IsNullOrEmpty(result) || result.StartsWith("INFORMA"))
+        logger.LogDebug("Verificando se o sistema {imagename} está rodando...", imagename);
+        if(Executador(imagename) == 0)
         {
-          ConsoleWrapper.Debug(Entidade.Advertiser, $"Sistema {imagename} não está em execução. Iniciando...");
+          logger.LogDebug("Tentando iniciar o subsistema {imagename}...", imagename);
           if(children != null) Updater.Terminate(children);
           Executor.Executar(imagename, arguments, false);
         }
-      }
-      catch (System.Exception erro)
-      {
-        ConsoleWrapper.Error(Entidade.Advertiser, erro);
-      }
       }
       await Task.Delay(Configuration.GetInstance().TASK_DELAY_LONG);
     }
