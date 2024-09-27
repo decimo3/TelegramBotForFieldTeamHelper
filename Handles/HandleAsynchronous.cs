@@ -286,7 +286,7 @@ public class HandleAsynchronous
               logger.LogDebug("Realizando a checagem");
               faturas = database.RecuperarFatura(
                 f => f.instalation == instalation &&
-                  f.status == pdfsModel.Status.wait
+                  f.timestamp >= agora
               );
               foreach (var fatura in faturas)
                 logger.LogDebug(fatura.filename);
