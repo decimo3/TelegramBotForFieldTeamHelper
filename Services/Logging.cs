@@ -15,18 +15,21 @@ public class Logger : IDisposable
       if (_instance == null)
       {
         // Initialize Serilog and attach to Microsoft.Extensions.Logging
-        Serilog.Log.Logger = new Serilog.LoggerConfiguration()
-          .WriteTo.Console()
-          .WriteTo.File("chatbot.log")
+        var template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level:u} | {SourceContext} | {Message}{NewLine}{Exception}";
+        // Ensure the logger is flushed
+        Serilog.Log.CloseAndFlush();
+        var logger = new Serilog.LoggerConfiguration()
+          .WriteTo.Console(outputTemplate: template, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
+          .WriteTo.File("chatbot.log", outputTemplate: template, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
           .CreateLogger();
         // Use Serilog as the logging provider
         _loggerFactory = LoggerFactory.Create(builder =>
         {
-          builder.AddSerilog();
+          builder.AddSerilog(logger);
         });
-        // Create a logger for the calling type T
-        _instance = _loggerFactory.CreateLogger<T>();
       } 
+      // Create a logger for the calling type T
+      _instance = _loggerFactory.CreateLogger<T>();
       return _instance;
     }
   }
