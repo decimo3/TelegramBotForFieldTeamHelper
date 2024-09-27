@@ -1,48 +1,42 @@
+using Microsoft.Extensions.Logging;
 using telbot.Services;
 namespace telbot.Helpers;
-public static class Updater
+public class Updater
 {
   private static readonly String UPDATE_PATH = @"\\192.168.10.213\chatbot\";
   private static readonly String TEMPORARY_PATH = System.IO.Path.GetTempPath();
   public static void Update()
   {
+    var logger = Logger.GetInstance<Updater>();
     try
     {
     if(!System.IO.Directory.Exists(UPDATE_PATH))
       throw new DirectoryNotFoundException();
     var version = CurrentVersion();
-    ConsoleWrapper.Write(Entidade.Updater,
-      $"Versão atual do sistema chatbot: {version.ToString("yyyyMMdd")}");
+    logger.LogInformation("Versão atual do sistema chatbot: {version}", version.ToString("yyyyMMdd"));
     var updates = ListUpdates();
-    ConsoleWrapper.Write(Entidade.Updater,
-      "Verificando se há novas versões do sistema chatbot...");
+    logger.LogInformation("Verificando se há novas versões do sistema chatbot...");
     var update = HasUpdate(updates, version);
     if(update == null)
     {
-      ConsoleWrapper.Write(Entidade.Updater,
-        "Não foram encontradas atualizações para o sistema.");
+      logger.LogInformation("Não foram encontradas atualizações para o sistema.");
       return;
     }
-    ConsoleWrapper.Write(Entidade.Updater,
-      "Nova versão {update} do sistema chatbot encontrada! Baixando...");
+    logger.LogInformation("Nova versão {update} do sistema chatbot encontrada! Baixando...", update);
     Download(update);
-    ConsoleWrapper.Write(Entidade.Updater,
-      "Download concluído! Descompactando arquivo de atualização...");
+    logger.LogInformation("Download concluído! Descompactando arquivo de atualização...");
     Unzip(update);
-    ConsoleWrapper.Write(Entidade.Updater,
-      "Fechando programas aninhados ao sistema do chatbot...");
+    logger.LogInformation("Fechando programas aninhados ao sistema do chatbot...");
     TerminateAll();
-    ConsoleWrapper.Write(Entidade.Updater,
-      "Aplicando atualização do sistema chatbot, por favor aguarde...");
+    logger.LogInformation("Aplicando atualização do sistema chatbot, por favor aguarde...");
     Replace(update);
-    ConsoleWrapper.Write(Entidade.Updater,
-      "Sistema chatbot atualizado com sucesso! Reiniciando...");
+    logger.LogInformation("Sistema chatbot atualizado com sucesso! Reiniciando...");
     ClearTemp(update);
     Restart();
     }
     catch (Exception erro)
     {
-      ConsoleWrapper.Error(Entidade.Updater, erro);
+      logger.LogError(erro, "Ocorreu um erro ao tentar procurar/aplicar as atualizações:");
     }
   }
   public static DateTime CurrentVersion()

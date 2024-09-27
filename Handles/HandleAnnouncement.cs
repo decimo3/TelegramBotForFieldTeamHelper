@@ -2,13 +2,15 @@ using System.Data;
 using telbot.Services;
 using telbot.Helpers;
 using telbot.models;
+using Microsoft.Extensions.Logging;
 namespace telbot.handle;
-public static class HandleAnnouncement
+public class HandleAnnouncement
 {
   public static async void Vencimento(String aplicacao, Int32 prazo)
   {
-    ConsoleWrapper.Debug(Entidade.SoireeAsync, $"Monitor de {aplicacao} iniciado!");
     var cfg = Configuration.GetInstance();
+    var logger = Logger.GetInstance<HandleAnnouncement>();
+    logger.LogDebug("Monitor de {aplicacao} iniciado!", aplicacao);
     var contador_de_regionais = 0;
     while(true)
     {
@@ -30,21 +32,22 @@ public static class HandleAnnouncement
   }
   public static async void Vencimento(String relatorio, logsModel solicitacao)
   {
+    var cfg = Configuration.GetInstance();
+    var msg = HandleMessage.GetInstance();
+    var logger = Logger.GetInstance<HandleAnnouncement>();
+    var regional = cfg.REGIONAIS[(Int32)solicitacao.identifier];
+    var relatorio_identificador = String.Empty;
     try
     {
-      var cfg = Configuration.GetInstance();
-      var msg = HandleMessage.GetInstance();
-      var regional = cfg.REGIONAIS[(Int32)solicitacao.identifier];
-      var relatorio_identificador = String.Empty;
       if(String.IsNullOrEmpty(relatorio))
       {
-        var erro = new Exception(
-          "Erro ao gerar o relatório de notas em aberto!");
-        ConsoleWrapper.Error(Entidade.Advertiser, erro);
+        logger.LogError("Erro ao gerar o relatório de notas em aberto!");
         return;
       }
-      ConsoleWrapper.Write(Entidade.Advertiser,
-        $"Comunicado de {solicitacao.application}, regional {regional}!");
+      logger.LogInformation(
+        "Comunicado de {application}, regional {regional}!",
+        solicitacao.application, regional
+      );
       var filename = new String[] {
         DateTime.Now.ToString("yyyyMMddHHmmss"),
         solicitacao.application,
@@ -62,26 +65,23 @@ public static class HandleAnnouncement
       }
       if(String.IsNullOrEmpty(relatorio_identificador))
       {
-          var erro = new Exception(
-            "Erro ao gerar o relatório de notas em aberto!");
-          ConsoleWrapper.Error(Entidade.Advertiser, erro);
-          return;
+        logger.LogError("Erro ao gerar o relatório de notas em aberto!");
+        return;
       }
       var usuarios = Database.GetInstance().RecuperarUsuario(u => u.pode_relatorios());
-      ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
+      logger.LogDebug("Usuários selecionados: {contagem}", usuarios.Count());
       await Comunicado(usuarios, cfg.ID_ADM_BOT, null, null, null, relatorio_identificador);
-      return;
     }
     catch (System.Exception erro)
     {
-      ConsoleWrapper.Error(Entidade.Advertiser, erro);
-      return;
+      logger.LogError(erro, "Erro ao enviar o relatório de {solicitacao}", solicitacao.application);
     }
   }
   public static async void Comunicado()
   {
     var cfg = Configuration.GetInstance();
     var msg = HandleMessage.GetInstance();
+    var logger = Logger.GetInstance<HandleAnnouncement>();
     var mensagem_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.txt");
     var imagem_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.jpg");
     var videoclipe_caminho = System.IO.Path.Combine(System.AppContext.BaseDirectory, "comunicado.mp4");
@@ -111,7 +111,7 @@ public static class HandleAnnouncement
 
     var usuarios = Database.GetInstance().RecuperarUsuario();
 
-    ConsoleWrapper.Debug(Entidade.Advertiser, $"Usuários selecionados: {usuarios.Count()}");
+    logger.LogDebug("Usuários selecionados: {contagem}", usuarios.Count);
     await Comunicado(usuarios, cfg.ID_ADM_BOT, comunicado_mensagem, photo_id, video_id, doc_id);
 
     comunicado_imagem.Close();
@@ -119,36 +119,35 @@ public static class HandleAnnouncement
     comunicado_documento.Close();
     if(has_txt)
     {
-      ConsoleWrapper.Write(Entidade.Advertiser, comunicado_mensagem);
+      logger.LogInformation(comunicado_mensagem);
       System.IO.File.Delete(mensagem_caminho);
     }
     if(has_jpg)
     {
-      ConsoleWrapper.Write(Entidade.Advertiser, "Enviada imagem do comunicado!");
+      logger.LogInformation("Enviada imagem do comunicado!");
       System.IO.File.Delete(imagem_caminho);
     }
     if(has_mp4)
     {
-      ConsoleWrapper.Write(Entidade.Advertiser, "Enviado video do comunicado!");
+      logger.LogInformation("Enviado video do comunicado!");
       System.IO.File.Delete(videoclipe_caminho);
     }
     if(has_doc)
     {
-      ConsoleWrapper.Write(Entidade.Advertiser, "Enviado documento do comunicado!");
+      logger.LogInformation("Enviado documento do comunicado!");
       System.IO.File.Delete(documento_caminho);
     }
     }
     catch (System.Exception erro)
     {
-      ConsoleWrapper.Error(Entidade.Advertiser, erro);
+      logger.LogError(erro, "Falha no envio de comunicado de atualização: ");
     }
   }
   public static async Task Comunicado(List<UsersModel> usuarios, long myself, string? text, string? image_id, string? video_id, string? doc_id)
   {
     var msg = HandleMessage.GetInstance();
-    try
-    {
-    ConsoleWrapper.Write(Entidade.Advertiser, $"Comunicado para todos - Comunicado");
+    var logger = Logger.GetInstance<HandleAnnouncement>();
+    logger.LogInformation("Comunicado para todos - Comunicado");
     var has_media = !String.IsNullOrEmpty(image_id) || !String.IsNullOrEmpty(video_id) || !String.IsNullOrEmpty(doc_id);
     var tasks = new List<Task>();
     foreach (var usuario in usuarios)
@@ -161,11 +160,6 @@ public static class HandleAnnouncement
       if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.identifier, text, true, false));
     }
     await Task.WhenAll(tasks);
-    }
-    catch (System.Exception erro)
-    {
-      ConsoleWrapper.Error(Entidade.Advertiser, erro);
-    }
   }
   public static async void Executador(String imagename, String[] arguments, String[]? children)
   {

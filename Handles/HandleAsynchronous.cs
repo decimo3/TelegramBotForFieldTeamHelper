@@ -1,8 +1,9 @@
 using telbot.Helpers;
 using telbot.models;
 using telbot.Services;
+using Microsoft.Extensions.Logging;
 namespace telbot.handle;
-public static class HandleAsynchronous
+public class HandleAsynchronous
 {
   private static readonly System.Text.RegularExpressions.Regex regex = new("^[0-9]{3}:");
   private static Stream ExecutarImg(String table)
@@ -44,7 +45,8 @@ public static class HandleAsynchronous
   {
     var database = Database.GetInstance();
     var telegram = HandleMessage.GetInstance();
-    ConsoleWrapper.Write(Entidade.WaiterAsync, $"{identificador} escreveu: {mensagem}");
+    var logger = Logger.GetInstance<HandleAsynchronous>();
+    logger.LogInformation("{identificador} escreveu: {mensagem}", identificador, mensagem);
     var request = Validador.isRequest(mensagem);
     if (request is null)
     {
@@ -63,6 +65,7 @@ public static class HandleAsynchronous
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
+    var logger = Logger.GetInstance<HandleAsynchronous>();
     var instanceControl = new bool[cfg.SAP_INSTANCIA];
     var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA);
     while (true)
@@ -70,7 +73,7 @@ public static class HandleAsynchronous
       await Task.Delay(cfg.TASK_DELAY);
       var solicitacoes = database.RecuperarSolicitacao();
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<List<logsModel>>(solicitacoes);
-      ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
+      logger.LogDebug(solicitacao_texto);
       if(!solicitacoes.Any()) continue;
       var tasks = new List<Task>();
       foreach (var solicitacao in solicitacoes)
@@ -125,10 +128,11 @@ public static class HandleAsynchronous
       var bot = HandleMessage.GetInstance();
       var cfg = Configuration.GetInstance();
       var database = Database.GetInstance();
+      var logger = Logger.GetInstance<HandleAsynchronous>();
     try
     {
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
-      ConsoleWrapper.Debug(Entidade.CookerAsync, solicitacao_texto);
+      logger.LogDebug(solicitacao_texto);
       if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
       {
         if(!cfg.IS_DEVELOPMENT && solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
@@ -176,8 +180,7 @@ public static class HandleAsynchronous
             using(var image = ExecutarImg(resposta_txt))
             {
               await bot.SendPhotoAsyncWraper(solicitacao.identifier, image);
-              ConsoleWrapper.Write(Entidade.CookerAsync,
-                $"Enviado relatorio de {solicitacao.application}");
+              logger.LogInformation("Enviado relatorio de {application}", solicitacao.application);
               bot.SucessReport(solicitacao);
               break;
             }
@@ -207,8 +210,7 @@ public static class HandleAsynchronous
                 memstream,
                 String.Join('_', filename) + ".csv"
               );
-              ConsoleWrapper.Write(Entidade.CookerAsync,
-                $"Enviado planilha do relatório de {solicitacao.application}");
+              logger.LogInformation("Enviado planilha de {application}", solicitacao.application);
               bot.SucessReport(solicitacao);
               break;
             }
@@ -260,11 +262,14 @@ public static class HandleAsynchronous
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
+            var agora = DateTime.Now;
+            logger.LogDebug("Solicitando as faturas...");
             resposta_txt = ExecutarSap(
               solicitacao.application,
               instalation,
               solicitacao.instance
             );
+            logger.LogDebug("Quantidade experada: {quantidade}", resposta_txt);
             if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
             {
               solicitacao.status = 500;
@@ -275,23 +280,27 @@ public static class HandleAsynchronous
             }
             var faturas = new List<pdfsModel>();
             var tasks = new List<Task>();
-            var agora = DateTime.Now;
             while (true)
             {
               await Task.Delay(cfg.TASK_DELAY_LONG);
+              logger.LogDebug("Realizando a checagem");
               faturas = database.RecuperarFatura(
                 f => f.instalation == instalation &&
                   f.status == pdfsModel.Status.wait
               );
+              foreach (var fatura in faturas)
+                logger.LogDebug(fatura.filename);
               if(faturas.Count == quantidade_experada) break;
               if(agora.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now) break;
             }
+            logger.LogDebug("Quantidade de faturas: ", faturas.Count);
             if(!faturas.Any())
             {
               solicitacao.status = 503;
               var erro = new Exception(
                 "Não foi gerada nenhuma fatura pelo sistema SAP!");
               await bot.ErrorReport(erro, solicitacao);
+              logger.LogError("Não foi gerada nenhuma fatura pelo sistema SAP!");
               break;
             }
             if(faturas.Count != quantidade_experada)
@@ -300,6 +309,7 @@ public static class HandleAsynchronous
               var erro = new Exception(
                 "A quantidade de faturas não condiz com a quantidade esperada!");
               await bot.ErrorReport(erro, solicitacao);
+              logger.LogError("A quantidade de faturas não condiz com a quantidade esperada!");
               break;
             }
             var fluxos = new Stream[quantidade_experada];
@@ -315,14 +325,14 @@ public static class HandleAsynchronous
               ));
               fatura.status = pdfsModel.Status.sent;
               database.AlterarFatura(fatura);
-              ConsoleWrapper.Write(Entidade.Messenger,
-                $"Enviada fatura ({++fluxo_atual}/{quantidade_experada}): {fatura.filename}");
+              logger.LogInformation("Enviada fatura ({fluxo_atual}/{quantidade_experada}): {filename}",
+              fluxo_atual, quantidade_experada, fatura.filename
+              );
             }
             await Task.WhenAll(tasks);
             foreach(var fluxo in fluxos) fluxo.Close();
             bot.SucessReport(solicitacao);
-            ConsoleWrapper.Write(Entidade.Messenger,
-              $"Enviadas faturas para a instalação {instalation}");
+            logger.LogInformation("Enviadas faturas para a instalação {instalation}", instalation);
             break;
           }
         case TypeRequest.ofsInfo:

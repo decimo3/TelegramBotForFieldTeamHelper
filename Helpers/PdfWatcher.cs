@@ -1,18 +1,22 @@
 using telbot.Services;
 using telbot.models;
+using Microsoft.Extensions.Logging;
 namespace telbot.Helpers;
-public static partial class PdfHandle
+public partial class PdfHandle
 {
   public static async void Watch()
   {
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
-    ConsoleWrapper.Debug(Entidade.SoireeAsync, "Monitor de faturas iniciado!");
+    var logger = Logger.GetInstance<PdfHandle>();
+    logger.LogDebug("Monitor de faturas iniciado!");
+    logger.LogDebug(cfg.TEMP_FOLDER);
     while (true)
     {
       try
       {
         await Task.Delay(cfg.TASK_DELAY);
+        logger.LogDebug("Realizando o escaneamento de faturas...");
         var files = System.IO.Directory.GetFiles(cfg.TEMP_FOLDER);
         foreach (var file in files)
         {
@@ -30,7 +34,7 @@ public static partial class PdfHandle
               status = pdfsModel.Status.wait
             };
             var fatura_txt = System.Text.Json.JsonSerializer.Serialize<pdfsModel>(fatura);
-            ConsoleWrapper.Debug(Entidade.SoireeAsync, fatura_txt);
+            logger.LogDebug(fatura_txt);
             database.InserirFatura(fatura);
           }
           else
@@ -46,7 +50,7 @@ public static partial class PdfHandle
       }
       catch (System.Exception erro)
       {
-        ConsoleWrapper.Error(Entidade.Executor, erro);
+        logger.LogError(erro, "Ocorreu uma falha ao monitorar o diretório de faturas: ");
       }
     }
   }

@@ -5,16 +5,18 @@ using telbot.handle;
 using telbot.models;
 using telbot.Helpers;
 using telbot.Services;
+using Microsoft.Extensions.Logging;
 namespace telbot;
 class Startup
 {
   static async Task Main(String[] args)
   {
-    Console.WriteLine("#############################################");
-    Console.WriteLine("# BOT de atendimento automágico MestreRuan  #");
-    Console.WriteLine("# Author: decimo3 (github.com/decimo3)      #");
-    Console.WriteLine("# Repository: TelegramBotForFieldTeamHelper #");
-    Console.WriteLine("#############################################");
+    var logger = Logger.GetInstance<Startup>();
+    logger.LogInformation("#############################################");
+    logger.LogInformation("# BOT de atendimento automágico MestreRuan  #");
+    logger.LogInformation("# Author: decimo3 (github.com/decimo3)      #");
+    logger.LogInformation("# Repository: TelegramBotForFieldTeamHelper #");
+    logger.LogInformation("#############################################");
     var config = Configuration.GetInstance(System.Environment.GetCommandLineArgs());
     var argumentos = new String[] {"/NH", "/FI", "\"IMAGENAME eq bot.exe\""};
     var result = Executor.Executar("tasklist", argumentos, true);
@@ -24,9 +26,8 @@ class Startup
       result.Replace("bot.exe", "").Length) /
       "bot.exe".Length) > 1)
     {
-      var twice = "Já tem uma instância do chatbot rodando!";
-      ConsoleWrapper.Error(Entidade.Manager, new Exception(twice));
-      ConsoleWrapper.Write(Entidade.Manager, "Aperte qualquer tecla para sair.");
+      logger.LogError("Já tem uma instância do chatbot rodando!");
+      logger.LogInformation("Aperte qualquer tecla para sair.");
       Console.ReadKey();
       System.Environment.Exit(1);
     }
@@ -41,7 +42,7 @@ class Startup
     using (var cts = new CancellationTokenSource())
     {
       bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
-      ConsoleWrapper.Write(Entidade.Manager, "Start listening for updates. Press enter to stop.");
+      logger.LogInformation("Start listening for updates. Press enter to stop.");
       if(config.IS_DEVELOPMENT == false) HandleAnnouncement.Comunicado();
       if(config.SAP_VENCIMENTO) HandleAnnouncement.Vencimento("vencimento", 7);
       if(config.SAP_BANDEIRADA) HandleAnnouncement.Vencimento("bandeirada", 7);
@@ -66,11 +67,12 @@ class Startup
   }
   private static async Task HandleUpdate(ITelegramBotClient _, Update update, CancellationToken cancellationToken)
   {
+    var logger = Logger.GetInstance<Startup>();
     var chatbot = HandleMessage.GetInstance();
     var msg2json = System.Text.Json.JsonSerializer.Serialize<Update>(update);
     if(Configuration.GetInstance().IS_DEVELOPMENT)
     {
-      ConsoleWrapper.Debug(Entidade.Usuario, msg2json);
+      logger.LogDebug(msg2json);
     }
     //##################################################//
     //       Ignora updates que não sejam mensagens     //
@@ -175,7 +177,9 @@ class Startup
   #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
   private static async Task HandleError(ITelegramBotClient _, Exception exception, CancellationToken cancellationToken)
   {
-    ConsoleWrapper.Error(Entidade.Manager, exception);
+    Logger.GetInstance<Startup>().LogError(
+      exception, "Erro crítico que poderia parar a aplicação: "
+    );
   }
   #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 }
