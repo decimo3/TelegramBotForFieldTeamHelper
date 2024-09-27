@@ -210,6 +210,23 @@ public class PostgreSQL : IDatabase
       command.ExecuteNonQuery();
     }
   }
+  public void RemoverFatura(Int64 rowid)
+  {
+    using(var command = connection.CreateCommand())
+    {
+      command.CommandText = "DELETE FROM faturas WHERE rowid = @valor";
+      command.Parameters.Add(new NpgsqlParameter("@valor", rowid));
+      command.ExecuteNonQuery();
+    }
+  }
+  public void RemoverFatura()
+  {
+    using(var command = connection.CreateCommand())
+    {
+      command.CommandText = "TRUNCATE faturas ONLY RESTART IDENTITY";
+      command.ExecuteNonQuery();
+    }
+  }
   public void Dispose()
   {
     Dispose(true);

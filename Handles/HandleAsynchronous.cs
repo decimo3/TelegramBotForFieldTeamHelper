@@ -135,6 +135,13 @@ public class HandleAsynchronous
       logger.LogDebug(solicitacao_texto);
       if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
       {
+        if(cfg.SAP_OFFLINE)
+        {
+          solicitacao.status = 503;
+          var erro = new Exception("O sistema SAP está fora do ar!");
+          await bot.ErrorReport(erro, solicitacao);
+          return;
+        }
         if(!cfg.IS_DEVELOPMENT && solicitacao.received_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
         {
           solicitacao.status = 408;
@@ -286,7 +293,7 @@ public class HandleAsynchronous
               logger.LogDebug("Realizando a checagem");
               faturas = database.RecuperarFatura(
                 f => f.instalation == instalation &&
-                  f.status == pdfsModel.Status.wait
+                  f.timestamp >= agora
               );
               foreach (var fatura in faturas)
                 logger.LogDebug(fatura.filename);
@@ -326,11 +333,12 @@ public class HandleAsynchronous
               fatura.status = pdfsModel.Status.sent;
               database.AlterarFatura(fatura);
               logger.LogInformation("Enviada fatura ({fluxo_atual}/{quantidade_experada}): {filename}",
-              fluxo_atual, quantidade_experada, fatura.filename
+              ++fluxo_atual, quantidade_experada, fatura.filename
               );
             }
             await Task.WhenAll(tasks);
             foreach(var fluxo in fluxos) fluxo.Close();
+            PdfHandle.Remove(faturas);
             bot.SucessReport(solicitacao);
             logger.LogInformation("Enviadas faturas para a instalação {instalation}", instalation);
             break;

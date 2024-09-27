@@ -26,6 +26,11 @@ public partial class PdfHandle
           if(registry == null)
           {
             var instalation = PdfHandle.Check(file);
+            if(instalation == 0)
+            {
+              System.IO.File.Delete(file);
+              continue;
+            }
             var timestamp = System.IO.File.GetLastWriteTime(file);
             var fatura = new pdfsModel() {
               filename = filename,
@@ -37,21 +42,33 @@ public partial class PdfHandle
             logger.LogDebug(fatura_txt);
             database.InserirFatura(fatura);
           }
-          else
-          {
-            if(registry.status == pdfsModel.Status.sent)
-            {
-              System.IO.File.Delete(filename);
-              registry.status = pdfsModel.Status.done;
-              database.AlterarFatura(registry);
-            }
-          }
         }
       }
       catch (System.Exception erro)
       {
         logger.LogError(erro, "Ocorreu uma falha ao monitorar o diretório de faturas: ");
       }
+    }
+  }
+  public static void Remove(List<pdfsModel> faturas)
+  {
+    var logger = Logger.GetInstance<PdfHandle>();
+    try
+    {
+      foreach (var fatura in faturas)
+      {
+        var filepath = System.IO.Path.Combine(
+          Configuration.GetInstance().TEMP_FOLDER,
+          fatura.filename
+        );
+        System.IO.File.Delete(filepath);
+        Database.GetInstance().RemoverFatura(fatura.rowid);
+        logger.LogDebug("Excluída fatura {fatura}", fatura.filename);
+      }
+    }
+    catch (System.Exception erro)
+    {
+      logger.LogError(erro, "Ocorreu uma falha ao tentar remover as faturas: ");
     }
   }
 }

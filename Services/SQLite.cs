@@ -276,6 +276,29 @@ public class SQLite : IDatabase
       }
     }
   }
+  public void RemoverFatura(Int64 rowid)
+  {
+    using(var connection = new SQLiteConnection(connectionString))
+    {
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = "DELETE FROM faturas WHERE rowid = @valor";
+        command.Parameters.Add(new SQLiteParameter("@valor", rowid));
+        command.ExecuteNonQuery();
+      }
+    }
+  }
+  public void RemoverFatura()
+  {
+    using(var connection = new SQLiteConnection(connectionString))
+    {
+      using(var command = connection.CreateCommand())
+      {
+        command.CommandText = "DELETE FROM faturas";
+        command.ExecuteNonQuery();
+      }
+    }
+  }
   public void Dispose()
   {
     Dispose(true);
