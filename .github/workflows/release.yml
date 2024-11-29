@@ -81,5 +81,5 @@ jobs:
           export VERSION
           gh release create v${VERSION} --verify-tag \
           --notes-file comunicado.txt \
-          --title "TEL_BOT release" \
+          --title "TEL_BOT release v${VERSION}" \
           telbot.zip telbot.zip.sha256sum
