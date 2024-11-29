@@ -73,7 +73,6 @@ jobs:
 
       - name: Generate SHA256 checksum
         run: |
-          cd ./bin/Release/net7.0/win-x64/publish/
           sha256sum telbot.zip > telbot.zip.sha256sum
           echo "SHA_WIN64_ZIP=$(cat telbot.zip.sha256sum)" >> $GITHUB_ENV
 
