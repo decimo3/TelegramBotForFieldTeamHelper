@@ -59,6 +59,12 @@ public class HandleAsynchronous
     request.identifier = identificador;
     request.received_at = received_at;
     database.InserirSolicitacao(request);
+    if(
+      request.typeRequest == TypeRequest.gestao ||
+      request.typeRequest == TypeRequest.comando)
+    {
+      await Cooker(request);
+    }
   }
   public static async Task Chief()
   {
@@ -66,13 +72,17 @@ public class HandleAsynchronous
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     var logger = Logger.GetInstance<HandleAsynchronous>();
-    var instanceControl = new bool[cfg.SAP_INSTANCIA];
-    var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA);
+    var instanceControl = new bool[cfg.SAP_INSTANCIA - 1];
+    var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA - 1);
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
-      var solicitacoes = database.RecuperarSolicitacao();
-      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<List<logsModel>>(solicitacoes);
+      var solicitacoes = database.RecuperarSolicitacao(
+        s => s.typeRequest != TypeRequest.pdfInfo &&
+            s.typeRequest != TypeRequest.gestao &&
+            s.typeRequest != TypeRequest.comando
+      );
+      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize(solicitacoes);
       logger.LogDebug(solicitacao_texto);
       if(!solicitacoes.Any()) continue;
       var tasks = new List<Task>();
@@ -121,6 +131,23 @@ public class HandleAsynchronous
                     }));
       }
       await Task.WhenAll(tasks);
+    }
+  }
+  public static async Task InvoiceChief()
+  {
+    var bot = HandleMessage.GetInstance();
+    var cfg = Configuration.GetInstance();
+    var database = Database.GetInstance();
+    var logger = Logger.GetInstance<HandleAsynchronous>();
+    while (true)
+    {
+      await Task.Delay(cfg.TASK_DELAY);
+      var solicitacao = database.RecuperarSolicitacao(
+        s => s.typeRequest == TypeRequest.pdfInfo
+      ).FirstOrDefault();
+      if(solicitacao == null) continue;
+      solicitacao.instance = cfg.SAP_INSTANCIA;
+      await Cooker(solicitacao);
     }
   }
   public static async Task Cooker(logsModel solicitacao)

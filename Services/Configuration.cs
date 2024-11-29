@@ -101,6 +101,9 @@ public class Configuration
     TEMP_FOLDER = System.IO.Path.Combine(System.AppContext.BaseDirectory, "tmp");
     if(!System.IO.Directory.Exists(TEMP_FOLDER))
       System.IO.Directory.CreateDirectory(TEMP_FOLDER);
+
+    if(SAP_INSTANCIA < 2)
+      throw new InvalidOperationException("Not enough SAP instances have been configured!");
   }
   public static Dictionary<String,String> ArquivoConfiguracao(String filename, char delimiter = '=')
   {
