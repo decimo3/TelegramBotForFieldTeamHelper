@@ -1,0 +1,9 @@
+*COMUNICADO DE ATUALIZAÇÃO DO CHATBOT*
+
+Agora as solicitações de fatura serão atendidas separadamente!
+
+Devido as quedas e lentidões frequentes no sistema de faturas da Light, as solicitações estavam ficando atrasadas, mesmo as que não tem relação com as faturas.
+
+Agora que elas serão atendidas separadamente, mesmo que o sistema de faturas da Light caia, as outras solicitações serão atendidas normalmente, eliminando assim, o atraso no atendimento.
+
+_Versão atual: ${VERSION}_
