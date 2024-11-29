@@ -68,7 +68,7 @@ jobs:
           cat comunicado.txt
 
       - name: Compress application
-      - run: |
+        run: |
           zip -r telbot.zip ./bin/Release/net7.0/win-x64/publish/ ./comunicado.txt
 
       - name: Generate SHA256 checksum
