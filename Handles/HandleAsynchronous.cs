@@ -300,10 +300,10 @@ public class HandleAsynchronous
               if(faturas.Count == quantidade_experada) break;
               if(agora.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now) break;
             }
-            logger.LogDebug("Quantidade de faturas: ", faturas.Count);
+            logger.LogDebug("Quantidade de faturas: {}", faturas.Count);
             if(!faturas.Any())
             {
-              solicitacao.status = 503;
+              solicitacao.status = 408;
               var erro = new Exception(
                 "Não foi gerada nenhuma fatura pelo sistema SAP!");
               await bot.ErrorReport(erro, solicitacao);
@@ -312,7 +312,7 @@ public class HandleAsynchronous
             }
             if(faturas.Count != quantidade_experada)
             {
-              solicitacao.status = 503;
+              solicitacao.status = 500;
               var erro = new Exception(
                 "A quantidade de faturas não condiz com a quantidade esperada!");
               await bot.ErrorReport(erro, solicitacao);
@@ -355,7 +355,7 @@ public class HandleAsynchronous
             }
             if(!cfg.OFS_MONITORAMENTO)
             {
-              solicitacao.status = 404;
+              solicitacao.status = 503;
               var erro = new Exception(
                 "O sistema monitor do OFS não está ativo no momento!");
               await bot.ErrorReport(erro, solicitacao);
