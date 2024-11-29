@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace telbot.handle;
 public class HandleAsynchronous
 {
-  private static readonly System.Text.RegularExpressions.Regex regex = new("^[0-9]{3}:");
+  public static readonly System.Text.RegularExpressions.Regex regex = new("^[0-9]{3}:");
   private static Stream ExecutarImg(String table)
   {
     var argumentos = new String[] { "\"" + table + "\"" };
