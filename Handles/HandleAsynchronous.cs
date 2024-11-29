@@ -71,8 +71,10 @@ public class HandleAsynchronous
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
-      var solicitacoes = database.RecuperarSolicitacao();
-      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<List<logsModel>>(solicitacoes);
+      var solicitacoes = database.RecuperarSolicitacao(
+        s => s.typeRequest != TypeRequest.pdfInfo
+      );
+      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize(solicitacoes);
       logger.LogDebug(solicitacao_texto);
       if(!solicitacoes.Any()) continue;
       var tasks = new List<Task>();
