@@ -1,0 +1,86 @@
+name: release
+on:
+  # Enable manual triggering of the workflow
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'  # This will trigger on tags starting with 'v', e.g., 'v1.0.0'
+permissions:
+  contents: write
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      H_REPO: ${{ github.repository }}
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y gh gettext-base
+
+      - name: Get version
+        run: |
+          # Check if the workflow is triggered by a tag; if not, get the latest tag
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            # Remove the 'v' prefix and split the version string into components
+            version="${GITHUB_REF#refs/tags/v}"
+          else
+            # Fetch tags and get the latest one
+            git fetch --tags
+            version=$(git describe --tags $(git rev-list --tags --max-count=1))
+            version="${version#v}"  # Remove 'v' prefix if the tag has it
+          fi
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build application
+        run: |
+          export VERSION
+          dotnet publish -c Release \
+            /p:Version=${VERSION} \
+            /p:FileVersion=${VERSION}.0 \
+            /p:AssemblyVersion=${VERSION}.0 \
+            /p:PublishSingleFile=true \
+            /p:SelfContained=true \
+            /p:RuntimeIdentifier=win-x64 \
+            /p:PublishTrimmed=true \
+            /p:DebugType=none \
+            --no-restore
+
+      - name: Create release notes
+        id: release_note
+        run: |
+          export VERSION
+          envsubst < comunicado.txt > comunicado.tmp
+          mv comunicado.tmp comunicado.txt
+          cat comunicado.txt
+
+      - name: Compress application
+      - run: |
+          zip -r telbot.zip ./bin/Release/net7.0/win-x64/publish/ ./comunicado.txt
+
+      - name: Generate SHA256 checksum
+        run: |
+          cd ./bin/Release/net7.0/win-x64/publish/
+          sha256sum telbot.zip > telbot.zip.sha256sum
+          echo "SHA_WIN64_ZIP=$(cat telbot.zip.sha256sum)" >> $GITHUB_ENV
+
+      - name: Create a release on GitHub
+        run: |
+          export VERSION
+          gh release create v${VERSION} --verify-tag \
+          --notes-file comunicado.txt \
+          --title "TEL_BOT release" \
+          telbot.zip telbot.zip.sha256sum
