@@ -59,6 +59,12 @@ public class HandleAsynchronous
     request.identifier = identificador;
     request.received_at = received_at;
     database.InserirSolicitacao(request);
+    if(
+      request.typeRequest == TypeRequest.gestao ||
+      request.typeRequest == TypeRequest.comando)
+    {
+      await Cooker(request);
+    }
   }
   public static async Task Chief()
   {
@@ -72,7 +78,9 @@ public class HandleAsynchronous
     {
       await Task.Delay(cfg.TASK_DELAY);
       var solicitacoes = database.RecuperarSolicitacao(
-        s => s.typeRequest != TypeRequest.pdfInfo
+        s => s.typeRequest != TypeRequest.pdfInfo &&
+            s.typeRequest != TypeRequest.gestao &&
+            s.typeRequest != TypeRequest.comando
       );
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize(solicitacoes);
       logger.LogDebug(solicitacao_texto);
