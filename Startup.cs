@@ -54,6 +54,7 @@ class Startup
       var sap_instance_check_args = new String[] { "instancia", "5", "0"};
       HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
       HandleAsynchronous.Chief();
+      HandleAsynchronous.InvoiceChief();
       PdfHandle.Watch();
       Console.ReadLine();
       cts.Cancel();
