@@ -15,12 +15,13 @@ public class Logger : IDisposable
       if (_instance == null)
       {
         // Initialize Serilog and attach to Microsoft.Extensions.Logging
-        var template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level:u} | {SourceContext} | {Message}{NewLine}{Exception}";
+        var template_console = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level:u} | {SourceContext} | {Message}";
+        var template_logfile = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level:u} | {SourceContext} | {Message}{NewLine}{Exception}";
         // Ensure the logger is flushed
         Serilog.Log.CloseAndFlush();
         var logger = new Serilog.LoggerConfiguration()
-          .WriteTo.Console(outputTemplate: template, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
-          .WriteTo.File("chatbot.log", outputTemplate: template, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+          .WriteTo.Console(outputTemplate: template_console, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
+          .WriteTo.File("chatbot.log", outputTemplate: template_logfile, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
           .CreateLogger();
         // Use Serilog as the logging provider
         _loggerFactory = LoggerFactory.Create(builder =>
