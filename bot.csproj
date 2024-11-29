@@ -10,6 +10,9 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <NoWarn>IDE0049</NoWarn>
     <ApplicationIcon>appicon.ico</ApplicationIcon>
+    <Version>0.0.0</Version>
+    <FileVersion>0.0.0.0</FileVersion>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
