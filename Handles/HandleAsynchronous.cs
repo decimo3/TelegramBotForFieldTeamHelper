@@ -125,6 +125,23 @@ public class HandleAsynchronous
       await Task.WhenAll(tasks);
     }
   }
+  public static async Task InvoiceChief()
+  {
+    var bot = HandleMessage.GetInstance();
+    var cfg = Configuration.GetInstance();
+    var database = Database.GetInstance();
+    var logger = Logger.GetInstance<HandleAsynchronous>();
+    while (true)
+    {
+      await Task.Delay(cfg.TASK_DELAY);
+      var solicitacao = database.RecuperarSolicitacao(
+        s => s.typeRequest == TypeRequest.pdfInfo
+      ).FirstOrDefault();
+      if(solicitacao == null) continue;
+      solicitacao.instance = cfg.SAP_INSTANCIA;
+      await Cooker(solicitacao);
+    }
+  }
   public static async Task Cooker(logsModel solicitacao)
   {
       var bot = HandleMessage.GetInstance();
