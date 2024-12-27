@@ -46,6 +46,8 @@ public class HandleAsynchronous
     var database = Database.GetInstance();
     var telegram = HandleMessage.GetInstance();
     var logger = Logger.GetInstance<HandleAsynchronous>();
+    try
+    {
     logger.LogInformation("{identificador} escreveu: {mensagem}", identificador, mensagem);
     var request = Validador.isRequest(mensagem);
     if (request is null)
@@ -65,6 +67,11 @@ public class HandleAsynchronous
     {
       await Cooker(request);
     }
+    }
+    catch (System.Exception erro)
+    {
+      logger.LogError(erro, "Ocorreu um erro fatal!");
+    }
   }
   public static async Task Chief()
   {
@@ -72,10 +79,13 @@ public class HandleAsynchronous
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     var logger = Logger.GetInstance<HandleAsynchronous>();
-    var instanceControl = new bool[cfg.SAP_INSTANCIA - 1];
-    var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA - 1);
+    var INSTANCIAS_LIMITE = cfg.SAP_INSTANCIA - 1;
+    var instanceControl = new bool[INSTANCIAS_LIMITE];
+    var semaphore = new SemaphoreSlim(INSTANCIAS_LIMITE);
     while (true)
     {
+      try
+      {
       await Task.Delay(cfg.TASK_DELAY);
       var solicitacoes = database.RecuperarSolicitacao(
         s => s.typeRequest != TypeRequest.pdfInfo &&
@@ -132,6 +142,12 @@ public class HandleAsynchronous
       }
       await Task.WhenAll(tasks);
     }
+    catch (System.Exception erro)
+    {
+      semaphore.Release(INSTANCIAS_LIMITE);
+      logger.LogError(erro, "Ocorreu um erro fatal!");
+    }
+    }
   }
   public static async Task InvoiceChief()
   {
@@ -141,6 +157,8 @@ public class HandleAsynchronous
     var logger = Logger.GetInstance<HandleAsynchronous>();
     while (true)
     {
+    try
+    {
       await Task.Delay(cfg.TASK_DELAY);
       var solicitacao = database.RecuperarSolicitacao(
         s => s.typeRequest == TypeRequest.pdfInfo
@@ -148,6 +166,11 @@ public class HandleAsynchronous
       if(solicitacao == null) continue;
       solicitacao.instance = cfg.SAP_INSTANCIA;
       await Cooker(solicitacao);
+    }
+    catch (System.Exception erro)
+    {
+      logger.LogError(erro, "Ocorreu um erro fatal!");
+    }
     }
   }
   public static async Task Cooker(logsModel solicitacao)
