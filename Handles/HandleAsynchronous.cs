@@ -72,8 +72,9 @@ public class HandleAsynchronous
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     var logger = Logger.GetInstance<HandleAsynchronous>();
-    var instanceControl = new bool[cfg.SAP_INSTANCIA - 1];
-    var semaphore = new SemaphoreSlim(cfg.SAP_INSTANCIA - 1);
+    var INSTANCIAS_LIMITE = cfg.SAP_INSTANCIA - 1;
+    var instanceControl = new bool[INSTANCIAS_LIMITE];
+    var semaphore = new SemaphoreSlim(INSTANCIAS_LIMITE);
     while (true)
     {
       await Task.Delay(cfg.TASK_DELAY);
