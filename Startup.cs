@@ -67,7 +67,7 @@ class Startup
       // Set chief method to answer invoice requests
       HandleAsynchronous.Chief
       (
-        minInstance: normal_max_instance + 1,
+        minInstance: normal_max_instance,
         maxInstance: config.SAP_INSTANCIA,
         s => s.typeRequest == TypeRequest.pdfInfo
       );
