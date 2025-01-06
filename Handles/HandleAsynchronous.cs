@@ -2,6 +2,8 @@ using telbot.Helpers;
 using telbot.models;
 using telbot.Services;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
+using System.Text.Json;
 namespace telbot.handle;
 public class HandleAsynchronous
 {
@@ -73,26 +75,27 @@ public class HandleAsynchronous
       logger.LogError(erro, "Ocorreu um erro fatal!");
     }
   }
-  public static async Task Chief()
+  public static async Task Chief
+  (
+    Int32 minInstance,
+    Int32 maxInstance,
+    Expression<Func<logsModel,bool>> filtro
+  )
   {
+    var instances = maxInstance - minInstance;
     var bot = HandleMessage.GetInstance();
     var cfg = Configuration.GetInstance();
     var database = Database.GetInstance();
     var logger = Logger.GetInstance<HandleAsynchronous>();
-    var INSTANCIAS_LIMITE = cfg.SAP_INSTANCIA - 1;
-    var instanceControl = new bool[INSTANCIAS_LIMITE];
-    var semaphore = new SemaphoreSlim(INSTANCIAS_LIMITE);
+    var instanceControl = new bool[instances];
+    var semaphore = new SemaphoreSlim(instances);
     while (true)
     {
       try
       {
       await Task.Delay(cfg.TASK_DELAY);
-      var solicitacoes = database.RecuperarSolicitacao(
-        s => s.typeRequest != TypeRequest.pdfInfo &&
-            s.typeRequest != TypeRequest.gestao &&
-            s.typeRequest != TypeRequest.comando
-      );
-      var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize(solicitacoes);
+      var solicitacoes = database.RecuperarSolicitacao(filtro);
+      var solicitacao_texto = JsonSerializer.Serialize(solicitacoes);
       logger.LogDebug(solicitacao_texto);
       if(!solicitacoes.Any()) continue;
       var tasks = new List<Task>();
@@ -110,7 +113,7 @@ public class HandleAsynchronous
               // Mark it as occupied
               instanceControl[i] = true;
               // Set the instance number (1-based index)
-              instanceNumber = i + 1;
+              instanceNumber = i + minInstance + 1;
               break;
             }
           }
@@ -133,7 +136,7 @@ public class HandleAsynchronous
                           lock (instanceControl)
                           {
                             // Mark the instance as available again (1-based index)
-                            instanceControl[instanceNumber - 1] = false;
+                            instanceControl[instanceNumber - minInstance - 1] = false;
                           }
                           // Release the semaphore slot
                             semaphore.Release();
@@ -144,31 +147,7 @@ public class HandleAsynchronous
     }
     catch (System.Exception erro)
     {
-      semaphore.Release(INSTANCIAS_LIMITE);
-      logger.LogError(erro, "Ocorreu um erro fatal!");
-    }
-    }
-  }
-  public static async Task InvoiceChief()
-  {
-    var bot = HandleMessage.GetInstance();
-    var cfg = Configuration.GetInstance();
-    var database = Database.GetInstance();
-    var logger = Logger.GetInstance<HandleAsynchronous>();
-    while (true)
-    {
-    try
-    {
-      await Task.Delay(cfg.TASK_DELAY);
-      var solicitacao = database.RecuperarSolicitacao(
-        s => s.typeRequest == TypeRequest.pdfInfo
-      ).FirstOrDefault();
-      if(solicitacao == null) continue;
-      solicitacao.instance = cfg.SAP_INSTANCIA;
-      await Cooker(solicitacao);
-    }
-    catch (System.Exception erro)
-    {
+      semaphore.Release(instances);
       logger.LogError(erro, "Ocorreu um erro fatal!");
     }
     }

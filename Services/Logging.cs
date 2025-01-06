@@ -10,6 +10,10 @@ public class Logger : IDisposable
   private Logger() {}
   public static Microsoft.Extensions.Logging.ILogger GetInstance<T>()
   {
+    var logsfilepath = System.IO.Path.Combine(
+      System.AppContext.BaseDirectory,
+      "log", "telbot_.log"
+    );
     lock (_lock)
     {
       if (_instance == null)
@@ -25,7 +29,7 @@ public class Logger : IDisposable
             restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information
             )
           .WriteTo.File(
-            path: "chatbot.log",
+            path: logsfilepath,
             outputTemplate: console_template,
             rollingInterval: RollingInterval.Day,
             restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose

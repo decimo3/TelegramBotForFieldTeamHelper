@@ -53,8 +53,25 @@ class Startup
       HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
       var sap_instance_check_args = new String[] { "instancia", "5", "0"};
       HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
-      HandleAsynchronous.Chief();
-      HandleAsynchronous.InvoiceChief();
+      # pragma warning disable CS4014
+      // Set chief method to answer normal requests
+      var normal_max_instance = (int)Math.Ceiling(config.SAP_INSTANCIA / 2.0);
+      HandleAsynchronous.Chief
+      (
+        minInstance: 0,
+        maxInstance: normal_max_instance,
+        s => s.typeRequest != TypeRequest.pdfInfo &&
+          s.typeRequest != TypeRequest.gestao &&
+          s.typeRequest != TypeRequest.comando
+      );
+      // Set chief method to answer invoice requests
+      HandleAsynchronous.Chief
+      (
+        minInstance: normal_max_instance,
+        maxInstance: config.SAP_INSTANCIA,
+        s => s.typeRequest == TypeRequest.pdfInfo
+      );
+      # pragma warning restore CS4014
       PdfHandle.Watch();
       Console.ReadLine();
       cts.Cancel();
