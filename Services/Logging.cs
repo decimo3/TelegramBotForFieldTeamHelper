@@ -19,18 +19,13 @@ public class Logger : IDisposable
       if (_instance == null)
       {
         // Initialize Serilog and attach to Microsoft.Extensions.Logging
-        var logfile_template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level:u} | {SourceContext} | {Message}{NewLine}{Exception}";
-        var console_template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level:u} | {SourceContext} | {Message}";
+        var template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level:u} | {SourceContext} | {Message}{NewLine}{Exception}";
         // Ensure the logger is flushed
         Serilog.Log.CloseAndFlush();
         var logger = new Serilog.LoggerConfiguration()
-          .WriteTo.Console(
-            outputTemplate: logfile_template,
-            restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information
-            )
           .WriteTo.File(
             path: logsfilepath,
-            outputTemplate: console_template,
+            outputTemplate: template,
             rollingInterval: RollingInterval.Day,
             restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose
             )
