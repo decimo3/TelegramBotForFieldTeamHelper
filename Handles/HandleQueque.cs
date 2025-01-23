@@ -14,11 +14,11 @@ public class HandleQueQue
       return _instance;
     }
   }
-  public List<logsModel> Get()
+  public List<logsModel> Get(Int32 limit)
   {
     lock(lista)
     {
-      return new List<logsModel>(lista);
+      return new List<logsModel>(lista.Take(limit).ToList());
     }
   }
   public List<logsModel>? Get(Expression<Func<logsModel, bool>> expression)
