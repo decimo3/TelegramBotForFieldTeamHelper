@@ -1,72 +1,87 @@
-using telbot.models;
 namespace telbot.handle;
-public static class FrontEnd
+public class FrontEnd
 {
-  private static readonly String[] Headers = {
-    "rowid", "Identificador", "Aplicacao", "Informacao", 
-    "Tipo", "Respondido", "Recebido", "Status", "Instancia"
+  private readonly Int32 X_MAX = Console.WindowWidth - 2;
+  private readonly Int32 Y_MAX = Console.WindowHeight;
+  private readonly String[] HEADERS =
+  {
+    "rowid", "identifier", "application", "information", "typeRequest",
+    "received_at", "response_at", "instance", "status"
   };
-  private static readonly Int32[] ColumnWidths = { 13, 16, 10, 4, 20, 20, 6, 9 };
-  private static Int32 GetColumnPosition(int columnIndex)
+  private Int32 X_CUR = 0;
+  private Int32 Y_CUR = 0;
+  private readonly Int32[] TAMANHOS = 
   {
-    var position = 0;
-    for (int i = 0; i < columnIndex; i++)
-    {
-      position += ColumnWidths[i];
-    }
-    return position;
-  }
-  private static void DrawData(List<List<String>> data)
+    6, 16, 16, 16, 12, 20, 20, 10, 6
+  };
+  private enum DESTAQUES {AUSENTE = 0, VERDE = 200, AMARELO = 300, VERMELHO = 500}
+  private void DrawLine(Object[] textos, DESTAQUES destaque = DESTAQUES.AUSENTE)
   {
-    for (int i = 0; i < data.Count && i < Console.WindowHeight - 2; i++) // Ensure rows fit in window
+    if (Y_CUR >= Y_MAX) return;
+    for (int i = 0; i < textos.Length; i++)
     {
-      for (int j = 0; j < data[i].Count && j < Headers.Length; j++) // Ensure columns fit headers
+      Console.SetCursorPosition(X_CUR, Y_CUR);
+      switch (destaque)
       {
-        var value = data[i][j].PadRight(ColumnWidths[j]);
-        Console.SetCursorPosition(GetColumnPosition(j), i + 1);
-        Console.Write(value.Length > ColumnWidths[j] 
-            ? value.Substring(0, ColumnWidths[j] - 1) + "…" 
-            : value);
-      }
-    }
-  }
-  static FrontEnd()
-  {
-    var queque = HandleQueQue.GetInstance();
-    // Hide the cursor
-    Console.CursorVisible = false;
-    // Clear the console
-    Console.Clear();
-    // Main loop
-    while (true)
-    {
-      try
-      {
-        // Reset cursor position
-        Console.SetCursorPosition(0, 0);
-        // Simulate data retrieval
-        var data = queque.Get();
-        // Draw the datatable
-        DrawData(data);
-        // Check for user input
-        if (Console.KeyAvailable)
-        {
-          var key = Console.ReadKey(intercept: true);
-          // Stops if key pressed is 'Q'
-          if (key.Key == ConsoleKey.Q)
-          {
-            break;
-          }
-        }
-        // Refresh every second
-        Thread.Sleep(1000);
-      }
-      catch (System.Exception erro)
-      {
-        Console.Clear();
-        Console.WriteLine($"Error: {erro.Message}");
+        case DESTAQUES.AUSENTE:
+          Console.BackgroundColor = ConsoleColor.Black;
+          Console.ForegroundColor = ConsoleColor.White;
+        break;
+        case DESTAQUES.VERDE:
+          Console.BackgroundColor = ConsoleColor.Black;
+          Console.ForegroundColor = ConsoleColor.Green;
+        break;
+        case DESTAQUES.AMARELO:
+          Console.BackgroundColor = ConsoleColor.Black;
+          Console.ForegroundColor = ConsoleColor.Yellow;
+        break;
+        case DESTAQUES.VERMELHO:
+          Console.BackgroundColor = ConsoleColor.Black;
+          Console.ForegroundColor = ConsoleColor.Red;
         break;
       }
+      Console.Write('|');
+      Console.Write(textos[i].ToString());
+      X_CUR += TAMANHOS[i] + 1;
+    }
+    Console.SetCursorPosition(X_MAX, Y_CUR);
+    Console.Write('|');
+    X_CUR = 0;
+    Y_CUR += 1;
+  }
+  public async void Start()
+  {
+    // Hide the cursor
+    Console.CursorVisible = false;
+    while(true)
+    {
+      // Get requests
+      var requests = HandleQueQue.GetInstance().Get(Y_MAX);
+      // Clear the console
+      Console.Clear();
+      // Draw table header  
+      DrawLine(new string[]{new String('-', X_MAX)});
+      DrawLine(HEADERS);
+      DrawLine(new string[]{new String('-', X_MAX)});
+      // Draw line data
+      requests = requests.OrderByDescending(s => s.received_at).ToList();
+      foreach (var request in requests)
+      {
+        var linha = new Object[]
+        {
+          request.rowid,
+          request.identifier,
+          request.application,
+          request.information,
+          request.typeRequest,
+          request.received_at,
+          request.response_at,
+          request.instance,
+          request.status
+        };
+        DrawLine(linha.Take(Y_MAX).ToArray(), (DESTAQUES)request.status);
+      }
+      await Task.Delay(1_000);
     }
   }
 }
