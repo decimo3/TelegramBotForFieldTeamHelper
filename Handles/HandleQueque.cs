@@ -1,16 +1,34 @@
 using System.Linq.Expressions;
+using telbot.Interfaces;
 using telbot.models;
+using telbot.Services;
 namespace telbot.handle;
 public class HandleQueQue
 {
   private static readonly List<logsModel> lista = new();
   private static HandleQueQue? _instance = null;
-  private HandleQueQue() {}
-  public static HandleQueQue GetInstance()
+  private readonly IDatabase? database = null;
+  private HandleQueQue(Configuration configuration)
+  {
+    this.database = Database.GetInstance(configuration);
+    foreach (var request in database.RecuperarSolicitacao())
+    {
+      lista.Add(request);
+    }
+  }
+  public static HandleQueQue GetInstance(Configuration? configuration = null)
   {
     lock(lista)
     {
-      _instance ??= new();
+      if (_instance is null)
+      {
+        if (configuration is null)
+        {
+          throw new NullReferenceException(
+            "Database must be instantiated with a valid Configuration object.");
+        }
+        _instance = new(configuration);
+      }
       return _instance;
     }
   }
