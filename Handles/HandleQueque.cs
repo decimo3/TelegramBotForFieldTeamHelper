@@ -1,4 +1,3 @@
-using System.Data.Entity.Core;
 using System.Linq.Expressions;
 using telbot.models;
 namespace telbot.handle;
@@ -61,5 +60,10 @@ public class HandleQueQue
       lista.Remove(item);
       lista.Add(request);
     }
+  }
+  public class ObjectNotFoundException : Exception
+  {
+    public ObjectNotFoundException() : base() {}
+    public ObjectNotFoundException(String message) : base(message) {}
   }
 }
