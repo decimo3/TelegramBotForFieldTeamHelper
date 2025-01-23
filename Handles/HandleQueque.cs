@@ -24,7 +24,7 @@ public class HandleQueQue
   public List<logsModel>? Get(Expression<Func<logsModel, bool>> expression)
   {
     if (expression is null)
-      throw new ArgumentNullException(nameof(expression));
+      throw new ArgumentNullException();
     lock(lista)
     {
       return lista.Where(expression.Compile()).ToList();
@@ -33,7 +33,7 @@ public class HandleQueQue
   public void Add(logsModel request)
   {
     if (request == null)
-      throw new ArgumentNullException(nameof(request));
+      throw new ArgumentNullException();
     lock(lista)
     {
       lista.Add(request);
@@ -42,21 +42,21 @@ public class HandleQueQue
   public void Del(logsModel request)
   {
     if (request == null)
-      throw new ArgumentNullException(nameof(request));
+      throw new ArgumentNullException();
     lock(lista)
     {
       if(!lista.Remove(request))
-        throw new ObjectNotFoundException(nameof(request));
+        throw new ObjectNotFoundException();
     }
   }
   public void Alt(logsModel request)
   {
     if (request == null)
-      throw new ArgumentNullException(nameof(request));
+      throw new ArgumentNullException();
     lock(lista)
     {
       var item = lista.Find(l => l.rowid == request.rowid) ??
-        throw new ObjectNotFoundException(nameof(request));
+        throw new ObjectNotFoundException();
       lista.Remove(item);
       lista.Add(request);
     }
