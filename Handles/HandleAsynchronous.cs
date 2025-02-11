@@ -79,7 +79,7 @@ public class HandleAsynchronous
   (
     Int32 minInstance,
     Int32 maxInstance,
-    Expression<Func<logsModel,bool>> filtro
+    Expression<Func<logsModel,bool>>? filtro = null
   )
   {
     var instances = maxInstance - minInstance;
