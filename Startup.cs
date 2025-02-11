@@ -60,7 +60,9 @@ class Startup
         maxInstance: config.SAP_INSTANCIA
       );
       # pragma warning restore CS4014
-      PdfHandle.Watch();
+      var pdf_handler = new PdfHandle();
+      pdf_handler.Watch();
+      pdf_handler.Sender();
       Console.ReadLine();
       cts.Cancel();
     }
