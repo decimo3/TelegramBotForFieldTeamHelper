@@ -4,13 +4,9 @@ using Microsoft.Extensions.Logging;
 namespace telbot.Helpers;
 public partial class PdfHandle
 {
-  public static async void Watch()
+  public async void Watch()
   {
-    var cfg = Configuration.GetInstance();
-    var database = Database.GetInstance();
-    var logger = Logger.GetInstance<PdfHandle>();
     logger.LogDebug("Monitor de faturas iniciado!");
-    logger.LogDebug(cfg.TEMP_FOLDER);
     while (true)
     {
       try
@@ -22,7 +18,7 @@ public partial class PdfHandle
         {
           if(System.IO.Path.GetExtension(file) != ".pdf") continue;
           var filename = System.IO.Path.GetFileName(file);
-          var registry = database.RecuperarFatura(filename);
+          var registry = faturas.Find(f => f.filename == filename);
           if(registry == null)
           {
             var instalation = PdfHandle.Check(file);
@@ -40,7 +36,10 @@ public partial class PdfHandle
             };
             var fatura_txt = System.Text.Json.JsonSerializer.Serialize<pdfsModel>(fatura);
             logger.LogDebug(fatura_txt);
-            database.InserirFatura(fatura);
+            lock(_lock)
+            {
+              faturas.Add(fatura);
+            }
           }
         }
       }
@@ -50,9 +49,8 @@ public partial class PdfHandle
       }
     }
   }
-  public static void Remove(List<pdfsModel> faturas)
+  public void Remove(List<pdfsModel> faturas)
   {
-    var logger = Logger.GetInstance<PdfHandle>();
     try
     {
       foreach (var fatura in faturas)
@@ -62,13 +60,16 @@ public partial class PdfHandle
           fatura.filename
         );
         System.IO.File.Delete(filepath);
-        Database.GetInstance().RemoverFatura(fatura.rowid);
+        lock(_lock)
+        {
+          faturas.Remove(fatura);
+        }
         logger.LogDebug("Excluída fatura {fatura}", fatura.filename);
       }
     }
     catch (System.Exception erro)
     {
-      logger.LogError(erro, "Ocorreu uma falha ao tentar remover as faturas: ");
+      logger.LogError(erro, "Ocorreu uma falha ao tentar remover as faturas!");
     }
   }
 }
