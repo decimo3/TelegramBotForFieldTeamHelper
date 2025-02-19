@@ -73,7 +73,10 @@ namespace telbot.Helpers
             }
             await Task.WhenAll(tasks);
             foreach(var fluxo in fluxos) fluxo.Close();
-            Remove(faturas);
+            lock(_lock)
+            {
+              Remove(faturas_info);
+            }
             bot.SucessReport(solicitacao);
             logger.LogInformation("Enviadas faturas para a instalação {instalation}", solicitacao.information);
           }
