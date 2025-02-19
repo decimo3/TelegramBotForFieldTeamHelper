@@ -166,7 +166,7 @@ public class SQLite : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type FROM solicitacoes WHERE status = 0";
+        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type FROM solicitacoes";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return solicitacoes;
