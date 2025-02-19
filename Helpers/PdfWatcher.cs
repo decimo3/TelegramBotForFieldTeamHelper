@@ -56,9 +56,7 @@ public partial class PdfHandle
       foreach (var fatura in faturas)
       {
         var filepath = System.IO.Path.Combine(
-          Configuration.GetInstance().TEMP_FOLDER,
-          fatura.filename
-        );
+          cfg.TEMP_FOLDER, fatura.filename);
         System.IO.File.Delete(filepath);
         lock(_lock)
         {
