@@ -58,7 +58,10 @@ class Startup
       (
         minInstance: 0,
         maxInstance: config.SAP_INSTANCIA,
-        s => s.status == 0
+        s =>
+          s.typeRequest != TypeRequest.gestao &&
+          s.typeRequest != TypeRequest.comando &&
+          s.status == 0
       );
       # pragma warning restore CS4014
       var pdf_handler = new PdfHandle();
