@@ -29,7 +29,10 @@ class Startup
       System.AppContext.BaseDirectory, "bot.exe.old");
     if(System.IO.File.Exists(oldExecutableFile))
       System.IO.File.Delete(oldExecutableFile);
-    telbot.Helpers.Updater.Update();
+    if (!config.IS_DEVELOPMENT)
+    {
+      telbot.Helpers.Updater.Update();
+    }
     Database.GetInstance(config);
     var bot = new TelegramBotClient(config.BOT_TOKEN);
     var msg = HandleMessage.GetInstance(bot);
