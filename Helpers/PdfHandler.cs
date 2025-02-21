@@ -11,7 +11,7 @@ public partial class PdfHandle
   private readonly Configuration cfg;
   private readonly HandleMessage bot;
   private readonly ILogger logger;
-  private readonly ConcurrentBag<pdfsModel> faturas = new();
+  private readonly ConcurrentDictionary<String, pdfsModel> faturas = new();
   private readonly Object _lock = new(); // Dedicated lock object
   public PdfHandle()
   {

@@ -25,18 +25,18 @@ namespace telbot.Helpers
           // Verifica em cada solicitação, se já foi gerada a fatura
           foreach (var solicitacao in solicitacoes)
           {
-            List<pdfsModel>? faturas_info = null;
             // Recupera a lista de faturas geradas
-            faturas_info = new List<pdfsModel>(
+
+            var faturas_info = new List<pdfsModel>(
               faturas.Where(f =>
-              f.timestamp >= solicitacao.received_at &&
-              f.instalation == solicitacao.information
-            ).ToList());
+              f.Value.timestamp >= solicitacao.received_at &&
+              f.Value.instalation == solicitacao.information
+            ).Select(f => f.Value).ToList());
             // Verifica se já tem faturas para a solicitação e se é a quantidade esperada
-            if (faturas_info is not null && faturas_info.Count != solicitacao.instance)
+            if (faturas_info.Count == solicitacao.instance)
             {
               //! Se tudo der certo, aqui tem que começar a entregar as faturas
-              tasks.Add(Sender(faturas_info, solicitacao));
+              tasks.Add(Sender(new List<pdfsModel>(faturas_info), solicitacao));
             }
             // Verifica se a solicitação já não expirou
             if(solicitacao.response_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
@@ -81,7 +81,7 @@ namespace telbot.Helpers
       {
         fluxo.Close();
       }
-      Remove(faturasInfo);
+      Remove(new List<pdfsModel>(faturasInfo));
       bot.SucessReport(solicitacao);
       logger.LogInformation("Enviadas faturas para a instalação {instalation}", solicitacao.information);
     }
