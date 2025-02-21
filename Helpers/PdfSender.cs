@@ -21,6 +21,7 @@ namespace telbot.Helpers
           {
             continue;
           }
+          var tasks = new List<Task>();
           // Verifica em cada solicitação, se já foi gerada a fatura
           foreach (var solicitacao in solicitacoes)
           {
@@ -51,38 +52,45 @@ namespace telbot.Helpers
               continue;
             }
             //! Se tudo der certo, aqui tem que começar a entregar as faturas
-            var fluxo_atual = 0;
-            var tasks = new List<Task>();
-            var fluxos = new Stream[solicitacao.instance];
-            foreach (var fatura in faturas_info)
-            {
-              if(fatura.status == pdfsModel.Status.sent) continue;
-              var caminho = System.IO.Path.Combine(cfg.TEMP_FOLDER, fatura.filename);
-              fluxos[fluxo_atual] = System.IO.File.OpenRead(caminho);
-              tasks.Add(bot.SendDocumentAsyncWraper(
-                solicitacao.identifier,
-                fluxos[fluxo_atual],
-                fatura.filename
-              ));
-              fatura.status = pdfsModel.Status.sent;
-              logger.LogInformation("Enviada fatura ({fluxo_atual}/{quantidade_experada}): {filename}",
-                ++fluxo_atual, solicitacao.instance, fatura.filename);
-            }
-            await Task.WhenAll(tasks);
-            foreach(var fluxo in fluxos) fluxo.Close();
-            lock(_lock)
-            {
-              Remove(faturas_info);
-            }
-            bot.SucessReport(solicitacao);
-            logger.LogInformation("Enviadas faturas para a instalação {instalation}", solicitacao.information);
+                tasks.Add(Sender(faturas_info, solicitacao));
+              }
           }
+          await Task.WhenAll(tasks);
         }
         catch (System.Exception erro)
         {
           logger.LogError(erro, "Ocorreu um erro ao tentar enviar a fatura!");
         }
       }
+    }
+    // Método separado para enviar as faturas
+    private async Task Sender(List<pdfsModel> faturasInfo, logsModel solicitacao)
+    {
+      var fluxoAtual = 0;
+      var tasks = new List<Task>();
+      var fluxos = new Stream[solicitacao.instance];
+      foreach (var fatura in faturasInfo)
+      {
+        if (fatura.status == pdfsModel.Status.sent) continue;
+        var caminho = System.IO.Path.Combine(cfg.TEMP_FOLDER, fatura.filename);
+        fluxos[fluxoAtual] = System.IO.File.OpenRead(caminho);
+        tasks.Add(bot.SendDocumentAsyncWraper(
+          solicitacao.identifier,
+          fluxos[fluxoAtual],
+          fatura.filename
+        ));
+        fatura.status = pdfsModel.Status.sent;
+        logger.LogInformation("Enviada fatura ({fluxoAtual}/{quantidadeEsperada}): {filename}",
+          ++fluxoAtual, solicitacao.instance, fatura.filename);
+      }
+      await Task.WhenAll(tasks);
+      foreach (var fluxo in fluxos)
+      {
+        fluxo.Close();
+      }
+      Remove(faturasInfo);
+      bot.SucessReport(solicitacao);
+      logger.LogInformation("Enviadas faturas para a instalação {instalation}", solicitacao.information);
     }
   }
 }
