@@ -25,15 +25,6 @@ namespace telbot.Helpers
           // Verifica em cada solicitação, se já foi gerada a fatura
           foreach (var solicitacao in solicitacoes)
           {
-            // Verifica se a solicitação já não expirou
-            if(!cfg.IS_DEVELOPMENT &&
-              solicitacao.response_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
-            {
-              solicitacao.status = 503;
-              var erro = new Exception("Não foi gerada nenhuma fatura pelo sistema SAP!");
-              await bot.ErrorReport(erro, solicitacao);
-              continue;
-            }
             List<pdfsModel>? faturas_info = null;
             // Recupera a lista de faturas geradas
             faturas_info = new List<pdfsModel>(
@@ -46,6 +37,15 @@ namespace telbot.Helpers
             {
               //! Se tudo der certo, aqui tem que começar a entregar as faturas
               tasks.Add(Sender(faturas_info, solicitacao));
+            }
+            // Verifica se a solicitação já não expirou
+            if(solicitacao.response_at.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+            {
+              solicitacao.status = 503;
+              tasks.Add(bot.ErrorReport(
+                request: solicitacao,
+                error: new Exception("Não foi gerada nenhuma fatura pelo sistema SAP!")
+              ));
             }
           }
           await Task.WhenAll(tasks);
