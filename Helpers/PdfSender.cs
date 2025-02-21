@@ -41,19 +41,12 @@ namespace telbot.Helpers
               f.timestamp >= solicitacao.received_at &&
               f.instalation == solicitacao.information
             ).ToList());
-            // Verifica se já tem faturas para a solicitação
-            if (faturas_info is null)
+            // Verifica se já tem faturas para a solicitação e se é a quantidade esperada
+            if (faturas_info is not null && faturas_info.Count != solicitacao.instance)
             {
-              continue;
+              //! Se tudo der certo, aqui tem que começar a entregar as faturas
+              tasks.Add(Sender(faturas_info, solicitacao));
             }
-            // Verifica se a quantidade de faturas encontradas é a mesma quantidade esperada 
-            if (faturas_info.Count != solicitacao.instance)
-            {
-              continue;
-            }
-            //! Se tudo der certo, aqui tem que começar a entregar as faturas
-                tasks.Add(Sender(faturas_info, solicitacao));
-              }
           }
           await Task.WhenAll(tasks);
         }
