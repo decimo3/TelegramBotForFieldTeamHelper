@@ -18,7 +18,7 @@ public partial class PdfHandle
         {
           if(System.IO.Path.GetExtension(file) != ".pdf") continue;
           var filename = System.IO.Path.GetFileName(file);
-          if(!faturas.TryGetValue(filename, out _))
+          if(!faturas.TryGetValue(filename, out pdfsModel? registro))
           {
             var instalation = PdfHandle.Check(file);
             if(instalation == 0)
@@ -36,6 +36,14 @@ public partial class PdfHandle
             var fatura_txt = System.Text.Json.JsonSerializer.Serialize<pdfsModel>(fatura);
             logger.LogDebug(fatura_txt);
             faturas.TryAdd(filename, fatura);
+          }
+          if (registro is null)
+          {
+            continue;
+          }
+          if(registro.timestamp.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+          {
+            Remove(new List<pdfsModel>(){registro});
           }
         }
       }
