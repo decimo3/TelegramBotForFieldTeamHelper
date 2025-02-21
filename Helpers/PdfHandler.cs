@@ -3,6 +3,7 @@ using telbot.Interfaces;
 using telbot.Services;
 using telbot.models;
 using telbot.handle;
+using System.Collections.Concurrent;
 namespace telbot.Helpers;
 public partial class PdfHandle
 {
@@ -10,7 +11,7 @@ public partial class PdfHandle
   private readonly Configuration cfg;
   private readonly HandleMessage bot;
   private readonly ILogger logger;
-  private readonly List<pdfsModel> faturas = new();
+  private readonly ConcurrentBag<pdfsModel> faturas = new();
   private readonly Object _lock = new(); // Dedicated lock object
   public PdfHandle()
   {
