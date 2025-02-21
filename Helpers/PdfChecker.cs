@@ -1,7 +1,7 @@
 namespace telbot.Helpers;
 public partial class PdfHandle
 {
-  public static Int64 Check(String filepath)
+  private static Int64 Check(String filepath)
   {
     using var reader = new iTextSharp.text.pdf.PdfReader(filepath);
     var re = new System.Text.RegularExpressions.Regex("^[0-9]{10}$");

@@ -29,7 +29,10 @@ class Startup
       System.AppContext.BaseDirectory, "bot.exe.old");
     if(System.IO.File.Exists(oldExecutableFile))
       System.IO.File.Delete(oldExecutableFile);
-    telbot.Helpers.Updater.Update();
+    if (!config.IS_DEVELOPMENT)
+    {
+      telbot.Helpers.Updater.Update();
+    }
     Database.GetInstance(config);
     var bot = new TelegramBotClient(config.BOT_TOKEN);
     var msg = HandleMessage.GetInstance(bot);
@@ -54,25 +57,19 @@ class Startup
       var sap_instance_check_args = new String[] { "instancia", "5", "0"};
       HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
       # pragma warning disable CS4014
-      // Set chief method to answer normal requests
-      var normal_max_instance = (int)Math.Ceiling(config.SAP_INSTANCIA / 2.0);
       HandleAsynchronous.Chief
       (
         minInstance: 0,
-        maxInstance: normal_max_instance,
-        s => s.typeRequest != TypeRequest.pdfInfo &&
-          s.typeRequest != TypeRequest.gestao &&
-          s.typeRequest != TypeRequest.comando
-      );
-      // Set chief method to answer invoice requests
-      HandleAsynchronous.Chief
-      (
-        minInstance: normal_max_instance,
         maxInstance: config.SAP_INSTANCIA,
-        s => s.typeRequest == TypeRequest.pdfInfo
+        s =>
+          s.typeRequest != TypeRequest.gestao &&
+          s.typeRequest != TypeRequest.comando &&
+          s.status == 0
       );
       # pragma warning restore CS4014
-      PdfHandle.Watch();
+      var pdf_handler = new PdfHandle();
+      pdf_handler.Watch();
+      pdf_handler.Sender();
       Console.ReadLine();
       cts.Cancel();
     }
@@ -109,13 +106,14 @@ class Startup
     //##################################################//
     // direciona para um método correspondente ao tipo  //
     //##################################################//
+    var datahora = update.Message.Date > DateTime.Now ? update.Message.Date.ToLocalTime() : update.Message.Date;
     switch (update.Message.Type)
     {
       case MessageType.Text:
       {
         await HandleTypeMessage.ManuscriptsType(
           usuario: usuario,
-          recebido_em: update.Message.Date.ToUniversalTime(),
+          recebido_em: datahora,
           mensagem: update.Message.Text!
         );
         break;
@@ -133,7 +131,7 @@ class Startup
       {
         await HandleTypeMessage.PhotographType(
           usuario: usuario,
-          recebido_em: update.Message.Date.ToUniversalTime(),
+          recebido_em: datahora,
           photograph: update.Message.Photo!.First().FileId,
           caption: update.Message.Caption
         );
@@ -143,7 +141,7 @@ class Startup
       {
         await HandleTypeMessage.DocumentType(
           usuario: usuario,
-          recebido_em: update.Message.Date.ToUniversalTime(),
+          recebido_em: datahora,
           document: update.Message.Document!.FileId,
           caption: update.Message.Caption
         );
@@ -153,7 +151,7 @@ class Startup
       {
         await HandleTypeMessage.VideoclipType(
           usuario: usuario,
-          recebido_em: update.Message.Date.ToUniversalTime(),
+          recebido_em: datahora,
           videoclip: update.Message.Video!.FileId,
           caption: update.Message.Caption
         );
@@ -163,7 +161,7 @@ class Startup
       {
         await HandleTypeMessage.CoordinatesType(
           usuario: usuario,
-          recebido_em: update.Message.Date.ToUniversalTime(),
+          recebido_em: datahora,
           lat: update.Message.Location!.Latitude,
           lon: update.Message.Location!.Longitude
         );
@@ -177,7 +175,7 @@ class Startup
           request: new logsModel() {
               identifier = update.Message.From.Id,
               application = "nullmessage",
-              received_at = update.Message.Date.ToUniversalTime(),
+              received_at = datahora,
               response_at = DateTime.Now,
               typeRequest = TypeRequest.nullInfo,
               status = 400

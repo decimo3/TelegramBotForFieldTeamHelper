@@ -4,13 +4,9 @@ using Microsoft.Extensions.Logging;
 namespace telbot.Helpers;
 public partial class PdfHandle
 {
-  public static async void Watch()
+  public async void Watch()
   {
-    var cfg = Configuration.GetInstance();
-    var database = Database.GetInstance();
-    var logger = Logger.GetInstance<PdfHandle>();
     logger.LogDebug("Monitor de faturas iniciado!");
-    logger.LogDebug(cfg.TEMP_FOLDER);
     while (true)
     {
       try
@@ -22,8 +18,7 @@ public partial class PdfHandle
         {
           if(System.IO.Path.GetExtension(file) != ".pdf") continue;
           var filename = System.IO.Path.GetFileName(file);
-          var registry = database.RecuperarFatura(filename);
-          if(registry == null)
+          if(!faturas.TryGetValue(filename, out pdfsModel? registro))
           {
             var instalation = PdfHandle.Check(file);
             if(instalation == 0)
@@ -40,7 +35,15 @@ public partial class PdfHandle
             };
             var fatura_txt = System.Text.Json.JsonSerializer.Serialize<pdfsModel>(fatura);
             logger.LogDebug(fatura_txt);
-            database.InserirFatura(fatura);
+            faturas.TryAdd(filename, fatura);
+          }
+          if (registro is null)
+          {
+            continue;
+          }
+          if(registro.timestamp.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now)
+          {
+            Remove(new List<pdfsModel>(){registro});
           }
         }
       }
@@ -50,25 +53,22 @@ public partial class PdfHandle
       }
     }
   }
-  public static void Remove(List<pdfsModel> faturas)
+  public void Remove(List<pdfsModel> faturas_info)
   {
-    var logger = Logger.GetInstance<PdfHandle>();
     try
     {
-      foreach (var fatura in faturas)
+      foreach (var fatura in faturas_info)
       {
         var filepath = System.IO.Path.Combine(
-          Configuration.GetInstance().TEMP_FOLDER,
-          fatura.filename
-        );
+          cfg.TEMP_FOLDER, fatura.filename);
         System.IO.File.Delete(filepath);
-        Database.GetInstance().RemoverFatura(fatura.rowid);
+        faturas.TryRemove(fatura.filename, out _);
         logger.LogDebug("Excluída fatura {fatura}", fatura.filename);
       }
     }
     catch (System.Exception erro)
     {
-      logger.LogError(erro, "Ocorreu uma falha ao tentar remover as faturas: ");
+      logger.LogError(erro, "Ocorreu uma falha ao tentar remover as faturas!");
     }
   }
 }

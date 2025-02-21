@@ -45,14 +45,8 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, "*CONTROLADOR* para alterar para um usuário que pode receber avisos sobre outros usuário");
         await bot.sendTextMesssageWraper(user.identifier, "*COMUNICADOR* para alterar para um usuário capaz de enviar transmissões pelo sistema");
         break;
-      default:
-        {
-          var erro = new Exception("Comando solicitado não foi programado! Verifique e tente um válido!");
-          request.status = 400;
-          await bot.ErrorReport(erro, request);
-          return;
-        }
       case "/info":
+        {
         var info = new System.Text.StringBuilder();
         info.Append($"*Identificador:* {user.identifier}\n");
         info.Append($"*Telefone:* {user.phone_number}\n");
@@ -63,13 +57,13 @@ public static class Command
         }
         info.Append($"*Versão:* {Updater.CurrentVersion().ToString("yyyyMMdd")}");
         await bot.sendTextMesssageWraper(user.identifier, info.ToString());
+        }
         break;
       case "/update":
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          var erro = new Exception("Somente o proprietario podem usar esse comando!");
-          await bot.ErrorReport(erro, request);
-          return;
+          request.status = 403;
+          throw new InvalidOperationException("Somente o proprietario podem usar esse comando!");
         }
         try
         {
@@ -91,17 +85,15 @@ public static class Command
         }
         catch
         {
-          var erro = new Exception("Não foi possível atualizar o sistema remotamente!");
-          await bot.ErrorReport(erro, request);
-          return;
+          request.status = 500;
+          throw new InvalidOperationException("Não foi possível atualizar o sistema remotamente!");
         }
         break;
       case "/hotfix":
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          var erro = new Exception("Somente o proprietario podem usar esse comando!");
-          await bot.ErrorReport(erro, request);
-          return;
+          request.status = 403;
+          throw new InvalidOperationException("Somente o proprietario podem usar esse comando!");
         }
         if(!Updater.IsChangedVersionFile())
         {
@@ -114,9 +106,8 @@ public static class Command
       case "/restart":
         if(!user.pode_promover())
         {
-          var erro = new Exception("Somente o proprietario ou administrador podem usar esse comando!");
-          await bot.ErrorReport(erro, request);
-          return;
+          request.status = 403;
+          throw new InvalidOperationException("Somente o proprietario ou administrador podem usar esse comando!");
         }
         if(Updater.IsChangedVersionFile())
         {
@@ -131,9 +122,8 @@ public static class Command
       case "/database":
         if(user.privilege != UsersModel.userLevel.proprietario)
         {
-          var erro = new Exception("Somente o proprietario podem usar esse comando!");
-          await bot.ErrorReport(erro, request);
-          return;
+          request.status = 403;
+          throw new InvalidOperationException("Somente o proprietario podem usar esse comando!");
         }
         var solicitacoes = Database.GetInstance().RecuperarSolicitacao();
         var tabela_texto = TableMaker<logsModel>.Serialize(solicitacoes, ';');
@@ -161,14 +151,17 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, stringbuilder.ToString(), markdown: false);
       }
       break;
+      default:
+      {
+        request.status = 400;
+        throw new InvalidOperationException("Comando solicitado não foi programado!");
+      }
     }
     bot.SucessReport(request);
     }
-    catch (System.Exception)
+    catch (System.Exception error)
     {
-      var error = new Exception("Houve um erro ao processar o seu comando!");
       await bot.ErrorReport(error, request);
     }
-    return;
   }
 }

@@ -1,6 +1,13 @@
 *COMUNICADO DE ATUALIZAÇÃO DO CHATBOT*
 
-1. Realizado balanceamento das instâncias que atendem solicitações normais para as instâncias que atendem solicitações de fatura;
-2. Melhorado as definições de armazenamento de logs, criando logs diários, facilitando a detecção de problemas e erros.
+Adicionado sistema de envio de *fatura de forma assíncrona*.
+
+Agora, o chatbot irá realizar os processos de obtenção de faturas e envio separadamente:
+
+1. Primeiramente, ele atenderá à equipe e realizará a solicitação da fatura;
+2. Outro agente aguardará pela fatura e enviará quando ela estiver pronta;
+3. Isso liberará a fila para outras solicitações, reduzindo o tempo de espera.
+
+Ainda estaremos dependentes do sistema SAP, mas isso reduzirá muito o tempo de espera por faturas!
 
 _Versão atual: ${VERSION}_

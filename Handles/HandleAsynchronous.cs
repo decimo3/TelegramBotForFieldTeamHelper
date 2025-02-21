@@ -79,7 +79,7 @@ public class HandleAsynchronous
   (
     Int32 minInstance,
     Int32 maxInstance,
-    Expression<Func<logsModel,bool>> filtro
+    Expression<Func<logsModel,bool>>? filtro = null
   )
   {
     var instances = maxInstance - minInstance;
@@ -284,28 +284,20 @@ public class HandleAsynchronous
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
-            var fluxo_atual = 0;
-            var resposta_txt = ExecutarSap(
-              "instalacao",
-              solicitacao.information,
-              solicitacao.instance
-            );
-            if(!Int64.TryParse(resposta_txt, out Int64 instalation))
+            // Testar se foi enviada o número de instalação
+            if (solicitacao.information > 999999999 || solicitacao.information < 99999999)
             {
-              solicitacao.status = 500;
+              solicitacao.status = 400;
               var erro = new Exception(
-                "Não foi recebido o número da instalação!");
+                "Só será aceita solicitação de fatura pela instalação!");
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
-            var agora = DateTime.Now;
-            logger.LogDebug("Solicitando as faturas...");
-            resposta_txt = ExecutarSap(
+            var resposta_txt = ExecutarSap(
               solicitacao.application,
-              instalation,
+              solicitacao.information,
               solicitacao.instance
             );
-            logger.LogDebug("Quantidade experada: {quantidade}", resposta_txt);
             if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
             {
               solicitacao.status = 500;
@@ -314,62 +306,13 @@ public class HandleAsynchronous
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
-            var faturas = new List<pdfsModel>();
-            var tasks = new List<Task>();
-            while (true)
-            {
-              await Task.Delay(cfg.TASK_DELAY_LONG);
-              logger.LogDebug("Realizando a checagem");
-              faturas = database.RecuperarFatura(
-                f => f.instalation == instalation &&
-                  f.timestamp >= agora
+            solicitacao.instance = quantidade_experada;
+            solicitacao.response_at = DateTime.Now;
+            solicitacao.status = 300;
+            database.AlterarSolicitacao(solicitacao);
+            await bot.sendTextMesssageWraper(solicitacao.identifier,
+              "Sua fatura foi solicitada, favor aguardar a geração!"
               );
-              foreach (var fatura in faturas)
-                logger.LogDebug(fatura.filename);
-              if(faturas.Count == quantidade_experada) break;
-              if(agora.AddMilliseconds(cfg.SAP_ESPERA) < DateTime.Now) break;
-            }
-            logger.LogDebug("Quantidade de faturas: ", faturas.Count);
-            if(!faturas.Any())
-            {
-              solicitacao.status = 503;
-              var erro = new Exception(
-                "Não foi gerada nenhuma fatura pelo sistema SAP!");
-              await bot.ErrorReport(erro, solicitacao);
-              logger.LogError("Não foi gerada nenhuma fatura pelo sistema SAP!");
-              break;
-            }
-            if(faturas.Count != quantidade_experada)
-            {
-              solicitacao.status = 503;
-              var erro = new Exception(
-                "A quantidade de faturas não condiz com a quantidade esperada!");
-              await bot.ErrorReport(erro, solicitacao);
-              logger.LogError("A quantidade de faturas não condiz com a quantidade esperada!");
-              break;
-            }
-            var fluxos = new Stream[quantidade_experada];
-            foreach (var fatura in faturas)
-            {
-              if(fatura.status == pdfsModel.Status.sent) continue;
-              var caminho = System.IO.Path.Combine(cfg.TEMP_FOLDER, fatura.filename);
-              fluxos[fluxo_atual] = System.IO.File.OpenRead(caminho);
-              tasks.Add(bot.SendDocumentAsyncWraper(
-                solicitacao.identifier,
-                fluxos[fluxo_atual],
-                fatura.filename
-              ));
-              fatura.status = pdfsModel.Status.sent;
-              database.AlterarFatura(fatura);
-              logger.LogInformation("Enviada fatura ({fluxo_atual}/{quantidade_experada}): {filename}",
-              ++fluxo_atual, quantidade_experada, fatura.filename
-              );
-            }
-            await Task.WhenAll(tasks);
-            foreach(var fluxo in fluxos) fluxo.Close();
-            PdfHandle.Remove(faturas);
-            bot.SucessReport(solicitacao);
-            logger.LogInformation("Enviadas faturas para a instalação {instalation}", instalation);
             break;
           }
         case TypeRequest.ofsInfo:

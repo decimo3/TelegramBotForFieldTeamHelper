@@ -5,6 +5,7 @@ using telbot.models;
 namespace telbot.Services;
 public class SQLite : IDatabase
 {
+  private const String dt_format = "o";
   private bool _disposed = false; // To detect redundant calls
   private readonly String connectionString = "Data Source=database.db";
   public SQLite(Configuration cfg)
@@ -73,8 +74,8 @@ public class SQLite : IDatabase
           "(identifier, create_at, update_at, privilege, inserted_by, phone_number, username)" +
           "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6, @valor7)";
         command.Parameters.Add(new SQLiteParameter("@valor1", user_model.identifier));
-        command.Parameters.Add(new SQLiteParameter("@valor2", user_model.create_at.ToString("u")));
-        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor2", user_model.create_at.ToString(dt_format)));
+        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor4", (int)user_model.privilege));
         command.Parameters.Add(new SQLiteParameter("@valor5", user_model.inserted_by));
         command.Parameters.Add(new SQLiteParameter("@valor6", user_model.phone_number));
@@ -129,7 +130,7 @@ public class SQLite : IDatabase
           "inserted_by = @valor4, username = @valor6 WHERE rowid = @valor5";
         command.Parameters.Add(new SQLiteParameter("@valor1", user_model.phone_number));
         command.Parameters.Add(new SQLiteParameter("@valor2", (int)user_model.privilege));
-        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor3", user_model.update_at.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor4", user_model.inserted_by));
         command.Parameters.Add(new SQLiteParameter("@valor5", user_model.rowid));
         command.Parameters.Add(new SQLiteParameter("@valor6", user_model.username));
@@ -151,8 +152,8 @@ public class SQLite : IDatabase
         command.Parameters.Add(new SQLiteParameter("@valor1", request.identifier));
         command.Parameters.Add(new SQLiteParameter("@valor2", request.application));
         command.Parameters.Add(new SQLiteParameter("@valor3", request.information));
-        command.Parameters.Add(new SQLiteParameter("@valor4", request.received_at.ToString("u")));
-        command.Parameters.Add(new SQLiteParameter("@valor5", DateTime.MinValue.ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor4", request.received_at.ToString(dt_format)));
+        command.Parameters.Add(new SQLiteParameter("@valor5", DateTime.MinValue.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor6", request.typeRequest));
         command.ExecuteNonQuery();
       }
@@ -166,7 +167,7 @@ public class SQLite : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type FROM solicitacoes WHERE status = 0";
+        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type FROM solicitacoes";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return solicitacoes;
@@ -203,7 +204,7 @@ public class SQLite : IDatabase
         command.CommandText = "UPDATE solicitacoes SET " + 
           "response_at = @valor1, instance = @valor2, status = @valor3 " +
           "WHERE rowid = @valor4";
-        command.Parameters.Add(new SQLiteParameter("@valor1", request.response_at.ToString("u")));
+        command.Parameters.Add(new SQLiteParameter("@valor1", request.response_at.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor2", request.instance));
         command.Parameters.Add(new SQLiteParameter("@valor3", request.status));
         command.Parameters.Add(new SQLiteParameter("@valor4", request.rowid));
@@ -224,7 +225,7 @@ public class SQLite : IDatabase
         "VALUES (@valor1, @valor2, @valor3, @valor4)";
         command.Parameters.Add(new SQLiteParameter("@valor1", fatura.filename));
         command.Parameters.Add(new SQLiteParameter("@valor2", fatura.instalation));
-        command.Parameters.Add(new SQLiteParameter("@valor3", fatura.timestamp));
+        command.Parameters.Add(new SQLiteParameter("@valor3", fatura.timestamp.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor4", fatura.status));
         command.ExecuteNonQuery();
       }
