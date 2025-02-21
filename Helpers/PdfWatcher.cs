@@ -18,7 +18,7 @@ public partial class PdfHandle
         {
           if(System.IO.Path.GetExtension(file) != ".pdf") continue;
           var filename = System.IO.Path.GetFileName(file);
-          var registry = faturas.Find(f => f.filename == filename);
+          var registry = faturas.FirstOrDefault(f => f.filename == filename);
           if(registry == null)
           {
             var instalation = PdfHandle.Check(file);
@@ -36,10 +36,7 @@ public partial class PdfHandle
             };
             var fatura_txt = System.Text.Json.JsonSerializer.Serialize<pdfsModel>(fatura);
             logger.LogDebug(fatura_txt);
-            lock(_lock)
-            {
-              faturas.Add(fatura);
-            }
+            faturas.Add(fatura);
           }
         }
       }
@@ -58,10 +55,7 @@ public partial class PdfHandle
         var filepath = System.IO.Path.Combine(
           cfg.TEMP_FOLDER, fatura.filename);
         System.IO.File.Delete(filepath);
-        lock(_lock)
-        {
-          faturas.Remove(fatura);
-        }
+        faturas.Remove(fatura);
         logger.LogDebug("Excluída fatura {fatura}", fatura.filename);
       }
     }

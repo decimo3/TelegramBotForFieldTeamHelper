@@ -35,14 +35,11 @@ namespace telbot.Helpers
             }
             List<pdfsModel>? faturas_info = null;
             // Recupera a lista de faturas geradas
-            lock(_lock)
-            {
-              faturas_info = new List<pdfsModel>(
-                faturas.Where(f =>
-                f.timestamp >= solicitacao.received_at &&
-                f.instalation == solicitacao.information
-              ).ToList());
-            }
+            faturas_info = new List<pdfsModel>(
+              faturas.Where(f =>
+              f.timestamp >= solicitacao.received_at &&
+              f.instalation == solicitacao.information
+            ).ToList());
             // Verifica se já tem faturas para a solicitação
             if (faturas_info is null)
             {
