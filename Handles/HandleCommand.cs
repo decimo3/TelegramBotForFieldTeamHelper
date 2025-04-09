@@ -25,25 +25,36 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, "*PENDENTE* para receber a lista de débitos para aquela instalação do cliente;");
         await bot.sendTextMesssageWraper(user.identifier, "*FATURA* ou *DEBITO* _(sem acentuação)_ para receber as faturas vencidas em PDF (limite de 5 faturas)");
         await bot.sendTextMesssageWraper(user.identifier, "*HISTORICO* _(sem acentuação)_ para receber a lista com os 5 últimos serviços para a instalação;");
-        await bot.sendTextMesssageWraper(user.identifier, "*MEDIDOR* para receber as informações referentes ao medidor;");
         await bot.sendTextMesssageWraper(user.identifier, "*AGRUPAMENTO* para receber as informações referentes ao PC;");
-        await bot.sendTextMesssageWraper(user.identifier, "*INFORMACAO* para receber informações código e CPF do cliente;");
         await bot.sendTextMesssageWraper(user.identifier, "*CRUZAMENTO* para receber as ruas que cruzam com o logradouro da nota;");
         await bot.sendTextMesssageWraper(user.identifier, "*CONSUMO* para receber informações das últimas leituras e consumos do cliente;");
         await bot.sendTextMesssageWraper(user.identifier, "*ABERTURA* para receber o resultado da análise automática da instalação para abertura de nota de recuperação;");
         await bot.sendTextMesssageWraper(user.identifier, "*REN360* para receber a lista dos consumos dos clientes próximos e passividade para abertura de nota de recuperação;");
         await bot.sendTextMesssageWraper(user.identifier, "*EVIDENCIA* para receber as informações de finalização de notas no OFS");
-        await bot.sendTextMesssageWraper(user.identifier, "*CODBARRA* para receber o código de barra das faturas por SMS");
         await bot.sendTextMesssageWraper(user.identifier, "*FUGA* para receber a lista de instalações para o mesmo número de rua com seus devidos débitos");
+        await bot.sendTextMesssageWraper(user.identifier, "*CLIENTE* para receber informações de instalações para o CPF/CNPJ;");
+        await bot.sendTextMesssageWraper(user.identifier, "*SERVICO* para receber informações da ordem de serviço;");
+        await bot.sendTextMesssageWraper(user.identifier, "*INSTALACAO* para receber informações da instalação;");
+        await bot.sendTextMesssageWraper(user.identifier, "*MEDIDOR* para receber as informações referentes ao medidor;");
+        await bot.sendTextMesssageWraper(user.identifier, "*INFORMACAO* para receber informações gerais da instalacao;");
+        if(user.pode_relatorios())
+        {
+          await bot.sendTextMesssageWraper(user.identifier, "*RELIGACAO* para receber o relatório de notas de RELIGA em aberto no sistema;");
+          await bot.sendTextMesssageWraper(user.identifier, "*LIDEANEXO* para receber o relatório de notas de LIDE e ANEXO IV em aberto no sistema;");
+          await bot.sendTextMesssageWraper(user.identifier, "*BANDEIRADA* para receber o relatório de notas de AFERICAO;");
+        }
+        if(user.pode_autorizar())
+        {
+          await bot.sendTextMesssageWraper(user.identifier, "*EVIDENCIA* para receber as informações de finalização de notas no OFS");
+          await bot.sendTextMesssageWraper(user.identifier, "Para os comandos de gestão, digite o cargo e depois insira o número do identificador");
+          await bot.sendTextMesssageWraper(user.identifier, "*AUTORIZAR* para cadastrar novos usuários com acesso de consulta no sistema chatbot");
+          await bot.sendTextMesssageWraper(user.identifier, "*ATUALIZAR* para renovar o prazo de expiração um usuário com acesso de consulta do sistema");
+          await bot.sendTextMesssageWraper(user.identifier, "*SUPERVISOR* para alterar para um usuário que pode autorizar outros usuários");
+          await bot.sendTextMesssageWraper(user.identifier, "*DESAUTORIZAR* para remover o acesso de consulta de um usuário no sistema chatbot");
+          await bot.sendTextMesssageWraper(user.identifier, "*CONTROLADOR* para alterar para um usuário que pode receber avisos sobre outros usuário");
+          await bot.sendTextMesssageWraper(user.identifier, "*COMUNICADOR* para alterar para um usuário capaz de enviar transmissões pelo sistema");
+        }
         await bot.sendTextMesssageWraper(user.identifier, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
-        if(!user.pode_autorizar()) break;
-        await bot.sendTextMesssageWraper(user.identifier, "Para os comandos de gestão, digite o cargo e depois insira o número do identificador");
-        await bot.sendTextMesssageWraper(user.identifier, "*AUTORIZAR* para cadastrar novos usuários com acesso de consulta no sistema chatbot");
-        await bot.sendTextMesssageWraper(user.identifier, "*ATUALIZAR* para renovar o prazo de expiração um usuário com acesso de consulta do sistema");
-        await bot.sendTextMesssageWraper(user.identifier, "*SUPERVISOR* para alterar para um usuário que pode autorizar outros usuários");
-        await bot.sendTextMesssageWraper(user.identifier, "*DESAUTORIZAR* para remover o acesso de consulta de um usuário no sistema chatbot");
-        await bot.sendTextMesssageWraper(user.identifier, "*CONTROLADOR* para alterar para um usuário que pode receber avisos sobre outros usuário");
-        await bot.sendTextMesssageWraper(user.identifier, "*COMUNICADOR* para alterar para um usuário capaz de enviar transmissões pelo sistema");
         break;
       case "/info":
         {
