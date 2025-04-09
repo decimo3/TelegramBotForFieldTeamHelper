@@ -1,13 +1,14 @@
 *COMUNICADO DE ATUALIZAÇÃO DO CHATBOT*
 
-Adicionado sistema de envio de *fatura de forma assíncrona*.
+Bem vindos a versão 2.0 do `SAP_BOT`!
 
-Agora, o chatbot irá realizar os processos de obtenção de faturas e envio separadamente:
+O SAP_BOT foi reescrito para trazer mais segurança e novas funcionalidades, entre elas:
 
-1. Primeiramente, ele atenderá à equipe e realizará a solicitação da fatura;
-2. Outro agente aguardará pela fatura e enviará quando ela estiver pronta;
-3. Isso liberará a fila para outras solicitações, reduzindo o tempo de espera.
+1. Relatório de notas pendentes da RELIGACAO, LIDEANEXO e BANDEIRADA;
+Aplicações acima disponíveis somente para controladores e supervisores.
+2. Consulta de informações de cliente pelo CPF/CNPJ (aplicacao CLIENTE);
+3. Consulta de informações do SERVICO, INSTALACAO e MEDIDOR, mas se quiser tudo junto tem INFORMACAO;
+4. Resposta de erros mais claros, com textos descritivos ao invés de "ERRO: -2147352567".
 
-Ainda estaremos dependentes do sistema SAP, mas isso reduzirá muito o tempo de espera por faturas!
 
-_Versão atual: ${VERSION}_
+_Versão atual: 20250409_
