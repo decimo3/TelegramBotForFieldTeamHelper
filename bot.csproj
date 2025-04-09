@@ -30,6 +30,7 @@
     <SupportedPlatform Include="Windows" />
     <None Include="version" CopyToOutputDirectory="PreserveNewest" />
     <None Include="appicon.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="comunicado.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
