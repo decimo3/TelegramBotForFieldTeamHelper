@@ -50,6 +50,10 @@ public class Executor
       processo.WaitForExit();
       if(processo.ExitCode == 0)
       {
+        var filteredLines = output
+          .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+          .Where(line => !String.IsNullOrWhiteSpace(line));
+        output = String.Join(Environment.NewLine, filteredLines);
         logger.LogDebug(output);
         return output;
       }
