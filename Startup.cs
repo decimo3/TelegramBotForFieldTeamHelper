@@ -54,7 +54,7 @@ class Startup
         HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
       HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
-      var sap_instance_check_args = new String[] { "instancia", "5", "0"};
+      var sap_instance_check_args = new String[] { "instancia", "5", "-1"};
       HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
       # pragma warning disable CS4014
       HandleAsynchronous.Chief

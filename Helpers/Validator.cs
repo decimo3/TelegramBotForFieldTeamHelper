@@ -33,9 +33,9 @@ public static class Validador
     if(aplicacao == "atualizar") return TypeRequest.gestao;
     if(aplicacao == "agrupamento") return TypeRequest.picInfo;
     if(aplicacao == "pendente") return TypeRequest.picInfo;
-    if(aplicacao == "religacao") return TypeRequest.xlsInfo;
-    if(aplicacao == "lideanexo") return TypeRequest.xlsInfo;
-    if(aplicacao == "bandeirada") return TypeRequest.xlsInfo;
+    if(aplicacao == "religacaoro") return TypeRequest.xlsInfo;
+    if(aplicacao == "lideanexoro") return TypeRequest.xlsInfo;
+    if(aplicacao == "bandeiradaro") return TypeRequest.xlsInfo;
     if(aplicacao == "cliente") return TypeRequest.txtInfo;
     if(aplicacao == "servico") return TypeRequest.txtInfo;
     if(aplicacao == "instalacao") return TypeRequest.txtInfo;
@@ -53,6 +53,9 @@ public static class Validador
     if(aplicacao == "leitura") return TypeRequest.picInfo;
     if(aplicacao == "evidencia") return TypeRequest.ofsInfo;
     if(aplicacao == "fuga") return TypeRequest.picInfo;
+    if(aplicacao == "religacaobx") return TypeRequest.xlsInfo;
+    if(aplicacao == "lideanexobx") return TypeRequest.xlsInfo;
+    if(aplicacao == "bandeiradabx") return TypeRequest.xlsInfo;
     return TypeRequest.nullInfo;
   }
   public static bool? orderOperandos (string info1, string info2)
