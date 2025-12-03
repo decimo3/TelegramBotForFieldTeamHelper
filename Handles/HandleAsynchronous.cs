@@ -29,7 +29,7 @@ public class HandleAsynchronous
     var argumentos = new String[] {
       solicitation,
       information.ToString(),
-      instance.ToString()
+      (instance - 1).ToString()
     };
     var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
     if(String.IsNullOrEmpty(resposta_txt))
