@@ -284,15 +284,6 @@ public class HandleAsynchronous
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
-            // Testar se foi enviada o número de instalação
-            if (solicitacao.information > 999999999 || solicitacao.information < 99999999)
-            {
-              solicitacao.status = 400;
-              var erro = new Exception(
-                "Só será aceita solicitação de fatura pela instalação!");
-              await bot.ErrorReport(erro, solicitacao);
-              break;
-            }
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
