@@ -289,7 +289,16 @@ public class HandleAsynchronous
               solicitacao.information,
               solicitacao.instance
             );
-            if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
+            var resposta = JsonSerializer.Deserialize<Dictionary<string, long>>(resposta_txt);
+            if (resposta is null)
+            {
+                solicitacao.status = 500;
+                var erro = new Exception(
+                    "A resposta recebida do SAP_BOT não é a esperada!");
+                await bot.ErrorReport(erro, solicitacao);
+                break;
+            }
+            if (!resposta.TryGetValue("quantidade", out long quantidade_experada))
             {
               solicitacao.status = 500;
               var erro = new Exception(
@@ -297,7 +306,16 @@ public class HandleAsynchronous
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
-            solicitacao.instance = quantidade_experada;
+            if (!resposta.TryGetValue("numero_uc", out long numero_uc))
+            {
+                solicitacao.status = 500;
+                var erro = new Exception(
+                    "O número da unidade consumidora é desconhecido!");
+                await bot.ErrorReport(erro, solicitacao);
+                break;
+            }
+            solicitacao.information = numero_uc;
+            solicitacao.instance = (int)quantidade_experada;
             solicitacao.response_at = DateTime.Now;
             solicitacao.status = 300;
             database.AlterarSolicitacao(solicitacao);
