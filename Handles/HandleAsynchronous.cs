@@ -29,7 +29,7 @@ public class HandleAsynchronous
     var argumentos = new String[] {
       solicitation,
       information.ToString(),
-      instance.ToString()
+      (instance - 1).ToString()
     };
     var resposta_txt = Executor.Executar("sap.exe", argumentos, true);
     if(String.IsNullOrEmpty(resposta_txt))
@@ -284,21 +284,21 @@ public class HandleAsynchronous
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
-            // Testar se foi enviada o número de instalação
-            if (solicitacao.information > 999999999 || solicitacao.information < 99999999)
-            {
-              solicitacao.status = 400;
-              var erro = new Exception(
-                "Só será aceita solicitação de fatura pela instalação!");
-              await bot.ErrorReport(erro, solicitacao);
-              break;
-            }
             var resposta_txt = ExecutarSap(
               solicitacao.application,
               solicitacao.information,
               solicitacao.instance
             );
-            if(!Int32.TryParse(resposta_txt, out Int32 quantidade_experada))
+            var resposta = JsonSerializer.Deserialize<Dictionary<string, long>>(resposta_txt);
+            if (resposta is null)
+            {
+                solicitacao.status = 500;
+                var erro = new Exception(
+                    "A resposta recebida do SAP_BOT não é a esperada!");
+                await bot.ErrorReport(erro, solicitacao);
+                break;
+            }
+            if (!resposta.TryGetValue("quantidade", out long quantidade_experada))
             {
               solicitacao.status = 500;
               var erro = new Exception(
@@ -306,7 +306,16 @@ public class HandleAsynchronous
               await bot.ErrorReport(erro, solicitacao);
               break;
             }
-            solicitacao.instance = quantidade_experada;
+            if (!resposta.TryGetValue("numero_uc", out long numero_uc))
+            {
+                solicitacao.status = 500;
+                var erro = new Exception(
+                    "O número da unidade consumidora é desconhecido!");
+                await bot.ErrorReport(erro, solicitacao);
+                break;
+            }
+            solicitacao.information = numero_uc;
+            solicitacao.instance = (int)quantidade_experada;
             solicitacao.response_at = DateTime.Now;
             solicitacao.status = 300;
             database.AlterarSolicitacao(solicitacao);

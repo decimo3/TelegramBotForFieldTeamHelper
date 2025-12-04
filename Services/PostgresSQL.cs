@@ -149,12 +149,13 @@ public class PostgreSQL : IDatabase
     using(var command = connection.CreateCommand())
     {
       command.CommandText = "UPDATE solicitacoes SET " + 
-        "response_at = @valor1, instance = @valor2, status = @valor3 " +
-        "WHERE rowid = @valor4";
+        "response_at = @valor1, instance = @valor2, status = @valor3, " +
+        "information = @valor5 WHERE rowid = @valor4";
       command.Parameters.Add(new NpgsqlParameter("valor1", request.response_at));
       command.Parameters.Add(new NpgsqlParameter("valor2", request.instance));
       command.Parameters.Add(new NpgsqlParameter("valor3", request.status));
       command.Parameters.Add(new NpgsqlParameter("valor4", request.rowid));
+      command.Parameters.Add(new NpgsqlParameter("valor5", request.information));
       command.ExecuteNonQuery();
     }
   }
