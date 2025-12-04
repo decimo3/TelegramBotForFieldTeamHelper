@@ -1,14 +1,6 @@
 *COMUNICADO DE ATUALIZAÇÃO DO CHATBOT*
 
-Bem vindos a versão 2.0 do `SAP_BOT`!
+1. Resolvido problema mudança da fatura.
+2. Agora a aplicação INFORMACAO também informa o número da unidade consumidora
 
-O SAP\_BOT foi reescrito para trazer mais segurança e novas funcionalidades, entre elas:
-
-1. Relatório de notas pendentes da RELIGACAO, LIDEANEXO e BANDEIRADA;
-_Aplicações acima disponíveis somente para controladores e supervisores._
-2. Consulta de informações de cliente pelo CPF/CNPJ (aplicacao CLIENTE);
-3. Consulta de informações do SERVICO, INSTALACAO e MEDIDOR, mas se quiser tudo junto tem INFORMACAO;
-4. Resposta de erros mais claros, com textos descritivos ao invés de "ERRO: -2147352567".
-
-
-_Versão atual: ${VERSION}_
+_Versão atual: 20251203_
