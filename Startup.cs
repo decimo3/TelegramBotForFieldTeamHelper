@@ -53,9 +53,12 @@ class Startup
         var filhos = new String[] {"prl.exe", "chrome.exe", "chromedriver.exe"};
         HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
+      if (!config.SAP_OFFLINE)
+      {
       HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
       var sap_instance_check_args = new String[] { "instancia", "5", "-1"};
       HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
+      }
       # pragma warning disable CS4014
       HandleAsynchronous.Chief
       (
