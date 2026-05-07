@@ -37,6 +37,7 @@ public static class Command
         await bot.sendTextMesssageWraper(user.identifier, "*INSTALACAO* para receber informações da instalação;");
         await bot.sendTextMesssageWraper(user.identifier, "*MEDIDOR* para receber as informações referentes ao medidor;");
         await bot.sendTextMesssageWraper(user.identifier, "*INFORMACAO* para receber informações gerais da instalacao;");
+        await bot.sendTextMesssageWraper(user.identifier, "*DOCUMENTO* ou *PROCEDIMENTO* com o identificador do formulário para receber uma cópia do documento;");
         if(user.pode_relatorios())
         {
           await bot.sendTextMesssageWraper(user.identifier, "*RELIGACAO* para receber o relatório de notas de RELIGA em aberto no sistema;");
