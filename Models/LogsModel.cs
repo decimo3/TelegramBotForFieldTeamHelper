@@ -15,5 +15,6 @@ public class logsModel
   public DateTime response_at { get; set; }
   public Int32 instance { get; set; }
   public Int32 status { get; set; }
+  public String message { get; set; } = String.Empty;
 }
 public enum TypeRequest {nullInfo, gestao, comando, txtInfo, pdfInfo, picInfo, xlsInfo, prlInfo, xyzInfo, ofsInfo, gpsInfo}
