@@ -19,4 +19,9 @@ public interface IDatabase : IDisposable
   public void AlterarFatura(pdfsModel fatura);
   public void RemoverFatura(Int64 rowid);
   public void RemoverFatura();
+
+  public void InserirDocumento(DocsModel documento);
+  public DocsModel? RecuperarDocumento(String filename);
+  public List<DocsModel> RecuperarDocumento(Expression<Func<DocsModel, bool>>? expression = null);
+  public void AlterarDocumento(DocsModel documento);
 }
