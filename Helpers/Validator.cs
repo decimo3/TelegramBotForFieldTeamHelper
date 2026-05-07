@@ -85,6 +85,14 @@ public static class Validador
       request.typeRequest = TypeRequest.comando;
       return request;
     }
+    else if (args[0] == "documento" || args[0] == "procedimento")
+    {
+      if(args.Length == 1) return null;
+      request.application = args[0];
+      request.information = 0;
+      request.typeRequest = TypeRequest.docInfo;
+      return request;
+    }
     else
     {
       if(args.Length == 1) return null;
