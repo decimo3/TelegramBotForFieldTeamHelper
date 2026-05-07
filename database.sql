@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS solicitacoes(
   received_at TIMESTAMP NOT NULL,
   response_at TIMESTAMP DEFAULT NULL,
   status INT DEFAULT 0,
-  instance INT DEFAULT 0
+  instance INT DEFAULT 0,
+  message VARCHAR(50) DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS faturas(
   rowid SERIAL PRIMARY KEY,

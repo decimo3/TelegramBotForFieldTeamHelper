@@ -37,7 +37,8 @@ public class SQLite : IDatabase
             received_at DATETIME NOT NULL,
             response_at DATETIME DEFAULT NULL,
             status INT DEFAULT 0,
-            instance INT DEFAULT 0
+            instance INT DEFAULT 0,
+            message TEXT DEFAULT NULL
             )";
         command.ExecuteNonQuery();
         command.CommandText = @$"CREATE TABLE IF NOT EXISTS faturas(
