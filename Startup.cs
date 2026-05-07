@@ -42,8 +42,8 @@ class Startup
       bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
       logger.LogInformation("Start listening for updates. Press enter to stop.");
       if(config.IS_DEVELOPMENT == false) HandleAnnouncement.Comunicado();
-      if(config.SAP_VENCIMENTO) HandleAnnouncement.Vencimento("vencimento", 7);
-      if(config.SAP_BANDEIRADA) HandleAnnouncement.Vencimento("bandeirada", 7);
+      if(!config.SAP_OFFLINE && config.SAP_VENCIMENTO) HandleAnnouncement.Vencimento("vencimento", 7);
+      if(!config.SAP_OFFLINE && config.SAP_BANDEIRADA) HandleAnnouncement.Vencimento("bandeirada", 7);
       if(config.OFS_MONITORAMENTO)
       {
         var filhos = new String[] {"ofs.exe", "chrome.exe", "chromedriver.exe"};
@@ -54,9 +54,12 @@ class Startup
         var filhos = new String[] {"prl.exe", "chrome.exe", "chromedriver.exe"};
         HandleAnnouncement.Executador("prl.exe", new String[] {"slower"}, filhos);
       }
-      HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
-      var sap_instance_check_args = new String[] { "instancia", "5", "-1"};
-      HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
+      if(!config.SAP_OFFLINE)
+      {
+        HandleAnnouncement.Executador("cscript.exe", new String[] {"erroDialog.vbs"}, null);
+        var sap_instance_check_args = new String[] { "instancia", "5", "-1"};
+        HandleAnnouncement.Executador("sap.exe", sap_instance_check_args, null);
+      }
       # pragma warning disable CS4014
       HandleAsynchronous.Chief
       (
