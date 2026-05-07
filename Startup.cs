@@ -36,6 +36,7 @@ class Startup
     Database.GetInstance(config);
     var bot = new TelegramBotClient(config.BOT_TOKEN);
     var msg = HandleMessage.GetInstance(bot);
+    await DocHandler.LoadDocs();
     using (var cts = new CancellationTokenSource())
     {
       bot.StartReceiving(updateHandler: HandleUpdate, pollingErrorHandler: HandleError, cancellationToken: cts.Token);
