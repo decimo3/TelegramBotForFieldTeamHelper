@@ -71,8 +71,9 @@ public static class Validador
   }
   public static logsModel? isRequest(string text)
   {
-    text = text.ToLower();
     var request = new logsModel();
+    text = text.ToLower();
+    request.message = text;
     if(!isValidArguments(text)) return null;
     var args = text.Split(" ");
     if (args[0].StartsWith("/"))
