@@ -48,6 +48,14 @@ public class SQLite : IDatabase
             status INT DEFAULT 0
             )";
         command.ExecuteNonQuery();
+        command.CommandText = @$"CREATE TABLE IF NOT EXISTS documentos (
+            message_id VARCHAR(64) NOT NULL,
+            filename VARCHAR(64) NOT NULL,
+            identifier VARCHAR(32) NOT NULL,
+            updated_at TIMESTAMP NOT NULL,
+            is_outdated BOOLEAN DEFAULT FALSE
+            )";
+        command.ExecuteNonQuery();
       }
     }
     if(RecuperarUsuario(cfg.ID_ADM_BOT) is null)
