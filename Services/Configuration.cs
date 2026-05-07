@@ -21,6 +21,7 @@ public class Configuration
   public readonly Int32 TASK_DELAY = 1_000;
   public readonly Int32 TASK_DELAY_LONG = 10_000;
   public readonly List<String> REGIONAIS = new();
+  public readonly string DOCS_PATH;
   public readonly Dictionary<String, String> CONFIGURACAO = new();
   private static Configuration _instance;
   private static readonly Object _lock = new();
@@ -80,6 +81,11 @@ public class Configuration
     }
 
     if(IS_DEVELOPMENT == true) DotEnv.Load();
+
+  DOCS_PATH = System.Environment.GetEnvironmentVariable("DOCS_PATH") ??
+    throw new InvalidOperationException("Environment variable DOCS_PATH is not set!");
+  if (!System.IO.Directory.Exists(DOCS_PATH))
+    throw new InvalidOperationException("The file path provided on DOCS_PATH is unreachable!");
 
     BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN") ??
       throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
