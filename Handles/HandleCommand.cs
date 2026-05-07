@@ -57,6 +57,11 @@ public static class Command
         }
         await bot.sendTextMesssageWraper(user.identifier, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
         break;
+      case "/documento":
+        {
+          await bot.sendTextMesssageWraper(user.identifier, DocHandler.GetDocuments());
+          break;
+        }
       case "/info":
         {
         var info = new System.Text.StringBuilder();
