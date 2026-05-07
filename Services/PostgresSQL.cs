@@ -102,14 +102,15 @@ public class PostgreSQL : IDatabase
     using(var command = connection.CreateCommand())
     {
       command.CommandText = "INSERT INTO solicitacoes " +
-      "(identifier, application, information, received_at, response_at, request_type) " +
-      "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6)";
+      "(identifier, application, information, received_at, response_at, request_type, message) " +
+      "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6, @valor7)";
       command.Parameters.Add(new NpgsqlParameter("valor1", request.identifier));
       command.Parameters.Add(new NpgsqlParameter("valor2", request.application));
       command.Parameters.Add(new NpgsqlParameter("valor3", request.information));
       command.Parameters.Add(new NpgsqlParameter("valor4", request.received_at));
       command.Parameters.Add(new NpgsqlParameter("valor5", DateTime.MinValue));
       command.Parameters.Add(new NpgsqlParameter("valor6", (int)request.typeRequest));
+      command.Parameters.Add(new NpgsqlParameter("valor7", request.message));
       command.ExecuteNonQuery();
     }
   }
@@ -122,7 +123,7 @@ public class PostgreSQL : IDatabase
     var solicitacoes = new List<logsModel>();
     using(var command = connection.CreateCommand())
     {
-      command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type FROM solicitacoes";
+      command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type, message FROM solicitacoes";
       using(var dataReader = command.ExecuteReader())
       {
         if(!dataReader.HasRows) return solicitacoes;
@@ -138,6 +139,7 @@ public class PostgreSQL : IDatabase
           solicitacao.instance = dataReader.GetInt32(6);
           solicitacao.status = dataReader.GetInt32(7);
           solicitacao.typeRequest = (TypeRequest)dataReader.GetInt32(8);
+          solicitacao.message = dataReader.IsDBNull(9) ? String.Empty : dataReader.GetString(9);
           solicitacoes.Add(solicitacao);
         }
       }

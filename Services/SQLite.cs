@@ -148,14 +148,15 @@ public class SQLite : IDatabase
       using(var command = connection.CreateCommand())
       {
         command.CommandText = "INSERT INTO solicitacoes " +
-        "(identifier, application, information, received_at, response_at, request_type) " +
-        "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6)";
+        "(identifier, application, information, received_at, response_at, request_type, message) " +
+        "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5, @valor6, @valor7)";
         command.Parameters.Add(new SQLiteParameter("@valor1", request.identifier));
         command.Parameters.Add(new SQLiteParameter("@valor2", request.application));
         command.Parameters.Add(new SQLiteParameter("@valor3", request.information));
         command.Parameters.Add(new SQLiteParameter("@valor4", request.received_at.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor5", DateTime.MinValue.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor6", request.typeRequest));
+        command.Parameters.Add(new SQLiteParameter("@valor7", request.message));
         command.ExecuteNonQuery();
       }
     }
@@ -168,7 +169,7 @@ public class SQLite : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type FROM solicitacoes";
+        command.CommandText = "SELECT rowid, identifier, application, information, received_at, response_at, instance, status, request_type, message FROM solicitacoes";
         using(var dataReader = command.ExecuteReader())
         {
           if(!dataReader.HasRows) return solicitacoes;
@@ -184,6 +185,7 @@ public class SQLite : IDatabase
             solicitacao.instance = dataReader.GetInt32(6);
             solicitacao.status = dataReader.GetInt32(7);
             solicitacao.typeRequest = (TypeRequest)dataReader.GetInt32(8);
+            solicitacao.message = dataReader.IsDBNull(9) ? String.Empty : dataReader.GetString(9);
             solicitacoes.Add(solicitacao);
           }
           return (expression == null) ? solicitacoes : solicitacoes.AsQueryable().Where(expression).ToList();
@@ -202,8 +204,8 @@ public class SQLite : IDatabase
       connection.Open();
       using(var command = connection.CreateCommand())
       {
-        command.CommandText = "UPDATE solicitacoes SET " + 
-          "response_at = @valor1, instance = @valor2, status = @valor3 " +
+        command.CommandText = "UPDATE solicitacoes SET " +
+          "response_at = @valor1, instance = @valor2, status = @valor3, " +
           "information = @valor5 WHERE rowid = @valor4";
         command.Parameters.Add(new SQLiteParameter("@valor1", request.response_at.ToString(dt_format)));
         command.Parameters.Add(new SQLiteParameter("@valor2", request.instance));
