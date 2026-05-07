@@ -162,7 +162,10 @@ public class HandleAsynchronous
     {
       var solicitacao_texto = System.Text.Json.JsonSerializer.Serialize<logsModel>(solicitacao);
       logger.LogDebug(solicitacao_texto);
-      if(solicitacao.typeRequest != TypeRequest.gestao && solicitacao.typeRequest != TypeRequest.comando)
+      if(solicitacao.typeRequest != TypeRequest.gestao &&
+        solicitacao.typeRequest != TypeRequest.comando &&
+        solicitacao.typeRequest != TypeRequest.ofsInfo &&
+        solicitacao.typeRequest != TypeRequest.docInfo)
       {
         if(cfg.SAP_OFFLINE)
         {
