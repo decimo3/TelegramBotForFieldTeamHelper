@@ -17,4 +17,4 @@ public class logsModel
   public Int32 status { get; set; }
   public String message { get; set; } = String.Empty;
 }
-public enum TypeRequest {nullInfo, gestao, comando, txtInfo, pdfInfo, picInfo, xlsInfo, prlInfo, xyzInfo, ofsInfo, gpsInfo}
+public enum TypeRequest {nullInfo, gestao, comando, txtInfo, pdfInfo, picInfo, xlsInfo, prlInfo, xyzInfo, ofsInfo, gpsInfo, docInfo}
