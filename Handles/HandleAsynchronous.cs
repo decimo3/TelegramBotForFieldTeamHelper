@@ -355,6 +355,18 @@ public class HandleAsynchronous
             }
             break;
           }
+        case TypeRequest.docInfo:
+        {
+          var nomeDocumento = solicitacao.message.Split(' ')[1];
+          var docsInfo = DocHandler.GetDocument(nomeDocumento);
+          await bot.SendDocumentAsyncWraper(
+            solicitacao.identifier,
+            docsInfo.messageId
+          );
+          solicitacao.information = docsInfo.rowid;
+          bot.SucessReport(solicitacao);
+          break;
+        }
         default:
         {
           solicitacao.status = 400;
