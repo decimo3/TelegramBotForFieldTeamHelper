@@ -11,7 +11,7 @@
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/bin/Debug/net7.0/win-x64/bot.dll",
-      "args": ["--sap-instancia=4" ,"--use-sqlite"],
+      "args": ["--sap-instancia=4", "--sap-espera=120", "--sap-offline", "--use-sqlite", "--em-desenvolvimento"],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
       "console": "internalConsole",
