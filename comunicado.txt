@@ -1,6 +1,9 @@
-*COMUNICADO DE ATUALIZAÇÃO DO CHATBOT*
+# Módulo de envio automatizado de documentos e procedimentos
 
-1. Resolvido problema mudança da fatura.
-2. Agora a aplicação INFORMACAO também informa o número da unidade consumidora
+O robô agora possui um novo módulo de envio automatizado de documentos PDF. Ele realizará a leitura da pasta definida na variável de ambiente `DOCS_PATH` e disponibilizará os documentos para todos os usuários por meio do comando `documento`.
 
-_Versão atual: 20251203_
+Esse processo ocorre apenas na inicialização do programa, assim como a verificação dos documentos previamente cadastrados, validando se ainda estão disponíveis na pasta configurada. Caso algum documento tenha sido removido, ele será considerado obsoleto e não estará mais disponível para download.
+
+A lista de documentos disponíveis pode ser obtida pelo comando `/documento`.
+
+O download do documento será realizado por meio do código identificador correspondente. Caso seja enviada qualquer palavra que não corresponda a um identificador válido, a solicitação não será atendida.
