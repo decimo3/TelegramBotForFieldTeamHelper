@@ -14,7 +14,9 @@ public static class DocHandler
     var baseDocs = database.RecuperarDocumento();
     var docsPath = Configuration.GetInstance().DOCS_PATH;
     var pathInfo = new System.IO.DirectoryInfo(docsPath);
-    var docsInfo = pathInfo.GetFiles("*.pdf", System.IO.SearchOption.AllDirectories);
+    var pdfsInfo = pathInfo.GetFiles("*.pdf", System.IO.SearchOption.AllDirectories);
+    var xlsxInfo = pathInfo.GetFiles("*.xlsx", System.IO.SearchOption.AllDirectories);
+    var docsInfo = pdfsInfo.Concat(xlsxInfo).ToList();
     foreach (var docInfo in docsInfo)
     {
       var docInfoFileName = System.IO.Path.GetFileName(docInfo.FullName) ??
