@@ -53,7 +53,8 @@ public class SQLite : IDatabase
             filename VARCHAR(64) NOT NULL,
             identifier VARCHAR(32) NOT NULL,
             updated_at TIMESTAMP NOT NULL,
-            is_outdated BOOLEAN DEFAULT FALSE
+            is_outdated BOOLEAN DEFAULT FALSE,
+            parent VARCHAR(64) NOT NULL
             )";
         command.ExecuteNonQuery();
       }

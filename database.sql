@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS documentos (
 	rowid SERIAL PRIMARY KEY,
 	message_id VARCHAR(100) NOT NULL,
 	filename VARCHAR(64) NOT NULL,
+  parent VARCHAR(64) NOT NULL,
 	identifier VARCHAR(16) NOT NULL,
 	updated_at TIMESTAMP NOT NULL,
 	is_outdated BOOLEAN DEFAULT FALSE
