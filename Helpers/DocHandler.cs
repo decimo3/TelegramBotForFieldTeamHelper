@@ -94,16 +94,11 @@ public static class DocHandler
         (documents.Any() ? "Possíveis documentos relacionados:\n\n" +
           String.Join('\n', documents) : String.Empty));
   }
-  public static String GetDocuments()
+  public static List<DocsModel> GetDocuments()
   {
-    var docNameList = _documents
-      .Where(d => d.IsOutdated == false)
-      .Select(d => d.filename)
-      .ToList();
-    if (!docNameList.Any())
-      throw new InvalidOperationException(
-        $"Não foi encontrado nenhum documento!");
-    return "Lista de documentos disponíveis para download:\n\n" +
-      String.Join('\n', docNameList);
+    var documents = _documents.Where(d => d.IsOutdated == false).ToList();
+    if (!documents.Any())
+      throw new InvalidOperationException($"Não foi encontrado nenhum documento!");
+    return documents;
   }
 }
