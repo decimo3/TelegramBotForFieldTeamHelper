@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using telbot.handle;
 using telbot.models;
 using telbot.Services;
@@ -7,6 +8,7 @@ namespace telbot.Helpers;
 public static class DocHandler
 {
   private static List<DocsModel> _documents = new();
+  private static readonly Regex _identifierRegex = new(@"^(?=.*[A-Z])(?=.*\d)[A-Z0-9]+$");
   public static async Task LoadDocs()
   {
     var database = Database.GetInstance();
@@ -22,6 +24,10 @@ public static class DocHandler
       var docInfoFileName = System.IO.Path.GetFileName(docInfo.FullName) ??
         throw new InvalidOperationException(
           $"O nome do arquivo {docInfo.FullName} não pode ser obtido!");
+      var identifier = docInfoFileName.Split(' ').First();
+      if (!_identifierRegex.IsMatch(identifier))
+        throw new InvalidOperationException(
+          $"Não pode obter o identificador válido para o arquivo {docInfo.FullName}!");
       var baseDoc = baseDocs.FirstOrDefault(b => b.filename.Equals(docInfoFileName, StringComparison.CurrentCultureIgnoreCase));
       // DONE - Case is not found, send to administrator and save on database
       if (baseDoc is null)
@@ -34,6 +40,7 @@ public static class DocHandler
         database.InserirDocumento(new DocsModel
         {
           messageId = messageId,
+          identifier = identifier,
           filename = docInfoFileName,
           parent = docInfo.Directory?.Name,
           updatedAt = docInfo.LastWriteTimeUtc.ToLocalTime()
