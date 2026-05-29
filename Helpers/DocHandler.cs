@@ -21,6 +21,9 @@ public static class DocHandler
     var docsInfo = pdfsInfo.Concat(xlsxInfo).ToList();
     foreach (var docInfo in docsInfo)
     {
+      if (System.IO.File.GetAttributes(docInfo.FullName).HasFlag(FileAttributes.Hidden))
+        throw new InvalidOperationException(
+          $"O arquivo {docInfo.FullName} está oculto!");
       var docInfoFileName = System.IO.Path.GetFileName(docInfo.FullName) ??
         throw new InvalidOperationException(
           $"O nome do arquivo {docInfo.FullName} não pode ser obtido!");
