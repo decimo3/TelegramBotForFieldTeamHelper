@@ -32,14 +32,16 @@ public static class DocHandler
         throw new InvalidOperationException(
           $"Não pode obter o identificador válido para o arquivo {docInfo.FullName}!");
       var baseDoc = baseDocs.FirstOrDefault(b => b.filename.Equals(docInfoFileName, StringComparison.CurrentCultureIgnoreCase));
-      // DONE - Case is not found, send to administrator and save on database
-      if (baseDoc is null)
+      if (baseDoc is null || docInfo.LastWriteTimeUtc.ToLocalTime() > baseDoc.updatedAt)
       {
         using var docStream = new System.IO.FileStream(docInfo.FullName, FileMode.Open, FileAccess.Read);
         var messageId = await HandleMessage.GetInstance()
           .SendDocumentAsyncWraper(adm_id, docStream, docInfoFileName) ??
             throw new InvalidOperationException(
               $"Não foi possível obter o ID do documento {docInfoFileName}!");
+      // DONE - Case is not found, send to administrator and save on database
+      if (baseDoc is null)
+      {
         database.InserirDocumento(new DocsModel
         {
           messageId = messageId,
@@ -53,15 +55,11 @@ public static class DocHandler
       // DONE - Case the remote file is newer that database file, then update
       if (docInfo.LastWriteTimeUtc.ToLocalTime() > baseDoc.updatedAt)
       {
-        using var docStream = new System.IO.FileStream(docInfo.FullName, FileMode.Open, FileAccess.Read);
-        var messageId = await HandleMessage.GetInstance()
-          .SendDocumentAsyncWraper(adm_id, docStream, docInfoFileName) ??
-            throw new InvalidOperationException(
-              $"Não foi possível obter o ID do documento {docInfoFileName}!");
         baseDoc.messageId = messageId;
         baseDoc.updatedAt = docInfo.LastWriteTimeUtc.ToLocalTime();
         database.AlterarDocumento(baseDoc);
         continue;
+      }
       }
     }
     // DONE - Remove information of obsolete instructions
