@@ -361,6 +361,33 @@ public class HandleAsynchronous
         case TypeRequest.docInfo:
         {
           var nomeDocumento = solicitacao.message.Split(' ')[1];
+
+          var filtros = new Dictionary<string, Func<dynamic, bool>>(StringComparer.OrdinalIgnoreCase)
+          {
+            ["ENEL"] = d => d.parent.Contains("ENEL"),
+            ["LIGHT"] = d => d.parent.Contains("LIGHT"),
+            ["INDICA"] = d => !d.parent.Contains("ENEL") && !d.parent.Contains("LIGHT")
+          };
+
+          if (filtros.TryGetValue(nomeDocumento, out var filtro))
+          {
+            var docsInfos = DocHandler.GetDocuments()
+              .Where(filtro)
+              .GroupBy(d => d.parent)
+              .Select(g => $"{g.Key}:\n\n" +
+                string.Join('\n', g.Select(d => d.filename)))
+              .ToList();
+
+            await bot.sendTextMesssageWraper(
+              solicitacao.identifier,
+              $"Lista de documentos da {nomeDocumento.ToUpper()}:\n\n" +
+              string.Join('\n', docsInfos)
+            );
+
+            bot.SucessReport(solicitacao);
+            break;
+          }
+
           var docsInfo = DocHandler.GetDocument(nomeDocumento);
           await bot.SendDocumentAsyncWraper(
             solicitacao.identifier,
