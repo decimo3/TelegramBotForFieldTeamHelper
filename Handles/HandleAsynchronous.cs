@@ -377,7 +377,9 @@ public class HandleAsynchronous
               .Select(g => $"{g.Key}:\n\n" +
                 string.Join('\n', g.Select(d => d.filename)))
               .ToList();
-
+            if (!docsInfos.Any())
+              throw new InvalidOperationException(
+                "Não foi encontrado nenhum documento com o critério informado!");
             await bot.sendTextMesssageWraper(
               solicitacao.identifier,
               $"Lista de documentos da {nomeDocumento.ToUpper()}:\n\n" +
