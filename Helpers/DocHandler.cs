@@ -91,8 +91,8 @@ public static class DocHandler
         .Select(d => d.filename).ToList();
     throw new InvalidOperationException(
       "O documento solicitado não foi encontrado!\n\n" +
-      "Possíveis documentos relacionados:\n\n" +
-      String.Join('\n', documents));
+        (documents.Any() ? "Possíveis documentos relacionados:\n\n" +
+          String.Join('\n', documents) : String.Empty));
   }
   public static String GetDocuments()
   {
