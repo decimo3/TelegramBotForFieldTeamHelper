@@ -33,7 +33,7 @@ public static class DocHandler
         {
           messageId = messageId,
           filename = docInfoFileName,
-          identifier = docInfoFileName.Split(' ').First(),
+          parent = docInfo.Directory?.Name,
           updatedAt = docInfo.LastWriteTimeUtc.ToLocalTime()
         });
         continue;
