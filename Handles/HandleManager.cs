@@ -7,13 +7,6 @@ public static class Manager
   {
     var database = Database.GetInstance();
     var bot = HandleMessage.GetInstance();
-    if(!user.pode_autorizar())
-    {
-      request.status = 400;
-      var erro = new Exception("Você não tem permissão para alterar usuários!");
-      await bot.ErrorReport(erro, request);
-      return;
-    }
     var usuario = database.RecuperarUsuario(request.information);
     if(usuario == null)
     {
@@ -22,66 +15,31 @@ public static class Manager
       await bot.ErrorReport(erro, request);
       return;
     }
-    if(usuario.privilege == UsersModel.userLevel.proprietario)
+    if (user.privilege <= usuario.privilege)
     {
-      request.status = 403;
-      var erro = new Exception("Nenhum usuário tem permissão suficiente para alterar o proprietário!");
+      request.status = 401;
+      var erro = new Exception("Você não tem permissão suficiente para alterar esse usuário!");
       await bot.ErrorReport(erro, request);
       return;
     }
-    if(usuario.privilege == UsersModel.userLevel.administrador)
+    if (!Enum.TryParse<UsersModel.userLevel>(request.application, true, out var cargo))
     {
-      if(!user.pode_promover())
-      {
-        request.status = 403;
-        var erro = new Exception("Você não tem permissão suficiente para alterar o administrador!");
-        await bot.ErrorReport(erro, request);
-        return;
-      }
+      request.status = 400;
+      var cargos = String.Join(", ", Enum.GetNames(typeof(UsersModel.userLevel)));
+      var erro = new Exception($"O cargo informado não é válido!\nLista de cargos: {cargos}");
+      await bot.ErrorReport(erro, request);
+      return;
+    }
+    if(!UsersModel.pode_autorizar(user.privilege, cargo))
+    {
+      request.status = 400;
+      var erro = new Exception("Você não tem permissão para alterar esse usuário!");
+      await bot.ErrorReport(erro, request);
+      return;
     }
     usuario.inserted_by = request.identifier;
     usuario.update_at = request.received_at;
-    switch (request.application)
-    {
-      case "autorizar":
-      case "atualizar":
-        if(usuario.dias_vencimento() > 99)
-        {
-          request.status = 400;
-          var erro = new Exception($"Usuário {usuario.identifier} com cargo {usuario.privilege} não tem prazo de expiração!");
-          await bot.ErrorReport(erro, request);
-          return;
-        }
-        if(usuario.privilege == UsersModel.userLevel.desautorizar)
-          usuario.privilege = UsersModel.userLevel.eletricista;
-      break;
-      case "desautorizar":
-        usuario.privilege = UsersModel.userLevel.desautorizar;
-      break;
-      case "controlador":
-      case "comunicador":
-      case "supervisor":
-        if(!user.pode_promover())
-        {
-          request.status = 403;
-          var erro = new Exception("Você não tem permissão para alterar usuários!");
-          await bot.ErrorReport(erro, request);
-          return;
-        }
-        var cargo = Enum.Parse<UsersModel.userLevel>(request.application);
-        usuario.privilege = cargo;
-      break;
-      case "administrador":
-        if(user.privilege != UsersModel.userLevel.proprietario)
-        {
-          request.status = 403;
-          var erro = new Exception("Você não tem permissão para promover administradores!");
-          await bot.ErrorReport(erro, request);
-          return;
-        }
-          usuario.privilege = UsersModel.userLevel.administrador;
-      break;
-    }
+    usuario.privilege = cargo;
     try
     {
       database.AlterarUsuario(usuario);
