@@ -46,14 +46,14 @@ public static class Command
         }
         if(user.pode_autorizar())
         {
-          await bot.sendTextMesssageWraper(user.identifier, "*EVIDENCIA* para receber as informações de finalização de notas no OFS");
           await bot.sendTextMesssageWraper(user.identifier, "Para os comandos de gestão, digite o cargo e depois insira o número do identificador");
-          await bot.sendTextMesssageWraper(user.identifier, "*AUTORIZAR* para cadastrar novos usuários com acesso de consulta no sistema chatbot");
-          await bot.sendTextMesssageWraper(user.identifier, "*ATUALIZAR* para renovar o prazo de expiração um usuário com acesso de consulta do sistema");
-          await bot.sendTextMesssageWraper(user.identifier, "*SUPERVISOR* para alterar para um usuário que pode autorizar outros usuários");
-          await bot.sendTextMesssageWraper(user.identifier, "*DESAUTORIZAR* para remover o acesso de consulta de um usuário no sistema chatbot");
-          await bot.sendTextMesssageWraper(user.identifier, "*CONTROLADOR* para alterar para um usuário que pode receber avisos sobre outros usuário");
-          await bot.sendTextMesssageWraper(user.identifier, "*COMUNICADOR* para alterar para um usuário capaz de enviar transmissões pelo sistema");
+          await bot.sendTextMesssageWraper(user.identifier, "*ELETRICISTA* para cadastrar um usuário capaz de consultar clientes");
+          await bot.sendTextMesssageWraper(user.identifier, "*CONTROLADOR* para cadastrar um usuário capaz de consultar relatórios");
+          await bot.sendTextMesssageWraper(user.identifier, "*SUPERVISOR* para cadastrar um usuário capaz de autorizar outros usuários");
+          await bot.sendTextMesssageWraper(user.identifier, "*COMUNICADOR* para cadastrar um usuário capaz de enviar transmissões");
+          await bot.sendTextMesssageWraper(user.identifier, "*ADMINISTRADOR* para cadastrar um usuário capaz de gerenciar o sistema");
+          await bot.sendTextMesssageWraper(user.identifier, "*COORDENADOR* para cadastrar um usuário capaz de gerenciar as permissões");
+          await bot.sendTextMesssageWraper(user.identifier, "*DESAUTORIZAR* para remover o acesso de consulta de um usuário ao sistema");
         }
         await bot.sendTextMesssageWraper(user.identifier, "Todas as solicitações não possuem acentuação e são no sigular (não tem o 's' no final).");
         break;
