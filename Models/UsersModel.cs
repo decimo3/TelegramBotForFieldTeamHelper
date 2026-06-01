@@ -38,6 +38,26 @@ public class UsersModel : IValidatableObject
     coordenador = 5,
     proprietario = 6,
   }
+  public static bool pode_autorizar(userLevel source, userLevel target)
+  {
+    return source switch
+    {
+
+        userLevel.proprietario =>
+            target is userLevel.coordenador or userLevel.comunicador,
+
+        userLevel.coordenador =>
+            target is userLevel.administrador or userLevel.comunicador,
+
+        userLevel.administrador =>
+            target is userLevel.supervisor or userLevel.comunicador,
+
+        userLevel.supervisor =>
+            target is userLevel.eletricista or userLevel.desautorizar,
+
+        _ => false
+    };
+  }
   public bool pode_autorizar()
   {
     if(this.privilege == userLevel.supervisor) return true;
