@@ -47,7 +47,7 @@ public static class DocHandler
           messageId = messageId,
           identifier = identifier,
           filename = docInfoFileName,
-          parent = docInfo.Directory?.Name,
+          parent = docInfo.Directory!.Name,
           updatedAt = docInfo.LastWriteTimeUtc.ToLocalTime()
         });
         continue;
