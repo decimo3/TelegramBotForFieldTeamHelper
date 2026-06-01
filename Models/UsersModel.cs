@@ -32,18 +32,21 @@ public class UsersModel : IValidatableObject
     controlador = 2,
     comunicador = 3,
     administrador = 4,
-    proprietario = 5,
+    coordenador = 5,
+    proprietario = 6,
   }
   public bool pode_autorizar()
   {
     if(this.privilege == userLevel.supervisor) return true;
     if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.coordenador) return true;
     if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
   public bool pode_promover()
   {
     if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.coordenador) return true;
     if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
@@ -51,6 +54,7 @@ public class UsersModel : IValidatableObject
   {
     if(this.privilege == userLevel.comunicador) return true;
     if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.coordenador) return true;
     if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
@@ -79,6 +83,8 @@ public class UsersModel : IValidatableObject
     if(this.privilege == userLevel.comunicador)
       return 99;
     if(this.privilege == userLevel.administrador)
+      return 99;
+    if(this.privilege == userLevel.coordenador)
       return 99;
     if(this.privilege == userLevel.proprietario)
       return 99;
