@@ -7,6 +7,13 @@ public static class Manager
   {
     var database = Database.GetInstance();
     var bot = HandleMessage.GetInstance();
+    if (user.identifier == request.information)
+    {
+      request.status = 400;
+      var erro = new Exception($"Você não tem permissão para alterar o próprio cadastro!");
+      await bot.ErrorReport(erro, request);
+      return;
+    }
     var usuario = database.RecuperarUsuario(request.information);
     if(usuario == null)
     {
