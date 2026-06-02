@@ -373,7 +373,7 @@ public class HandleAsynchronous
           {
             var docsInfos = DocHandler.GetDocuments()
               .Where(filtro)
-              .GroupBy(d => d.parent)
+              .GroupBy(d => new FileInfo(d.parent).Directory!.Name)
               .Select(g => $"{g.Key}:\n\n" +
                 string.Join('\n', g.Select(d => d.filename)))
               .ToList();
