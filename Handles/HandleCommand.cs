@@ -63,11 +63,7 @@ public static class Command
         info.Append($"*Identificador:* {user.identifier}\n");
         info.Append($"*Telefone:* {user.phone_number}\n");
         info.Append($"*Autorização:* {user.privilege.ToString()}\n");
-        if(user.dias_vencimento() < 99)
-        {
-          info.Append($"*Expiração:* {user.update_at.AddDays(user.dias_vencimento())} ({user.dias_vencimento()} dias)\n");
-        }
-        info.Append($"*Versão:* {Updater.CurrentVersion().ToString("yyyyMMdd")}");
+        info.Append($"*Expiração:* {user.dias_vencimento()} dias\n");
         await bot.sendTextMesssageWraper(user.identifier, info.ToString());
         }
         break;
