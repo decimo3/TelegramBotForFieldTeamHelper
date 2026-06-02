@@ -40,22 +40,37 @@ public class UsersModel : IValidatableObject
   }
   public static bool pode_autorizar(userLevel source, userLevel target)
   {
+
+    if (target is userLevel.desautorizar)
+      return source is
+        userLevel.proprietario or
+        userLevel.coordenador or
+        userLevel.administrador or
+        userLevel.supervisor;
+
     return source switch
     {
 
-        userLevel.proprietario =>
-            target is userLevel.coordenador or userLevel.comunicador,
+      userLevel.proprietario =>
+        target is
+          userLevel.coordenador or
+          userLevel.comunicador,
 
-        userLevel.coordenador =>
-            target is userLevel.administrador or userLevel.comunicador,
+      userLevel.coordenador =>
+        target is
+          userLevel.administrador or
+          userLevel.comunicador,
 
-        userLevel.administrador =>
-            target is userLevel.supervisor or userLevel.comunicador,
+      userLevel.administrador =>
+        target is
+          userLevel.supervisor or
+          userLevel.comunicador or
+          userLevel.controlador,
 
-        userLevel.supervisor =>
-            target is userLevel.eletricista or userLevel.desautorizar,
+      userLevel.supervisor =>
+        target is userLevel.eletricista,
 
-        _ => false
+      _ => false
     };
   }
   public bool pode_autorizar()
@@ -75,6 +90,7 @@ public class UsersModel : IValidatableObject
   }
   public bool pode_transmitir()
   {
+    if(this.privilege == userLevel.supervisor) return true;
     if(this.privilege == userLevel.comunicador) return true;
     if(this.privilege == userLevel.administrador) return true;
     if(this.privilege == userLevel.coordenador) return true;
