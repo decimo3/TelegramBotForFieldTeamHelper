@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace telbot;
 public class UsersModel : IValidatableObject
 {
+  private const int PRAZO_MAX = 360;
+  private const int PRAZO_MID = 180;
+  private const int PRAZO_MIN = 90;
   [Key]
   [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
   public Int64 rowid { get; set; }
@@ -32,25 +35,65 @@ public class UsersModel : IValidatableObject
     controlador = 2,
     comunicador = 3,
     administrador = 4,
-    proprietario = 5,
+    coordenador = 5,
+    proprietario = 6,
+  }
+  public static bool pode_autorizar(userLevel source, userLevel target)
+  {
+
+    if (target is userLevel.desautorizar)
+      return source is
+        userLevel.proprietario or
+        userLevel.coordenador or
+        userLevel.administrador or
+        userLevel.supervisor;
+
+    return source switch
+    {
+
+      userLevel.proprietario =>
+        target is
+          userLevel.coordenador or
+          userLevel.comunicador,
+
+      userLevel.coordenador =>
+        target is
+          userLevel.administrador or
+          userLevel.comunicador,
+
+      userLevel.administrador =>
+        target is
+          userLevel.supervisor or
+          userLevel.comunicador or
+          userLevel.controlador,
+
+      userLevel.supervisor =>
+        target is userLevel.eletricista,
+
+      _ => false
+    };
   }
   public bool pode_autorizar()
   {
     if(this.privilege == userLevel.supervisor) return true;
     if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.coordenador) return true;
     if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
   public bool pode_promover()
   {
     if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.coordenador) return true;
     if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
   public bool pode_transmitir()
   {
+    if(this.privilege == userLevel.supervisor) return true;
     if(this.privilege == userLevel.comunicador) return true;
     if(this.privilege == userLevel.administrador) return true;
+    if(this.privilege == userLevel.coordenador) return true;
     if(this.privilege == userLevel.proprietario) return true;
     return false;
   }
@@ -70,18 +113,17 @@ public class UsersModel : IValidatableObject
   }
   public Int32 dias_vencimento()
   {
-    if(this.privilege == userLevel.eletricista)
-      return (this.update_at.AddDays(30) - DateTime.Now).Days;
-    if(this.privilege == userLevel.controlador)
-      return (this.update_at.AddDays(30) - DateTime.Now).Days;
-    if(this.privilege == userLevel.supervisor)
-      return (this.update_at.AddDays(90) - DateTime.Now).Days;
-    if(this.privilege == userLevel.comunicador)
-      return 99;
-    if(this.privilege == userLevel.administrador)
-      return 99;
-    if(this.privilege == userLevel.proprietario)
-      return 99;
+    if (this.privilege is userLevel.eletricista or userLevel.controlador)
+      return (this.update_at.AddDays(PRAZO_MIN) - DateTime.Now).Days;
+
+    if (this.privilege is userLevel.supervisor or userLevel.comunicador)
+      return (this.update_at.AddDays(PRAZO_MID) - DateTime.Now).Days;
+
+    if (this.privilege is userLevel.administrador or userLevel.coordenador)
+      return (this.update_at.AddDays(PRAZO_MAX) - DateTime.Now).Days;
+
+    if (this.privilege is userLevel.proprietario)
+      return int.MaxValue;
     return -1;
   }
 }

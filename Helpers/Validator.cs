@@ -28,9 +28,9 @@ public static class Validador
     if(aplicacao == "debito") return TypeRequest.pdfInfo;
     if(aplicacao == "historico") return TypeRequest.picInfo;
     if(aplicacao == "contato") return TypeRequest.txtInfo;
-    if(aplicacao == "autorizar") return TypeRequest.gestao;
-    if(aplicacao == "promover") return TypeRequest.gestao;
-    if(aplicacao == "atualizar") return TypeRequest.gestao;
+    if(aplicacao == "eletricista") return TypeRequest.gestao;
+    if(aplicacao == "coordenador") return TypeRequest.gestao;
+    if(aplicacao == "proprietario") return TypeRequest.gestao;
     if(aplicacao == "agrupamento") return TypeRequest.picInfo;
     if(aplicacao == "pendente") return TypeRequest.picInfo;
     if(aplicacao == "religacaoro") return TypeRequest.xlsInfo;

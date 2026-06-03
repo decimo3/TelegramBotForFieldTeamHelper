@@ -1,9 +1,35 @@
-# Módulo de envio automatizado de documentos e procedimentos
+# Sistema de Autorização e Comunicados Aprimorado
 
-O robô agora possui um novo módulo de envio automatizado de documentos PDF. Ele realizará a leitura da pasta definida na variável de ambiente `DOCS_PATH` e disponibilizará os documentos para todos os usuários por meio do comando `documento`.
+O programa agora inclui uma nova função de usuário: `Coordenador`.
 
-Esse processo ocorre apenas na inicialização do programa, assim como a verificação dos documentos previamente cadastrados, validando se ainda estão disponíveis na pasta configurada. Caso algum documento tenha sido removido, ele será considerado obsoleto e não estará mais disponível para download.
+## Autorizações Hierarquia
 
-A lista de documentos disponíveis pode ser obtida pelo comando `/documento`.
+A hierarquia de funções agora é rigorosamente aplicada durante a atribuição de permissões. Anteriormente, os usuários podiam conceder qualquer função abaixo do seu próprio nível. Com esta atualização, a atribuição de funções passa a seguir as seguintes regras:
 
-O download do documento será realizado por meio do código identificador correspondente. Caso seja enviada qualquer palavra que não corresponda a um identificador válido, a solicitação não será atendida.
+* `Proprietário` pode autorizar `Coordenador` e `Comunicador`.
+* `Coordenador` pode autorizar `Administrador` e `Comunicador`.
+* `Administrador` pode autorizar `Supervisor`, `Controlador`, e `Comunicador`.
+* `Supervisor` pode autorizar somente `Eletricista`.
+* Qualquer função pode suspender ou banir usuários com permissões de nível inferior.
+
+## Comunicados Hierárquicos
+
+Os comunicados agora seguem a hierarquia de autorização e são entregues de acordo com o nível de autoridade do remetente.
+
+* `Proprietário` e `Comunicador` autorizados pelo `Proprietário` podem enviar comunicados para todos os usuários.
+* `Coordenador`, `Administrador` e `Supervisor` podem enviar comunicados apenas para usuários dentro de sua hierarquia subordinada.
+* `Comunicador` autorizados por um `Coordenador` ou `Administrador` podem enviar comunicados apenas para usuários pertencentes à hierarquia do usuário que concedeu sua função.
+
+Isso garante que os privilégios de comunicação permaneçam alinhados com a estrutura organizacional e o modelo de autorização.
+
+## Prazos Aumentados
+
+Os prazos de expiração do cadastro foram aumentados:
+
+* `Coordenador` e `Administrador` tem prazo de 360 dias (1 ano).
+* `Supervisor` e `Comunicador` tem prazo de 180 dias (6 meses).
+* `Eletricista` tem prazo de 90 dias (3 meses).
+
+## Autorização e Atualização
+
+Agora a autorização e atualização será dada somente pelo nome do cargo, e não pelas palavras "autorizar" e "atualizar". Isso se deve ao novo rigor na hierarquia de funções.

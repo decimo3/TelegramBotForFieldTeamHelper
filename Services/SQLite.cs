@@ -53,7 +53,8 @@ public class SQLite : IDatabase
             filename VARCHAR(64) NOT NULL,
             identifier VARCHAR(32) NOT NULL,
             updated_at TIMESTAMP NOT NULL,
-            is_outdated BOOLEAN DEFAULT FALSE
+            is_outdated BOOLEAN DEFAULT FALSE,
+            parent VARCHAR(64) NOT NULL
             )";
         command.ExecuteNonQuery();
       }
@@ -319,12 +320,13 @@ public class SQLite : IDatabase
     connection.Open();
     using var command = connection.CreateCommand();
     command.CommandText = "INSERT INTO documentos " +
-      "(filename, message_id, identifier, updated_at) " +
-      "VALUES (@valor1, @valor2, @valor3, @valor4)";
+      "(filename, message_id, identifier, updated_at, parent) " +
+      "VALUES (@valor1, @valor2, @valor3, @valor4, @valor5)";
     command.Parameters.Add(new SQLiteParameter("@valor1", documento.filename));
     command.Parameters.Add(new SQLiteParameter("@valor2", documento.messageId));
     command.Parameters.Add(new SQLiteParameter("@valor3", documento.identifier));
     command.Parameters.Add(new SQLiteParameter("@valor4", documento.updatedAt));
+    command.Parameters.Add(new SQLiteParameter("@valor5", documento.parent));
     command.ExecuteNonQuery();
   }
 
@@ -339,7 +341,7 @@ public class SQLite : IDatabase
     using var connection = new SQLiteConnection(connectionString);
     connection.Open();
     using var command = connection.CreateCommand();
-    command.CommandText = "SELECT rowid, filename, message_id, identifier, updated_at, is_outdated FROM documentos";
+    command.CommandText = "SELECT rowid, filename, message_id, identifier, updated_at, is_outdated, parent FROM documentos";
     using var dataReader = command.ExecuteReader();
     if(!dataReader.HasRows) return documentos;
     while(dataReader.Read())
@@ -352,6 +354,7 @@ public class SQLite : IDatabase
         identifier = dataReader.GetString(3),
         updatedAt = dataReader.GetDateTime(4),
         IsOutdated = dataReader.GetBoolean(5),
+        parent = dataReader.GetString(6),
       });
     }
     return (expression == null) ? documentos : documentos.AsQueryable().Where(expression).ToList();

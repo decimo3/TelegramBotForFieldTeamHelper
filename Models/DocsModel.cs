@@ -10,6 +10,7 @@ public class DocsModel
   public Int64 rowid { get; set; }
   public String messageId { get; set; }
   public String filename { get; set; }
+  public String parent { get; set; }
   public String identifier { get; set; }
   public DateTime updatedAt { get; set; }
   public Boolean IsOutdated { get; set; } = false;
