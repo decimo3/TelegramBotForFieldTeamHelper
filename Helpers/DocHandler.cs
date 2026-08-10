@@ -10,7 +10,7 @@ public static class DocHandler
   private static Boolean is_ready = false;
   private static List<DocsModel> _documents = new();
   private static readonly Regex _identifierRegex = new(@"^(?=.*[A-Z])(?=.*\d)[A-Z0-9]+$");
-  public static async Task LoadDocs()
+  public static async void LoadDocs()
   {
     var database = Database.GetInstance();
     var adm_id = Configuration.GetInstance().ID_ADM_BOT;
