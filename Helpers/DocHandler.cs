@@ -32,7 +32,7 @@ public static class DocHandler
         throw new InvalidOperationException(
           $"Não pode obter o identificador válido para o arquivo {docInfo.FullName}!");
       var baseDoc = baseDocs.FirstOrDefault(b => b.filename.Equals(docInfoFileName, StringComparison.OrdinalIgnoreCase));
-      if (baseDoc is null || docInfo.LastWriteTimeUtc.ToLocalTime() > baseDoc.updatedAt)
+      if (baseDoc is null || docInfo.LastWriteTimeUtc.Date > baseDoc.updatedAt.Date)
       {
         using var docStream = new System.IO.FileStream(docInfo.FullName, FileMode.Open, FileAccess.Read);
         var messageId = await HandleMessage.GetInstance()
@@ -48,15 +48,15 @@ public static class DocHandler
           identifier = identifier,
           filename = docInfoFileName,
           parent = docInfo.FullName,
-          updatedAt = docInfo.LastWriteTimeUtc.ToLocalTime()
+          updatedAt = docInfo.LastWriteTimeUtc.Date
         });
         continue;
       }
       // DONE - Case the remote file is newer that database file, then update
-      if (docInfo.LastWriteTimeUtc.ToLocalTime() > baseDoc.updatedAt)
+      if (docInfo.LastWriteTimeUtc.Date > baseDoc.updatedAt.Date)
       {
         baseDoc.messageId = messageId;
-        baseDoc.updatedAt = docInfo.LastWriteTimeUtc.ToLocalTime();
+        baseDoc.updatedAt = docInfo.LastWriteTimeUtc.Date;
         database.AlterarDocumento(baseDoc);
         continue;
       }
