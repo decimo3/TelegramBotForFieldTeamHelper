@@ -7,6 +7,7 @@ namespace telbot.Helpers;
 
 public static class DocHandler
 {
+  private static Boolean is_ready = false;
   private static List<DocsModel> _documents = new();
   private static readonly Regex _identifierRegex = new(@"^(?=.*[A-Z])(?=.*\d)[A-Z0-9]+$");
   public static async Task LoadDocs()
@@ -81,9 +82,12 @@ public static class DocHandler
     }
     // DONE - retrieve updated documents information
     _documents = database.RecuperarDocumento();
+    is_ready = true;
   }
   public static DocsModel GetDocument(String text)
   {
+    if (!is_ready) throw new InvalidOperationException(
+        "O sistema não terminou de realizar a indexação, aguarde e solicite em breve!");
     var doc = _documents.FirstOrDefault(d =>
       d.identifier.Equals(text, StringComparison.OrdinalIgnoreCase));
     if (doc is not null)
@@ -103,6 +107,8 @@ public static class DocHandler
   }
   public static List<DocsModel> GetDocuments()
   {
+    if (!is_ready) throw new InvalidOperationException(
+        "O sistema não terminou de realizar a indexação, aguarde e solicite em breve!");
     var documents = _documents.Where(d => d.IsOutdated == false).ToList();
     if (!documents.Any())
       throw new InvalidOperationException($"Não foi encontrado nenhum documento!");
