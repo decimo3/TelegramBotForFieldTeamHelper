@@ -61,6 +61,12 @@ public static class DocHandler
         continue;
       }
       }
+      // DONE - Case the remote file is reinserted to the folder, when reenable
+      if (baseDoc.IsOutdated == true)
+      {
+        baseDoc.IsOutdated = false;
+        database.AlterarDocumento(baseDoc);
+      }
     }
     // DONE - Remove information of obsolete instructions
     var delInfos = baseDocs
