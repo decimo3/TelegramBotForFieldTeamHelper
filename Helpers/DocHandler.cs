@@ -31,7 +31,7 @@ public static class DocHandler
       if (!_identifierRegex.IsMatch(identifier))
         throw new InvalidOperationException(
           $"Não pode obter o identificador válido para o arquivo {docInfo.FullName}!");
-      var baseDoc = baseDocs.FirstOrDefault(b => b.filename.Equals(docInfoFileName, StringComparison.CurrentCultureIgnoreCase));
+      var baseDoc = baseDocs.FirstOrDefault(b => b.filename.Equals(docInfoFileName, StringComparison.OrdinalIgnoreCase));
       if (baseDoc is null || docInfo.LastWriteTimeUtc.ToLocalTime() > baseDoc.updatedAt)
       {
         using var docStream = new System.IO.FileStream(docInfo.FullName, FileMode.Open, FileAccess.Read);
@@ -66,7 +66,7 @@ public static class DocHandler
     var delInfos = baseDocs
       .Where(b => !docsInfo.Any(d =>
         System.IO.Path.GetFileName(d.FullName)
-        .Equals(b.filename, StringComparison.CurrentCultureIgnoreCase)))
+        .Equals(b.filename, StringComparison.OrdinalIgnoreCase)))
       .ToList();
     foreach (var delInfo in delInfos)
     {
@@ -79,7 +79,7 @@ public static class DocHandler
   public static DocsModel GetDocument(String text)
   {
     var doc = _documents.FirstOrDefault(d =>
-      d.identifier.Equals(text, StringComparison.CurrentCultureIgnoreCase));
+      d.identifier.Equals(text, StringComparison.OrdinalIgnoreCase));
     if (doc is not null)
     {
       if(doc.IsOutdated)
@@ -88,7 +88,7 @@ public static class DocHandler
       return doc;
     }
     var documents = _documents.Where(d => d.IsOutdated == false &&
-      d.filename.Contains(text, StringComparison.CurrentCultureIgnoreCase))
+      d.filename.Contains(text, StringComparison.OrdinalIgnoreCase))
         .Select(d => d.filename).ToList();
     throw new InvalidOperationException(
       "O documento solicitado não foi encontrado!\n\n" +

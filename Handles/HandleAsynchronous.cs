@@ -365,9 +365,10 @@ public class HandleAsynchronous
 
           var filtros = new Dictionary<string, Func<dynamic, bool>>(StringComparer.OrdinalIgnoreCase)
           {
-            ["ENEL"] = d => d.parent.Contains("ENEL"),
-            ["LIGHT"] = d => d.parent.Contains("LIGHT"),
-            ["INDICA"] = d => !d.parent.Contains("ENEL") && !d.parent.Contains("LIGHT")
+            ["ENEL"] = d => d.parent.Contains("ENEL", StringComparison.OrdinalIgnoreCase),
+            ["LIGHT"] = d => d.parent.Contains("LIGHT", StringComparison.OrdinalIgnoreCase),
+            ["INDICA"] = d => !d.parent.Contains("ENEL", StringComparison.OrdinalIgnoreCase) &&
+                              !d.parent.Contains("LIGHT", StringComparison.OrdinalIgnoreCase)
           };
 
           if (filtros.TryGetValue(nomeDocumento, out var filtro))
