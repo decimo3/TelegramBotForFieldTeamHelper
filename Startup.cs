@@ -68,6 +68,7 @@ class Startup
         s =>
           s.typeRequest != TypeRequest.gestao &&
           s.typeRequest != TypeRequest.comando &&
+          s.typeRequest != TypeRequest.docInfo &&
           s.status == 0
       );
       # pragma warning restore CS4014

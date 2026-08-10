@@ -65,7 +65,8 @@ public class HandleAsynchronous
     database.InserirSolicitacao(request);
     if(
       request.typeRequest == TypeRequest.gestao ||
-      request.typeRequest == TypeRequest.comando)
+      request.typeRequest == TypeRequest.comando ||
+      request.typeRequest == TypeRequest.docInfo)
     {
       await Cooker(request);
     }
