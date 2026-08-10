@@ -363,7 +363,7 @@ public class HandleAsynchronous
         {
           var nomeDocumento = solicitacao.message.Split(' ')[1];
 
-          var filtros = new Dictionary<string, Func<dynamic, bool>>(StringComparer.OrdinalIgnoreCase)
+          var filtros = new Dictionary<string, Func<DocsModel, bool>>(StringComparer.OrdinalIgnoreCase)
           {
             ["ENEL"] = d => d.parent.Contains("ENEL", StringComparison.OrdinalIgnoreCase),
             ["LIGHT"] = d => d.parent.Contains("LIGHT", StringComparison.OrdinalIgnoreCase),
@@ -373,15 +373,16 @@ public class HandleAsynchronous
 
           if (filtros.TryGetValue(nomeDocumento, out var filtro))
           {
-            var docsInfos = DocHandler.GetDocuments()
-              .Where(filtro)
-              .GroupBy(d => new FileInfo(d.parent).Directory!.Name)
+            var documentos = DocHandler.GetDocuments()
+              .Where(filtro).ToList();
+            if (!documentos.Any())
+              throw new InvalidOperationException(
+                "Não foi encontrado nenhum documento com o critério informado!");
+            var docsInfos = documentos
+              .GroupBy(d => new FileInfo(d.parent).Directory?.Name ?? "Origem desconhecida!")
               .Select(g => $"{g.Key}:\n\n" +
                 string.Join('\n', g.Select(d => d.filename)))
               .ToList();
-            if (!docsInfos.Any())
-              throw new InvalidOperationException(
-                "Não foi encontrado nenhum documento com o critério informado!");
             await bot.sendTextMesssageWraper(
               solicitacao.identifier,
               $"Lista de documentos da {nomeDocumento.ToUpper()}:\n\n" +
