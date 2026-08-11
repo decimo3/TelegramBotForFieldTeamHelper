@@ -386,7 +386,8 @@ public class HandleAsynchronous
             await bot.sendTextMesssageWraper(
               solicitacao.identifier,
               $"Lista de documentos da {nomeDocumento.ToUpper()}:\n\n" +
-              string.Join('\n', docsInfos)
+                  string.Join('\n', docsInfos),
+              markdown: false
             );
 
             bot.SucessReport(solicitacao);
