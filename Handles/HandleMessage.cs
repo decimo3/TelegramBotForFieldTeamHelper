@@ -13,6 +13,7 @@ public class HandleMessage
   private static readonly Object _lock = new();
   private readonly ILogger logger = Logger.GetInstance<HandleMessage>();
   private readonly string errorMensagem = "Não foi possível responder a sua solicitação.";
+  private const int MAX_TEXT_LENGHT = 3_500;
   private HandleMessage(ITelegramBotClient bot)
   {
     this.bot = bot;
@@ -35,10 +36,28 @@ public class HandleMessage
   }
   public async Task sendTextMesssageWraper(long id, string message, bool enviar=true, bool exibir=true, bool markdown=true)
   {
-      logger.LogDebug(message);
-      ParseMode? parsemode = markdown ? ParseMode.Markdown : null;
-      if(enviar) await bot.SendTextMessageAsync(chatId: id, text: message, parseMode: parsemode);
-      if(exibir) logger.LogInformation(message);
+    if(exibir) logger.LogInformation(message);
+    ParseMode? parsemode = markdown ? ParseMode.Markdown : null;
+    if (!enviar) return;
+    if (message.Length < MAX_TEXT_LENGHT)
+    {
+      await bot.SendTextMessageAsync(chatId: id, text: message, parseMode: parsemode);
+      return;
+    }
+    var partial = new System.Text.StringBuilder();
+    foreach (var line in message.Split('\n'))
+    {
+      if ((partial.Length + line.Length) > MAX_TEXT_LENGHT)
+      {
+        await bot.SendTextMessageAsync(chatId: id, text: partial.ToString(), parseMode: parsemode);
+        partial.Clear();
+      }
+      partial.AppendLine(line);
+    }
+    if (partial.Length > 0)
+    {
+      await bot.SendTextMessageAsync(chatId: id, text: partial.ToString(), parseMode: parsemode);
+    }
   }
   public async Task<String?> SendDocumentAsyncWraper(long id, Stream stream, string filename)
   {
