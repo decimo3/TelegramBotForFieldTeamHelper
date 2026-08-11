@@ -378,17 +378,20 @@ public class HandleAsynchronous
             if (!documentos.Any())
               throw new InvalidOperationException(
                 "Não foi encontrado nenhum documento com o critério informado!");
-            var docsInfos = documentos
+            var agrupamentos = documentos
               .GroupBy(d => new FileInfo(d.parent).Directory?.Name ?? "Origem desconhecida!")
               .Select(g => $"{g.Key}:\n\n" +
                 string.Join('\n', g.Select(d => d.filename)))
               .ToList();
-            await bot.sendTextMesssageWraper(
-              solicitacao.identifier,
-              $"Lista de documentos da {nomeDocumento.ToUpper()}:\n\n" +
-                  string.Join('\n', docsInfos),
-              markdown: false
-            );
+            foreach (var agrupamento in agrupamentos)
+            {
+              await bot.sendTextMesssageWraper(
+                solicitacao.identifier,
+                $"Lista de documentos da {nomeDocumento.ToUpper()}:\n\n" +
+                    string.Join('\n', agrupamento),
+                markdown: false
+              );
+            }
 
             bot.SucessReport(solicitacao);
             break;
