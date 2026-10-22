@@ -58,6 +58,7 @@ public static class Validador
     if(aplicacao == "bandeiradabx") return TypeRequest.xlsInfo;
     if(aplicacao == "documento") return TypeRequest.docInfo;
     if(aplicacao == "procedimento") return TypeRequest.docInfo;
+    if(aplicacao == "laudo") return TypeRequest.zipInfo;
     return TypeRequest.nullInfo;
   }
   public static bool? orderOperandos (string info1, string info2)
