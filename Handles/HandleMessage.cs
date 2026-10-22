@@ -36,7 +36,7 @@ public class HandleMessage
   }
   public async Task sendTextMesssageWraper(long id, string message, bool enviar=true, bool exibir=true, bool markdown=true)
   {
-    if(exibir) logger.LogInformation(message);
+    if(exibir) logger.LogInformation("[{id}] {message}", id, message);
     ParseMode? parsemode = markdown ? ParseMode.Markdown : null;
     if (!enviar) return;
     if (message.Length < MAX_TEXT_LENGHT)
