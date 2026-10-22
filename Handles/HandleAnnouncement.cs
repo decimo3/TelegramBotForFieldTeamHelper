@@ -159,7 +159,14 @@ public class HandleAnnouncement
       if(doc_id != null) tasks.Add(msg.SendDocumentAsyncWraper(usuario.identifier, doc_id, text));
       if(has_media == false && text != null) tasks.Add(msg.sendTextMesssageWraper(usuario.identifier, text, true, false));
     }
+    try
+    {
     await Task.WhenAll(tasks);
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex, "Aconteceu um erro ao enviar comunicado!");
+    }
   }
   public static async void Executador(String imagename, String[] arguments, String[]? children)
   {
