@@ -67,11 +67,14 @@ public static class Manager
   {
     var database = Database.GetInstance();
     var telegram = HandleMessage.GetInstance();
+    var config = Configuration.GetInstance();
     //##################################################//
     //       Verifica se o usuário está cadastrado      //
     //       e se tem permissão para usar o sistema     //
     //##################################################//
     var user = database.RecuperarUsuario(identificador);
+    try
+    {
     if(user is null)
     {
       database.InserirUsuario(new UsersModel() {
@@ -111,5 +114,13 @@ public static class Manager
       await telegram.sendTextMesssageWraper(identificador, $"Seu identificador do Telegram é `{identificador}`.");
     }
     return user;
+    }
+    catch (Exception e)
+    {
+        await telegram.sendTextMesssageWraper(
+          config.ID_ADM_BOT,
+          $"Ocorreu um erro fatal ao tentar verificar o usuário [{identificador}].\n\n{e.Message}");
+        return null;
+    }
   }
 }
