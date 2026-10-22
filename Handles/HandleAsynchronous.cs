@@ -406,6 +406,39 @@ public class HandleAsynchronous
           bot.SucessReport(solicitacao);
           break;
         }
+        case TypeRequest.zipInfo:
+        {
+          var argumentos = new String[] {
+            solicitacao.application,
+            solicitacao.information.ToString(),
+          };
+          var resposta_txt = Executor.Executar("zip_bot.exe", argumentos, true);
+          if(String.IsNullOrEmpty(resposta_txt))
+          {
+            throw new NullReferenceException(
+              $"503: Não foi recebida nenhuma resposta do `ZIP_BOT`!");
+          }
+          if(regex.Match(resposta_txt).Success)
+          {
+            throw new InvalidOperationException(resposta_txt);
+          }
+          if(!resposta_txt.StartsWith("JVBERi0"))
+          {
+            throw new InvalidOperationException("500: Foi recebido um documento inválido!");
+          }
+          var bytearray = Convert.FromBase64String(resposta_txt);
+          using var memstream = new MemoryStream(bytearray);
+          var filename = solicitacao.information.ToString() + ".zip";
+          await bot.SendDocumentAsyncWraper(
+            solicitacao.identifier,
+            memstream,
+            filename
+          );
+          logger.LogInformation("Enviado documento de {application}: {information}",
+              solicitacao.application, filename);
+          bot.SucessReport(solicitacao);
+          break;
+        }
         default:
         {
           solicitacao.status = 400;
