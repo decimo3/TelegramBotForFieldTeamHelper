@@ -414,20 +414,18 @@ public class HandleAsynchronous
             solicitacao.application,
             solicitacao.information.ToString(),
           };
-          var resposta_txt = Executor.Executar("zip_bot.exe", argumentos, true);
+          var resposta_txt = await Executor.ExecutarAsync("zip_bot.exe", argumentos, true);
+
           if(String.IsNullOrEmpty(resposta_txt))
-          {
             throw new NullReferenceException(
               $"503: Não foi recebida nenhuma resposta do `ZIP_BOT`!");
-          }
+
           if(regex.Match(resposta_txt).Success)
-          {
             throw new InvalidOperationException(resposta_txt);
-          }
+
           if(!resposta_txt.StartsWith("JVBERi0"))
-          {
             throw new InvalidOperationException("500: Foi recebido um documento inválido!");
-          }
+
           var bytearray = Convert.FromBase64String(resposta_txt);
           using var memstream = new MemoryStream(bytearray);
           var filename = solicitacao.information.ToString() + ".pdf";
