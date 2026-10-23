@@ -166,7 +166,9 @@ public class HandleAsynchronous
       if(solicitacao.typeRequest != TypeRequest.gestao &&
         solicitacao.typeRequest != TypeRequest.comando &&
         solicitacao.typeRequest != TypeRequest.ofsInfo &&
-        solicitacao.typeRequest != TypeRequest.docInfo)
+        solicitacao.typeRequest != TypeRequest.docInfo &&
+        solicitacao.typeRequest != TypeRequest.zipInfo &&
+        true) // Placeholder to new criterias
       {
         if(cfg.SAP_OFFLINE)
         {
