@@ -41,7 +41,18 @@ public class HandleMessage
     if (!enviar) return;
     if (message.Length < MAX_TEXT_LENGHT)
     {
-      await bot.SendTextMessageAsync(chatId: id, text: message, parseMode: parsemode);
+      try
+      {
+        await bot.SendTextMessageAsync(chatId: id, text: message, parseMode: parsemode);
+      }
+      catch (Telegram.Bot.Exceptions.ApiRequestException ex)
+      {
+        // Fallback to send plain message if fail to parse markdown
+        if(ex.Message.Contains("can't parse entities", StringComparison.InvariantCultureIgnoreCase))
+            await bot.SendTextMessageAsync(chatId: id, text: message);
+        else
+            throw;
+      }
       return;
     }
     var partial = new System.Text.StringBuilder();
