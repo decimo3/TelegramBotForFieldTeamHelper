@@ -430,7 +430,7 @@ public class HandleAsynchronous
           }
           var bytearray = Convert.FromBase64String(resposta_txt);
           using var memstream = new MemoryStream(bytearray);
-          var filename = solicitacao.information.ToString() + ".zip";
+          var filename = solicitacao.information.ToString() + ".pdf";
           await bot.SendDocumentAsyncWraper(
             solicitacao.identifier,
             memstream,
