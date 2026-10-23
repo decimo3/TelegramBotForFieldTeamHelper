@@ -1,21 +1,12 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using telbot.Services;
 namespace telbot.Helpers;
 public class Executor
 {
-  private static IEnumerable<Process> GetChildProcesses(Process process)
-  {
-    var children = new List<Process>();
-    var queryProcess = $"Select * From Win32_Process Where ParentProcessID={process.Id}";
-    var mos = new System.Management.ManagementObjectSearcher(queryProcess);
-    foreach (var mo in mos.Get())
-    {
-        children.Add(Process.GetProcessById(Convert.ToInt32(mo["ProcessID"])));
-    }
-    return children;
-  }
-  public static String? Executar(String aplicacao, String[] argumentos, Boolean expect_return)
+  public static String? Executar(String aplicacao, String[] argumentos, Boolean expect_return) =>
+      Executor.ExecutarAsync(aplicacao, argumentos, expect_return).Result;
+
+  public static async Task<String?> ExecutarAsync(String aplicacao, String[] argumentos, Boolean expect_return)
   {
     var cfg = Configuration.GetInstance();
     var logger = Logger.GetInstance<Executor>();
@@ -33,37 +24,44 @@ public class Executor
     };
     processo.StartInfo = startInfo;
     processo.Start();
-    using var tempo = new System.Threading.Timer(state => {
-      if(!processo.HasExited)
-      {
-        var mos = GetChildProcesses(processo);
-        foreach (var mo in mos)
-        {
-          mo.Kill();
-        }
-      }
-    }, null, cfg.SAP_ESPERA, Timeout.Infinite);
-    if(expect_return)
+    if(!expect_return) return null;
+    // Consome stdout e stderr simultaneamente para evitar deadlocks.
+    var outputTask = processo.StandardOutput.ReadToEndAsync();
+    var errorTask = processo.StandardError.ReadToEndAsync();
+    using var cts = new CancellationTokenSource(cfg.SAP_ESPERA);
+    try
     {
-      var output = processo.StandardOutput.ReadToEnd();
-      var errput = processo.StandardError.ReadToEnd();
-      processo.WaitForExit();
-      if(processo.ExitCode == 0)
-      {
-        var filteredLines = output
-          .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-          .Where(line => !String.IsNullOrWhiteSpace(line));
-        output = String.Join(Environment.NewLine, filteredLines);
-        logger.LogDebug(output);
-        return output;
-      }
-      else
-      {
-        var erro = new Exception(errput);
-        logger.LogError(erro, "Falha ao executar a aplicação {application}", aplicacao);
-        return errput;
-      }
+      await processo.WaitForExitAsync(cts.Token);
     }
-    return null;
+    catch (OperationCanceledException)
+    {
+      // Encerra o processo principal e seus descendentes.
+      try
+      {
+        if (!processo.HasExited) processo.Kill(entireProcessTree: true);
+      }
+      catch (Exception ex)
+      {
+        logger.LogWarning(ex, "Não foi possível encerrar {application}", aplicacao);
+      }
+      await processo.WaitForExitAsync();
+      await Task.WhenAll(outputTask, errorTask);
+      throw new TimeoutException(
+        $"Tempo limite excedido ao executar {aplicacao}.");
+    }
+    var output = await outputTask;
+    var errput = await errorTask;
+    if(processo.ExitCode == 0)
+    {
+      var filteredLines = output
+        .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+        .Where(line => !String.IsNullOrWhiteSpace(line));
+      output = String.Join(Environment.NewLine, filteredLines);
+      logger.LogDebug(output);
+      return output;
+    }
+    var erro = new Exception(errput);
+    logger.LogError(erro, "Falha ao executar a aplicação {application}", aplicacao);
+    return errput;
   }
 }
