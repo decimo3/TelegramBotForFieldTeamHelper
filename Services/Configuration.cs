@@ -52,7 +52,7 @@ public class Configuration
         continue;
       }
       if(arg.StartsWith("--sap-espera"))
-      { 
+      {
         if(Int32.TryParse(arg.Split("=")[1], out int espera)) SAP_ESPERA = espera * 1000;
         else throw new InvalidOperationException("Argumento 'espera' não está no formato correto! Use the format: '--sap-espera=<segundos_espera>'");
         continue;
@@ -84,8 +84,6 @@ public class Configuration
 
   DOCS_PATH = System.Environment.GetEnvironmentVariable("DOCS_PATH") ??
     throw new InvalidOperationException("Environment variable DOCS_PATH is not set!");
-  if (!System.IO.Directory.Exists(DOCS_PATH))
-    throw new InvalidOperationException("The file path provided on DOCS_PATH is unreachable!");
 
     BOT_TOKEN = System.Environment.GetEnvironmentVariable("BOT_TOKEN") ??
       throw new InvalidOperationException("Environment variable BOT_TOKEN is not set!");
