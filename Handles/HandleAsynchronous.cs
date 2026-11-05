@@ -3,6 +3,7 @@ using telbot.models;
 using telbot.Services;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using System.IO.Compression;
 using System.Text.Json;
 namespace telbot.handle;
 public class HandleAsynchronous
@@ -364,78 +365,32 @@ public class HandleAsynchronous
         case TypeRequest.docInfo:
         {
           var nomeDocumento = solicitacao.message.Split(' ')[1];
-
-          var filtros = new Dictionary<string, Func<DocsModel, bool>>(StringComparer.OrdinalIgnoreCase)
+          var documentsInfo = DocHandler.GetDocuments(nomeDocumento);
+          foreach (var documentInfo in documentsInfo)
           {
-            ["ENEL"] = d => d.parent.Contains("ENEL", StringComparison.OrdinalIgnoreCase),
-            ["LIGHT"] = d => d.parent.Contains("LIGHT", StringComparison.OrdinalIgnoreCase),
-            ["INDICA"] = d => !d.parent.Contains("ENEL", StringComparison.OrdinalIgnoreCase) &&
-                              !d.parent.Contains("LIGHT", StringComparison.OrdinalIgnoreCase)
-          };
-
-          if (filtros.TryGetValue(nomeDocumento, out var filtro))
-          {
-            var documentos = DocHandler.GetDocuments()
-              .Where(filtro).ToList();
-            if (!documentos.Any())
-              throw new InvalidOperationException(
-                "Não foi encontrado nenhum documento com o critério informado!");
-            var agrupamentos = documentos
-              .GroupBy(d => new FileInfo(d.parent).Directory?.Name ?? "Origem desconhecida!")
-              .Select(g => $"{g.Key}:\n\n" +
-                string.Join('\n', g.Select(d => d.filename)))
-              .ToList();
-            foreach (var agrupamento in agrupamentos)
+            if (Path.GetExtension(documentInfo.filename).Equals(".zip", StringComparison.OrdinalIgnoreCase))
             {
-              await bot.sendTextMesssageWraper(
+              using var zipfile = ZipFile.OpenRead(documentInfo.parent);
+              foreach (var entry in zipfile.Entries)
+              {
+                await using var entryStream = entry.Open();
+                await bot.SendDocumentAsyncWraper(
+                  solicitacao.identifier,
+                  entryStream,
+                  entry.Name
+                );
+              }
+            }
+            else
+            {
+              await using var documentStream = File.OpenRead(documentInfo.parent);
+              await bot.SendDocumentAsyncWraper(
                 solicitacao.identifier,
-                $"Lista de documentos da {nomeDocumento.ToUpper()}:\n\n" +
-                    string.Join('\n', agrupamento),
-                markdown: false
+                documentStream,
+                documentInfo.filename
               );
             }
-
-            bot.SucessReport(solicitacao);
-            break;
           }
-
-          var docsInfo = DocHandler.GetDocument(nomeDocumento);
-          await bot.SendDocumentAsyncWraper(
-            solicitacao.identifier,
-            docsInfo.messageId
-          );
-          solicitacao.information = docsInfo.rowid;
-          bot.SucessReport(solicitacao);
-          break;
-        }
-        case TypeRequest.zipInfo:
-        {
-          var argumentos = new String[] {
-            solicitacao.application,
-            solicitacao.information.ToString(),
-          };
-          var resposta_txt = await Executor.ExecutarAsync("zip_bot.exe", argumentos, true);
-
-          if(String.IsNullOrEmpty(resposta_txt))
-            throw new NullReferenceException(
-              $"503: Não foi recebida nenhuma resposta do `ZIP_BOT`!");
-
-          if(regex.Match(resposta_txt).Success)
-            throw new InvalidOperationException(resposta_txt);
-
-          if(!resposta_txt.StartsWith("JVBERi0"))
-            throw new InvalidOperationException("500: Foi recebido um documento inválido!");
-
-          var bytearray = Convert.FromBase64String(resposta_txt);
-          using var memstream = new MemoryStream(bytearray);
-          var filename = solicitacao.information.ToString() + ".pdf";
-          await bot.SendDocumentAsyncWraper(
-            solicitacao.identifier,
-            memstream,
-            filename
-          );
-          logger.LogInformation("Enviado documento de {application}: {information}",
-              solicitacao.application, filename);
           bot.SucessReport(solicitacao);
           break;
         }
