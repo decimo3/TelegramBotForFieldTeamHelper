@@ -1,117 +1,85 @@
 using System.Text.RegularExpressions;
-using telbot.handle;
+using Microsoft.Extensions.Logging;
 using telbot.models;
 using telbot.Services;
 
 namespace telbot.Helpers;
 
-public static class DocHandler
+public class DocHandler
 {
   private static Boolean is_ready = false;
   private static List<DocsModel> _documents = new();
-  private static readonly Regex _identifierRegex = new(@"^(?=.*[A-Z])(?=.*\d)[A-Z0-9]+$");
+  private static readonly Regex _identifierRegex = new(@"^[A-Z0-9]{4,12}$");
   public static async void LoadDocs()
   {
-    var database = Database.GetInstance();
-    var adm_id = Configuration.GetInstance().ID_ADM_BOT;
-    var baseDocs = database.RecuperarDocumento();
-    var docsPath = Configuration.GetInstance().DOCS_PATH;
-    var pathInfo = new System.IO.DirectoryInfo(docsPath);
-    var pdfsInfo = pathInfo.GetFiles("*.pdf", System.IO.SearchOption.AllDirectories);
-    var xlsxInfo = pathInfo.GetFiles("*.xlsx", System.IO.SearchOption.AllDirectories);
-    var docsInfo = pdfsInfo.Concat(xlsxInfo).ToList();
-    foreach (var docInfo in docsInfo)
+    var logger = Logger.GetInstance<DocHandler>();
+    var filepaths = Configuration.GetInstance().DOCS_PATH.Split(',');
+    foreach (var filepath in filepaths)
     {
-      if (System.IO.File.GetAttributes(docInfo.FullName).HasFlag(FileAttributes.Hidden))
+      if (!System.IO.Directory.Exists(filepath))
         throw new InvalidOperationException(
-          $"O arquivo {docInfo.FullName} está oculto!");
-      var docInfoFileName = System.IO.Path.GetFileName(docInfo.FullName) ??
-        throw new InvalidOperationException(
-          $"O nome do arquivo {docInfo.FullName} não pode ser obtido!");
-      var identifier = docInfoFileName.Split(' ').First();
-      if (!_identifierRegex.IsMatch(identifier))
-        throw new InvalidOperationException(
-          $"Não pode obter o identificador válido para o arquivo {docInfo.FullName}!");
-      var baseDoc = baseDocs.FirstOrDefault(b => b.filename.Equals(docInfoFileName, StringComparison.OrdinalIgnoreCase));
-      if (baseDoc is null || docInfo.LastWriteTimeUtc.Date > baseDoc.updatedAt.Date)
+          $"A pasta {filepath} informada em DOCS_PATH está inalcançavel!");
+
+      var files = new System.IO.DirectoryInfo(filepath).GetFiles("*", SearchOption.AllDirectories);
+      foreach (var file in files)
       {
-        using var docStream = new System.IO.FileStream(docInfo.FullName, FileMode.Open, FileAccess.Read);
-        var messageId = await HandleMessage.GetInstance()
-          .SendDocumentAsyncWraper(adm_id, docStream, docInfoFileName) ??
-            throw new InvalidOperationException(
-              $"Não foi possível obter o ID do documento {docInfoFileName}!");
-      // DONE - Case is not found, send to administrator and save on database
-      if (baseDoc is null)
-      {
-        database.InserirDocumento(new DocsModel
+        if (file.Attributes.HasFlag(FileAttributes.Hidden))
         {
-          messageId = messageId,
+          logger.LogWarning("O arquivo {filename} está oculto! Pulando...", file.FullName);
+          continue;
+        }
+        var identifier = (file.Name.Contains(' ') ? file.Name.Split(' ', 2)[0] : file.Name).Replace(file.Extension, "");
+        if (!_identifierRegex.IsMatch(identifier))
+        {
+          logger.LogWarning("O identificador do arquivo {filename} é inválido!", file.FullName);
+          continue;
+        }
+        _documents.Add(new DocsModel
+        {
+          messageId = String.Empty,
           identifier = identifier,
-          filename = docInfoFileName,
-          parent = docInfo.FullName,
-          updatedAt = docInfo.LastWriteTimeUtc.Date
+          filename = file.Name,
+          parent = file.FullName,
+          updatedAt = file.LastWriteTimeUtc.Date
         });
-        continue;
-      }
-      // DONE - Case the remote file is newer that database file, then update
-      if (docInfo.LastWriteTimeUtc.Date > baseDoc.updatedAt.Date)
-      {
-        baseDoc.messageId = messageId;
-        baseDoc.updatedAt = docInfo.LastWriteTimeUtc.Date;
-        database.AlterarDocumento(baseDoc);
-        continue;
-      }
-      }
-      // DONE - Case the remote file is reinserted to the folder, when reenable
-      if (baseDoc.IsOutdated == true)
-      {
-        baseDoc.IsOutdated = false;
-        database.AlterarDocumento(baseDoc);
       }
     }
-    // DONE - Remove information of obsolete instructions
-    var delInfos = baseDocs
-      .Where(b => !docsInfo.Any(d =>
-        System.IO.Path.GetFileName(d.FullName)
-        .Equals(b.filename, StringComparison.OrdinalIgnoreCase)))
-      .ToList();
-    foreach (var delInfo in delInfos)
-    {
-      delInfo.IsOutdated = true;
-      database.AlterarDocumento(delInfo);
-    }
-    // DONE - retrieve updated documents information
-    _documents = database.RecuperarDocumento();
+    logger.LogInformation("Os documentos já foram indexados!");
     is_ready = true;
   }
-  public static DocsModel GetDocument(String text)
+  public static List<DocsModel> GetDocuments(String text)
   {
     if (!is_ready) throw new InvalidOperationException(
         "O sistema não terminou de realizar a indexação, aguarde e solicite em breve!");
-    var doc = _documents.FirstOrDefault(d =>
-      d.identifier.Equals(text, StringComparison.OrdinalIgnoreCase));
-    if (doc is not null)
+    var docs = _documents.Where(d => d.IsOutdated == false &&
+      d.identifier.Equals(text, StringComparison.OrdinalIgnoreCase)).ToList();
+    if (!docs.Any())
     {
-      if(doc.IsOutdated)
-        throw new InvalidOperationException(
-          $"O documento {doc.filename} está obsoleto!");
-      return doc;
+      var related = GetDocList(text);
+      throw new InvalidOperationException(
+        "O documento solicitado não foi encontrado!\n\n" +
+          (related.Any() ? "Possíveis documentos relacionados:\n\n" +
+            String.Join('\n', related) : String.Empty));
     }
-    var documents = _documents.Where(d => d.IsOutdated == false &&
-      d.filename.Contains(text, StringComparison.OrdinalIgnoreCase))
-        .Select(d => d.filename).ToList();
-    throw new InvalidOperationException(
-      "O documento solicitado não foi encontrado!\n\n" +
-        (documents.Any() ? "Possíveis documentos relacionados:\n\n" +
-          String.Join('\n', documents) : String.Empty));
+    return docs;
   }
-  public static List<DocsModel> GetDocuments()
+  public static List<String> GetDocList(string text)
   {
     if (!is_ready) throw new InvalidOperationException(
         "O sistema não terminou de realizar a indexação, aguarde e solicite em breve!");
-    var documents = _documents.Where(d => d.IsOutdated == false).ToList();
-    if (!documents.Any())
-      throw new InvalidOperationException($"Não foi encontrado nenhum documento!");
-    return documents;
+
+    var agrupamentos = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "INDICA", "ENEL", "LIGHT" };
+
+    var documents = agrupamentos.Contains(text) ?
+        _documents.Where(d => d.parent.Contains(text, StringComparison.InvariantCultureIgnoreCase)) :
+        _documents.Where(d => d.filename.Contains(text, StringComparison.InvariantCultureIgnoreCase));
+
+    if (!documents.Any()) throw new InvalidOperationException(
+        "Não foi encontrado nenhum documento com o critério informado!");
+
+    return documents
+      .GroupBy(d => new FileInfo(d.parent).Directory?.Name ?? "Origem desconhecida!")
+      .Select(g => $"{g.Key}:\n\n" + string.Join('\n', g.Select(d => d.filename)))
+      .ToList();
   }
 }
