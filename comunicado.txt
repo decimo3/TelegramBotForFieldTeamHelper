@@ -1,7 +1,5 @@
-# Melhorias no Sistema de Envio de Documentos
+# Correção de erro "can't parse entities" na API do Telegram
 
-O módulo de entrega de documentos foi atualizado para:
-- Inicialização assíncrona, sem atraso;
-- Correção na verificação de novos documentos;
-- Segmentação de mensagens grandes demais;
-- Reativação automática de documentos;
+O programa, ao enviar a lista de documentos, encontrava erros de formatação no nome dos arquivos que causava o erro ApiRequestException.
+
+Para resolver esse problema, foi utilizado recursão, pois a própria função tem fallback de formatação limpa, evitando o erro.
