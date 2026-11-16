@@ -60,14 +60,14 @@ public class HandleMessage
     {
       if ((partial.Length + line.Length) > MAX_TEXT_LENGHT)
       {
-        await bot.SendTextMessageAsync(chatId: id, text: partial.ToString(), parseMode: parsemode);
+        await sendTextMesssageWraper(id, partial.ToString(), markdown: parsemode is not null);
         partial.Clear();
       }
       partial.AppendLine(line);
     }
     if (partial.Length > 0)
     {
-      await bot.SendTextMessageAsync(chatId: id, text: partial.ToString(), parseMode: parsemode);
+      await sendTextMesssageWraper(id, partial.ToString(), markdown: parsemode is not null);
     }
   }
   public async Task<String?> SendDocumentAsyncWraper(long id, Stream stream, string filename)
